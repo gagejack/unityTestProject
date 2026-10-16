@@ -19,10 +19,10 @@ Six block mobs (Dwarf, Giant, Skeleton, Soldier, Warrior, Zombie) that see the p
 - Mob prefab > Target Health: **Hit Points** (how many hits they take).
 
 ## How to test
-F1 > Mobs: pick a mob and click Spawn, then move around, break line of sight behind the Concave Corner Wall, and attack it. Mobs need the baked NavMesh on Test Area. No Play-mode checks exist yet.
+F7 goes to the mob test spot in the Test Area; F1 > Mobs spawns a mob there (mobs need the baked NavMesh on Test Area). Break line of sight behind the Concave Corner Wall and attack it. Three stationary mobs stand on the Gun Range for hit testing. Measured by the mob sequences of the baseline harness.
 
 ## Known limits
 - Mob attacks do not hurt the player (the player has no health).
-- Walk or run is chosen by whether the mob can see you, not by its speed, so feet may slide (hypothesis).
+- Feet slide while chasing, badly for the Giant and Zombie (measured; [feel spec](../FEEL_SPEC.md#mobs)). Likely cause: walk or run is chosen by whether the mob can see you, not by its speed (hypothesis).
 - The Soldier mob plays a rifle animation at range but fires no bullets.
 - No hit reactions or death animation.

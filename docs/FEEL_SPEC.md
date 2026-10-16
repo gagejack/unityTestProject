@@ -1,26 +1,67 @@
 # Feel spec
 
-The single home for numeric feel targets. Each section lists a target, how it is measured, the baseline value and the current value. Play-mode checks read or cite these numbers.
+The single home for numeric feel targets. Values come from the baseline harness (**Tools > Baseline > Run All Sequences (Play Mode)**): fixed action sequences in `Assets/Game/Diagnostics/Sequences/`, played from the test-area start markers with a fixed timestep of 1/30, 1/60 and 1/144 s. Raw per-frame logs and frame captures go to `Logs/Baseline/latest/` (not committed). Metric code: `BaselineMetrics`.
 
-No baseline has been measured yet, so there are no targets. Each section is filled in when its system's baseline is recorded.
+**Baseline** = the migrated, unchanged code (recorded 2026-10-16). **Proposed** targets are suggestions waiting for the owner's approval; nothing is enforced yet. "n/a" means the run lost window focus on all three attempts.
 
-## Movement
-No targets yet.
+How to read the columns: values are listed as 30 / 60 / 144 fps.
 
-## Camera
-No targets yet.
+## Movement (start pad MC-Lane, MC-Open)
+| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+|---|---|---|---|
+| Input to motion | Frames from the first frame a move key is down to the first frame the body moves | 0 / 0 / 0 | Keep 0 |
+| Walk / run top speed | Planar speed at the end of a hold (m/s) | 4.5 / 4.5 / 4.5 and 6.75 / 6.75 / 6.75 | Keep |
+| Walk time to top speed | Seconds until speed stays within 5% of the final value | 0.10 / 0.10 / 0.10 | Keep |
+| Walk stopping distance | Meters travelled after releasing W | 0.11 / 0.14 / 0.17 | Same at all frame rates (±0.02) |
+| Run stopping distance | Same, from a run | 0.30 / 0.35 / 0.38 | Same at all frame rates (±0.02) |
+| Reverse time | Seconds from S pressed (while walking) until settled backwards | 0.03 / 0.02 / 0.01 | Keep |
+| Jump apex | Highest point minus take-off height (m); Jump Height is set to 1.6 | 1.21 / 1.40 / 1.51 | 1.6 ±0.03 at all frame rates |
 
-## Animation
-No targets yet.
+## Animation (same sequences)
+| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+|---|---|---|---|
+| Walk foot slide | While a foot is planted, its travel as % of body travel (0 = foot stays put) | 24 / 27 / 28 % | ≤ 10 % |
+| Run foot slide | Same, running | 51 / 59 / 60 % | ≤ 15 % |
+| Strafe foot slide | Same, strafing right | 27 / 30 / 29 % | ≤ 10 % |
+| Walk arm angle (unarmed) | Upper arm angle out from the body, front view (degrees) | 16 / 16 / 16 | Set after the pose investigation |
+| Input to walk pose | Frames from key down to the walk blend starting | 0 / 0 / 0 | Keep 0 |
 
-## Weapons
-No targets yet.
+## Weapons (start pad GR-Firing, GR-Strafe, GR-Rocket)
+| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+|---|---|---|---|
+| Assault rifle fire rate | Rounds per minute while held; the asset says 0.1 s = 600 | 600 / 563 / 576 | 600 ±1 % at all frame rates |
+| Pistol fire interval | Seconds between shots when clicking every 0.2 s (fire rate 0.24) | 0.40 / 0.40 / 0.40 | Investigate: clicks during cooldown are dropped |
+| Click to shot | Frames from button down to the shot | 0 / 0 / 0 | Keep 0 |
+| Shot to camera kick | Frames from the shot to the camera moving | 1 / 1 / 3 | 0 (kick on the shot frame) |
+| Gun aim error (aiming) | Angle between the barrel and the line from muzzle to the crosshair point (degrees) | AR 1.6, pistol 0.6, launcher 1.5 at every rate | ≤ 0.5 |
+| Support hand gap, walking with rifle | Distance from left hand to its grip point (cm) | 0 / 0 / 0 | Keep 0 |
+| Support hand gap, running with rifle | Same, running | 132 / n/a / 131 | ≤ 5 |
+| Speed while strafing and firing | m/s (rifle movement multiplier and fire slowdown) | 3.04 / n/a / 3.04 | Keep |
 
-## Unarmed
-No targets yet.
+## Unarmed (start pad GR-Melee)
+| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+|---|---|---|---|
+| Click to attack | Frames from click to the attack clip starting | 0 / 0 / 0 | Keep 0 |
+| Attacks started from 8 clicks | Clicks 0.35 s apart | 8 / 8 / 8 | Keep |
+| Hits on the dummy from 8 attacks | Damage events | 6 / 6 / 5 | Same at all frame rates |
+| Click to first hit | Seconds | 0.40 / 0.07 / 0.17 | Same at all frame rates (investigate) |
+| Speed while attacking and walking | m/s | 2.16 / 2.24 / 2.38 | Same at all frame rates |
 
 ## Combat feedback
-No targets yet.
+Covered by the weapon and unarmed rows above (camera kick, hits). No separate targets yet.
 
-## Mobs
-No targets yet.
+## Mobs (start pad TA-Start, player standing still)
+| Mob | Chase speed (m/s) | Foot slide 30 / 60 / 144 | Time to first attack (s) |
+|---|---|---|---|
+| Dwarf | 3.11 | 33 / 39 / 40 % | 2.0 |
+| Giant | 2.64 | 206 / 188 / 131 % | 1.9 |
+| Skeleton | 1.90 | 56 / 56 / 57 % | 3.3 |
+| Soldier | stands and shoots | n/a | 0.0 (in range at spawn) |
+| Warrior | 3.09 | 39 / 36 / 35 % | 2.0 |
+| Zombie | 1.90 | 98 / 98 / 98 % | 3.3 |
+
+Proposed target for mobs: foot slide ≤ 20 %. Over 100 % means the planted foot moves faster than the body: the clip's stride does not match the chase speed.
+
+## Notes on the measures
+- Hand jitter (in the raw logs) is a frame-to-frame second difference and shrinks with frame rate; compare it only at the same frame rate.
+- Foot contact is "within 3 cm of the foot's lowest point in the window", so very short contacts at 30 fps are partly missed.

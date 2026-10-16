@@ -5,6 +5,9 @@ namespace Game.Core
     {
         bool IsAlive { get; }
 
+        /// <summary>Remaining hit points.</summary>
+        float HitPoints { get; }
+
         /// <summary>Applies damage. Returns false when the hit is rejected (already dead, or amount not positive).</summary>
         bool TakeDamage(float amount);
     }

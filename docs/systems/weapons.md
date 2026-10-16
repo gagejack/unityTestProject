@@ -16,11 +16,12 @@ The gun the player holds: equipping, aiming, firing (automatic, semi-automatic, 
 - Player > Weapon Combat Controller: **Aiming Move Speed Multiplier / Shooting Move Speed Multiplier** (how much aiming and firing slow you), **Aim Blend Time** (how quickly aim settles), **Support Hand Weight**.
 
 ## How to test
-F1 > Weapons > Equip any gun, then use the Combat Practice Lane: fire at 5, 15 and 30 m, fire past the Shoulder cover, and fire while strafing. Spawn mobs (F1 > Mobs) to hit characters. No Play-mode checks exist yet.
+F5 goes to the Gun Range; F1 > Weapons equips any gun; F9 resets targets and refills ammo. Fire at 5, 15 and 30 m, crouch behind the low cover, strafe-fire on the strafe lane, track the moving targets, shoot the stationary mobs, and fire a launcher at the blast wall. Measured by the weapon sequences of the baseline harness.
 
 ## Known limits
 - The controller mixes many jobs in one file.
 - Each Soldier animation family takes its clips from the first gun of that family in Offers, so reordering Offers changes animations.
-- Fire rate is tied to frame timing (hypothesis: slower at low frame rates; to be measured).
+- Fire rate depends on frame rate: automatic guns fire slower than their setting at some frame rates, and clicks during the cooldown are dropped (measured; [feel spec](../FEEL_SPEC.md#weapons)).
+- Aimed guns point slightly off the crosshair point, and the support hand leaves the gun while running (measured; [feel spec](../FEEL_SPEC.md#weapons)).
 - 21 pack guns share a material whose texture file was already missing in the original project.
 - There is no holster yet: an unequipped gun is not shown on the body.

@@ -16,7 +16,7 @@ What happens when a shot or a strike lands: the physics query that finds the hit
 - A target's or mob's **Hit Points** and **Hit Flash Duration** are on its Target Health component.
 
 ## How to test
-Hit the Combat Practice Lane targets and spawned mobs with guns and fists; listen for the hitmarker and watch the flash. No Play-mode checks exist yet.
+Hit the Gun Range targets, posts, melee dummy and stationary mobs with guns and fists; each hit shows a floating damage number and the target's remaining hit points. Listen for the hitmarker and watch the flash.
 
 ## Known limits
 - No hit reactions: a hit only flashes the target. Mobs and targets vanish instantly at zero health.

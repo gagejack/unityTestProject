@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba630a4510673a34aaa510316a5d0961, type: 3}
+  m_Name: W04_RocketBlast
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Diagnostics.ActionSequence
+  startMarker: GR-Rocket
+  kind: 2
+  weapon: Bazooka
+  mob: 
+  settleSeconds: 0.75
+  captureFrames: 0
+  steps:
+  - label: level
+    seconds: 0.3
+    keys: 0
+    leftMouse: 0
+    rightMouse: 0
+    clickInterval: 0
+    lookPixels: {x: 0, y: 118}
+  - label: aim
+    seconds: 0.8
+    keys: 0
+    leftMouse: 0
+    rightMouse: 1
+    clickInterval: 0
+    lookPixels: {x: 0, y: 0}
+  - label: fire
+    seconds: 0.1
+    keys: 0
+    leftMouse: 1
+    rightMouse: 1
+    clickInterval: 0
+    lookPixels: {x: 0, y: 0}
+  - label: watch
+    seconds: 2.5
+    keys: 0
+    leftMouse: 0
+    rightMouse: 0
+    clickInterval: 0
+    lookPixels: {x: 0, y: 0}

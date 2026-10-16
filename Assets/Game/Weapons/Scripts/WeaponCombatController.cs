@@ -174,6 +174,16 @@ namespace StarterGame
             BuildHud();
             AttachWeapon();
             RefreshHud();
+            Game.Core.PlayerRequests.RefillAmmoRequested += RefillAmmo;
+        }
+
+        private void RefillAmmo()
+        {
+            if (!HasWeapon) return;
+            reloading = false;
+            ammoInMagazine = CurrentMagazineSize;
+            reserveAmmo = Mathf.Max(0, CurrentWeapon.reserve);
+            RefreshHud();
         }
 
         private void Update()
@@ -230,6 +240,7 @@ namespace StarterGame
 
         private void OnDestroy()
         {
+            Game.Core.PlayerRequests.RefillAmmoRequested -= RefillAmmo;
             if (weaponHud) Destroy(weaponHud.gameObject);
         }
 

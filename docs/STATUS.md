@@ -1,19 +1,22 @@
 # Status
 
-**Checkpoint 2b: project structure (no gameplay changes).**
+**Checkpoint 3: test areas and baseline measurements (no gameplay changes).**
 
 ## Current state
-- Migrated baseline reorganised into one folder per system under `Assets/Game/` (Core, Movement, Camera, Animation, Unarmed, Weapons, Combat, Mobs, DebugMenu, World, Scenes, Editor). Third-party pack files trimmed to what is used, in `Assets/ThirdParty/`. Template leftovers removed. Scene renamed to `Assets/Game/Scenes/Main.unity`.
-- New: Core assembly with `IDamageable` (implemented by `TargetHealth`); editor tools assembly with **Tools > Project > Check Docs**.
-- Docs replaced with the layout in `AGENTS.md`. Systems still reference each other directly; assemblies per system come as each is rebuilt ([decision 0001](decisions/0001-project-structure.md)).
-- Verified: compiles, 0 missing scripts, only the pre-existing broken weapon texture, all 6 mobs spawn/chase/attack/take damage, all 46 guns equip, docs check clean.
+- Gun Range (F5) and Movement Course (F6) built from primitives with labeled start pads; F7 goes to the mob test spot, F9 resets targets and refills ammo. Layout: [TEST_AREAS](TEST_AREAS.md). The old Combat Practice Lane was rebuilt inside the Gun Range.
+- New Core contracts: `CombatEvents` and `PlayerRequests`; movement, camera and weapons gained small listeners (teleport, re-frame, refill). No feel changes.
+- Baseline harness (`Assets/Game/Diagnostics/`): 19 fixed sequences at 30/60/144 fps with a virtual keyboard and mouse, per-frame logs and frame captures. Numbers and proposed targets: [FEEL_SPEC](FEEL_SPEC.md).
 
-## Baseline size (C# lines per system)
-Movement 807, Camera 289, Animation 1,106, Unarmed 168, Weapons 1,435, Combat 585, Mobs 676, Debug menu 374, Core 11, Editor tools 77.
+## Demonstrated by the baseline
+- Jump apex 1.21 / 1.40 / 1.51 m at 30 / 60 / 144 fps (set to 1.6); stopping distance also varies.
+- Assault rifle fires 600 / 563 / 576 rpm (set to 600).
+- Camera kick lands one frame after the shot.
+- Support hand is over a meter off the rifle while running; aimed guns are 0.6–1.6° off the crosshair point.
+- Feet slide: walking ~25 %, running ~55 %; Giant and Zombie mobs ~100–200 %.
+- Click-to-first-hit for punches differs by frame rate (cause unknown).
 
 ## Last feedback
-"I did not mean copy the entire project over. Please follow the instructions in handoff_prompt.md to create a new project structure."
+H toggles holster/draw, and starting a sprint also holsters. Checkpoint after test areas and baseline.
 
 ## Next step (proposed)
-1. Build the gun range and movement course with labeled start markers.
-2. Baseline harness: per-frame log and fixed action sequences at 30/60/144 fps, recorded in `docs/FEEL_SPEC.md`.
+Approve or adjust the proposed targets in FEEL_SPEC, then: interaction analysis and package trade-offs (Animation Rigging, Cinemachine), the mob AI rename, and the first fixes (frame-rate-independent jump and fire rate).

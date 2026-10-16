@@ -19,6 +19,8 @@ A third-person movement and combat prototype with a block-built character, 46 gu
 | Aim | Right mouse |
 | Reload / drop gun / pick up | R / Q / F |
 | Debug menu (equip guns, spawn mobs) | F1 |
+| Go to gun range / movement course / mob test spot | F5 / F6 / F7 |
+| Reset targets and refill ammo | F9 |
 | Free camera | K |
 | Release the mouse | Escape |
 

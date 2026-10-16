@@ -66,6 +66,22 @@ namespace StarterGame
             normalFieldOfView = viewCamera ? viewCamera.fieldOfView : 60f;
             weapons = target ? target.GetComponent<WeaponCombatController>() : null;
             movement = target ? target.GetComponent<CapsuleMovement>() : null;
+            Game.Core.PlayerRequests.TeleportRequested += OnTeleportRequested;
+        }
+
+        private void OnDestroy() => Game.Core.PlayerRequests.TeleportRequested -= OnTeleportRequested;
+
+        private bool snapNextView;
+
+        // Look along the new facing and cut straight to it on the next view update.
+        private void OnTeleportRequested(Vector3 position, Quaternion facing)
+        {
+            yaw = facing.eulerAngles.y;
+            Vector3 viewOffset = thirdPersonOffset - Vector3.up * lookHeight;
+            pitch = Mathf.Clamp(Mathf.Atan2(viewOffset.y, new Vector2(viewOffset.x, viewOffset.z).magnitude)
+                * Mathf.Rad2Deg, minimumPitch, maximumPitch);
+            recoilTarget = recoilOffset = recoilVelocity = Vector2.zero;
+            snapNextView = true;
         }
 
         public void SetThirdPerson(bool value)
@@ -217,7 +233,8 @@ namespace StarterGame
                 wasGrounded = movement.IsGrounded;
             }
             landingDip = Mathf.MoveTowards(landingDip, 0f, dt * maximumLandingDip / 0.15f);
-            UpdateView(false);
+            UpdateView(snapNextView);
+            snapNextView = false;
         }
 
         public void AddRecoil(Vector2 kick, float response, float recovery)

@@ -3,7 +3,7 @@
 ## Systems and ownership
 | System | Folder | Owns | Page |
 |---|---|---|---|
-| Core | `Assets/Game/Core/` | Shared contracts only: `IDamageable`, the project-wide input actions asset | (this page) |
+| Core | `Assets/Game/Core/` | Shared contracts only: `IDamageable`, `CombatEvents` (damage reports), `PlayerRequests` (teleport, refill ammo), the project-wide input actions asset | (this page) |
 | Movement | `Assets/Game/Movement/` | Character position, velocity, movement state (walk, run, jump, crouch, roll, air dash, dive, slide, wall jump), stamina | [movement](systems/movement.md) |
 | Camera | `Assets/Game/Camera/` | View yaw/pitch, aim direction, follow and collision, aim zoom, camera recoil and landing dip, free roam | [camera](systems/camera.md) |
 | Animation | `Assets/Game/Animation/` | The block player character: Humanoid rig, animation graph, special-move poses, block placement, rounding | [animation](systems/animation.md) |
@@ -13,11 +13,13 @@
 | Mobs | `Assets/Game/Mobs/` | The six block mobs: AI, attacks, animation playback, prefabs, test spawner | [mobs](systems/mobs.md) |
 | Debug menu | `Assets/Game/DebugMenu/` | F1 menu (equip, spawn, stamina, camera, audio tabs) and the "menu is open" input gate | this page |
 | World | `Assets/Game/World/` | Grid shader and level materials, NavMesh data | [test areas](TEST_AREAS.md) |
+| Test areas | `Assets/Game/TestAreas/` | Start markers, target reset, moving targets, damage numbers, shortcuts, and the area builder. Own assembly, references Core only | [test areas](TEST_AREAS.md) |
+| Diagnostics | `Assets/Game/Diagnostics/` | Baseline harness: action sequences, per-frame recorder, metrics. A measuring tool that reads the baseline components directly | [feel spec](FEEL_SPEC.md) |
 
 Third-party files used by these systems are in `Assets/ThirdParty/`. Render pipeline settings are in `Assets/Settings/`.
 
 ## Dependencies today
-The code is the migrated baseline. Everything except Core compiles into the default assembly, and systems still call each other directly (arrows read "calls or reads"):
+The gameplay code is the migrated baseline. Apart from Core, test areas and editor tools, it compiles into the default assembly, and systems still call each other directly (arrows read "calls or reads"):
 
 ```mermaid
 flowchart LR
@@ -30,7 +32,11 @@ flowchart LR
     Combat --> Weapons
     Mobs --> Movement & Combat
     Combat --> Core
+    Movement & Camera & Weapons --> Core
+    TestAreas --> Core
 ```
+
+Test areas reach the game only through Core: they raise `PlayerRequests` (movement teleports, the camera re-frames, weapons refill) and listen to `CombatEvents`. Diagnostics is a measuring tool outside the dependency rules; it will read Core contracts instead once the systems it measures are rebuilt.
 
 These loops are why systems cannot have their own assemblies yet. See [decision 0001](decisions/0001-project-structure.md).
 
@@ -48,10 +54,11 @@ The one list of what runs when. A lower number runs earlier within the same phas
 | -100 | `FollowCamera` | Mouse look, free-roam flight | Place the camera (before the character pose is final) |
 | -50 | `MaleWalkRetarget` | Read the unarmed attack click | Evaluate the animation graph, then run-arm tuck, chest aim pitch |
 | -25 | `WeaponCombatController` | Aim, fire input (queues the shot), reload, pickups, HUD | |
-| 0 | `CapsuleMovement` and all scripts without an order | Move the character and set its facing | `MobAttackDriver` animation choice, `StaminaBar` |
+| 0 | `CapsuleMovement` and all scripts without an order | Move the character and set its facing; `TestAreaControls` shortcuts | `MobAttackDriver` animation choice, `StaminaBar`; `BaselineRunner` queues the next frame's test input |
 | 160 | `BlockHumanoidRig` | | Special-move poses, copy bones to blocks, ground the body, punch contact, weapon arm pose |
 | 200 | `PlayerBlockRounding` | | Refresh rounded block meshes |
 | 220 | `CombatFeedback` | | Resolve the queued shot from the final muzzle position, effects |
+| 10000 | `BaselineRecorder` (only during a baseline run) | | Log the final state of the frame |
 
 Known consequence: camera recoil from a shot is applied after the camera has been placed, so it shows one frame later.
 

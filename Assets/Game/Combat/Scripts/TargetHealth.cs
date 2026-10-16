@@ -34,6 +34,7 @@ namespace StarterGame
             flashUntil = Time.time + hitFlashDuration;
             flashing = true;
             SetFlash(true);
+            Game.Core.CombatEvents.RaiseDamaged(new Game.Core.DamageReport(gameObject, amount, hitPoints, transform.position));
             if (hitPoints <= 0f) Destroy(gameObject);
             return true;
         }

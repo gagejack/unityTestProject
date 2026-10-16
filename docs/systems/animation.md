@@ -17,10 +17,11 @@ Makes the block character move: plays walk, run, strafe, idle and fall clips; bl
 - Resize body blocks under Player > Block Body outside Play mode; this does not change the collision capsule.
 
 ## How to test
-Walk, run, strafe and turn on the Test Area ground; crouch, roll and dive on the Parkour Course; equip a gun from F1 and run and aim. No Play-mode checks exist yet.
+Walk, run and strafe on the Movement Course (F6) lane and open area; crouch in the tunnel; equip a gun from F1 and run and aim. Foot slide and arm angles are measured by the baseline harness ([feel spec](../FEEL_SPEC.md#animation)); frame captures land in Logs/Baseline/latest/frames.
 
 ## Known limits (measured during inspection)
 - The block skeleton's shoulders are about twice as far apart as the source character's, so arms hang away from the torso.
 - The avatar's root sits at the body's centre, so hip bob and sway from the clips are almost lost; the rig corrects height by moving the body each frame.
-- While running with a gun, the gun pose and support-hand grip are switched off, so the arms swing freely around the gun.
+- While running with a gun, the gun pose and support-hand grip are switched off, so the arms swing freely around the gun (support hand measured over a meter from its grip).
+- Feet slide noticeably while walking and a lot while running (measured; [feel spec](../FEEL_SPEC.md#animation)).
 - Several pieces of code rotate the same arm bones in one frame (graph, run tuck, special poses, punch contact, weapon pose).

@@ -17,9 +17,9 @@ All on Main Camera > Follow Camera.
 - **Maximum Landing Dip:** how much hard landings bob the view.
 
 ## How to test
-Walk and turn on the Test Area ground; aim and fire at the Combat Practice Lane; walk the camera into the Concave Corner Wall to check it pulls in. No Play-mode checks exist yet.
+Walk and turn in the Movement Course open area (F6); aim and fire on the Gun Range (F5); walk the camera into the Concave Corner Wall in the Test Area to check it pulls in. Camera kick timing is measured by the weapon sequences of the baseline harness ([feel spec](../FEEL_SPEC.md#weapons)).
 
 ## Known limits
-- Shot recoil appears one frame after the shot (see the update order in [architecture](../ARCHITECTURE.md#update-order)).
+- Shot recoil appears one frame after the shot (measured; cause in the update order in [architecture](../ARCHITECTURE.md#update-order)).
 - The collision check allocates memory every frame.
 - The camera reads the debug menu, movement and weapons directly.

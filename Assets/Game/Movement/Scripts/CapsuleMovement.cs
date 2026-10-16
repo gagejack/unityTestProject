@@ -151,6 +151,7 @@ namespace StarterGame
             crouchAction = new InputAction("Crouch", InputActionType.Button);
             crouchAction.AddBinding("<Keyboard>/leftCtrl");
             crouchAction.AddBinding("<Keyboard>/rightCtrl");
+            Game.Core.PlayerRequests.TeleportRequested += OnTeleportRequested;
         }
 
         private void OnEnable()
@@ -188,6 +189,7 @@ namespace StarterGame
 
         private void OnDestroy()
         {
+            Game.Core.PlayerRequests.TeleportRequested -= OnTeleportRequested;
             moveAction.Dispose();
             jumpAction.Dispose();
             rollAction.Dispose();
@@ -599,33 +601,38 @@ namespace StarterGame
             if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f)
                 verticalSpeed = 0f;
 
-            if (transform.position.y < -10f)
-            {
-                controller.enabled = false;
-                transform.position = spawnPosition;
-                horizontalVelocity = Vector3.zero;
-                combatSpeedWeight = 1f;
-                controller.height = standingHeight;
-                controller.center = standingCenter;
-                IsCrouching = false;
-                verticalSpeed = 0f;
-                IsRolling = false;
-                IsAirDashing = false;
-                airDashRemaining = 0f;
-                airDashesSinceGrounded = 0;
-                IsDiving = false;
-                IsSliding = false;
-                SlideSpeed = 0f;
-                cooldownRemaining = 0f;
-                steeringWallJump = false;
-                wallJumpVelocity = Vector3.zero;
-                wallJumpCooldown = 0f;
-                wallJumpsSinceGrounded = 0;
-                lastWallJumpCollider = null;
-                controller.enabled = true;
-                ClearDashMomentum();
-                stamina.Refill();
-            }
+            if (transform.position.y < -10f) ResetTo(spawnPosition, transform.rotation);
+        }
+
+        private void OnTeleportRequested(Vector3 position, Quaternion facing) => ResetTo(position, facing);
+
+        /// <summary>Places the player and clears every movement state, as the fall reset does.</summary>
+        private void ResetTo(Vector3 position, Quaternion facing)
+        {
+            controller.enabled = false;
+            transform.SetPositionAndRotation(position, facing);
+            horizontalVelocity = Vector3.zero;
+            combatSpeedWeight = 1f;
+            controller.height = standingHeight;
+            controller.center = standingCenter;
+            IsCrouching = false;
+            verticalSpeed = 0f;
+            IsRolling = false;
+            IsAirDashing = false;
+            airDashRemaining = 0f;
+            airDashesSinceGrounded = 0;
+            IsDiving = false;
+            IsSliding = false;
+            SlideSpeed = 0f;
+            cooldownRemaining = 0f;
+            steeringWallJump = false;
+            wallJumpVelocity = Vector3.zero;
+            wallJumpCooldown = 0f;
+            wallJumpsSinceGrounded = 0;
+            lastWallJumpCollider = null;
+            controller.enabled = true;
+            ClearDashMomentum();
+            stamina.Refill();
         }
 
         public bool TryAirDash(Vector3 worldDirection)

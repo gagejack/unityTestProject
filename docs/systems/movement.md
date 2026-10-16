@@ -21,10 +21,10 @@ All on Player > Capsule Movement unless noted.
 - Gun aim and fire slow movement down; those settings are on `WeaponCombatController` (see [weapons](weapons.md)).
 
 ## How to test
-Use the Test Area: the open ground for starts, stops and turns; the Parkour Course for jumps, wall jumps, dives and slides. Turn off Infinite Stamina in F1 > Player to test costs. No Play-mode checks exist yet.
+Use the Movement Course (F6): start/stop on the meter lane, slopes, steps, ledges, gaps, the tunnel and wall jumps. Turn off Infinite Stamina in F1 > Player to test costs. Measured by the movement and jump sequences of the baseline harness ([feel spec](../FEEL_SPEC.md#movement)).
 
 ## Known limits
 - Character facing snaps to the camera heading every frame in third person.
-- Jump height depends slightly on frame rate (hypothesis, to be measured).
+- Jump height and stopping distance change with frame rate: jumps are lower at low frame rates (measured; numbers in [feel spec](../FEEL_SPEC.md#movement)).
 - Movement reads the debug menu and weapon and animation state directly (see [architecture](../ARCHITECTURE.md#dependencies-today)).
 - Falling below the world returns the player to the start; there is no health or death.

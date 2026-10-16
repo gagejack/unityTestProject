@@ -1,0 +1,19 @@
+{
+    "name": "Game.TestAreas.Editor",
+    "rootNamespace": "Game.TestAreas.Editor",
+    "references": [
+        "Game.TestAreas",
+        "Game.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
