@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecdd1306e103d643ac5b09a36026dc9, type: 3}
+  m_Name: SoldierBazooka
+  m_EditorClassIdentifier: Assembly-CSharp::StarterGame.WeaponSettings
+  category: 6
+  creator: Kevin Iglesias
+  sourcePack: Human Soldier Animations FREE
+  displayName: SOLDIER BAZOOKA
+  price: 4000
+  magazine: 1
+  reserve: 6
+  fireRate: 1.65
+  triggerMode: 1
+  pumpBackSound: {fileID: 0}
+  pumpForwardSound: {fileID: 0}
+  damage: 120
+  pelletCount: 1
+  range: 100
+  movementMultiplier: 0.65
+  animationFamily: 3
+  model: {fileID: 1683111474475462148, guid: 77bd9fa97cf79cf4093d085643fefa83, type: 3}
+  icon: {fileID: 2800000, guid: f6de68f7e17bf9d4896ca9e6297868f3, type: 3}
+  wallOutlineMaterial: {fileID: 2100000, guid: 114871ba38a2ad24faa9ee3b088c135b, type: 2}
+  animations:
+    aim: {fileID: 7707001963717277441, guid: ddf34426cfa54eb43b42782c3b6523c3, type: 3}
+    shoot: {fileID: 7281070281482435553, guid: 2f02abd89cca74644abb09230ee91b82, type: 3}
+    reload: {fileID: -7221273921338402319, guid: cf8993c80ed8cfe47ae88641193441f1, type: 3}
+    precisionAim: {fileID: 0}
+    precisionShoot: {fileID: 0}
+  gripEuler: {x: 25.921001, y: 92.82082, z: 95.71894}
+  aimedGripEuler: {x: 25.921001, y: 92.82082, z: 95.71894}
+  dualWield: 0
+  leftGripEuler: {x: 0, y: 0, z: 0}
+  leftAimedGripEuler: {x: 0, y: 0, z: 0}
+  leftAimHandOffset: {x: 0, y: 0.1, z: -0.08}
+  aimHandOffset: {x: 0, y: 0.14, z: -0.08}
+  muzzleLocalPosition: {x: -0.000000023696986, y: 0.11023819, z: 0.50701225}
+  supportHand: 1
+  supportHandLocalPosition: {x: -0.020509683, y: 0.005, z: 0.15}
+  supportHandLocalEuler: {x: 277.09747, y: 290.16168, z: 227.32083}
+  hipFireSpread: 3
+  aimedSpread: 0.25
+  bloomPerShot: 0.55
+  maximumBloom: 4
+  fireSound: {fileID: 8300000, guid: a98537918d51770428f1314034a17112, type: 3}
+  loopFireSound: 0
+  shotVariations:
+  - {fileID: 8300000, guid: a98537918d51770428f1314034a17112, type: 3}
+  shotTails: []
+  reloadStages:
+  - {fileID: 8300000, guid: dc159cd35eef8f34ca16c2a347948b91, type: 3}
+  - {fileID: 8300000, guid: 0e62a987cd8ba71459592120ff2f26fc, type: 3}
+  - {fileID: 8300000, guid: 16e30dc43355cf740bc197145fefdff0, type: 3}
+  - {fileID: 8300000, guid: cdae3b170ecf26e4fa1e9a6e4dec6195, type: 3}
+  equipSounds: []
+  aimSounds: []
+  emptySound: {fileID: 8300000, guid: 518117c649a423d43b29e38e577553a0, type: 3}
+  reloadSound: {fileID: 0}
+  reloadCompleteSound: {fileID: 0}
+  impactSound: {fileID: 8300000, guid: 2ef8006fb9c58ec4abb4f6cd906217a9, type: 3}
+  soundVolume: 0.65
+  shotPitch: 0.58
+  flashColor: {r: 1, g: 0.72, b: 0.22, a: 1}
+  flashSize: 0.22
+  cameraKick: {x: 0.12, y: 1.7}
+  weaponKickDistance: 0.04
+  weaponKickAngle: 2
+  kickTime: 0.04
+  recoilRecovery: 0.18
+  firesRocket: 1
+  rocketSpeed: 24
+  blastRadius: 3.5
+  explosionVisualScale: 2
+  explosionSound: {fileID: 8300000, guid: c9330f7fdb6947b408350d570dc862ea, type: 3}

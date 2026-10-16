@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecdd1306e103d643ac5b09a36026dc9, type: 3}
+  m_Name: AR_A_2
+  m_EditorClassIdentifier: Assembly-CSharp::StarterGame.WeaponSettings
+  category: 2
+  creator: CASTLE BRAVO
+  sourcePack: Low Poly AR Weapon Pack 1
+  displayName: AR A 2
+  price: 2800
+  magazine: 30
+  reserve: 180
+  fireRate: 0.072
+  triggerMode: 0
+  pumpBackSound: {fileID: 0}
+  pumpForwardSound: {fileID: 0}
+  damage: 20
+  pelletCount: 1
+  range: 100
+  movementMultiplier: 0.9
+  animationFamily: 1
+  model: {fileID: 6347923212861578820, guid: dda8cebd23ec6da4bbe93325d959e948, type: 3}
+  icon: {fileID: 2800000, guid: 4f82c2a222f171543b7cae0b8df77a44, type: 3}
+  wallOutlineMaterial: {fileID: 2100000, guid: 95a3e90d8cf15bf49bbb1bcee2488e5c, type: 2}
+  animations:
+    aim: {fileID: -57794709565900691, guid: 84781f800961561439ffe31c702436b5, type: 3}
+    shoot: {fileID: -9223175892696770778, guid: 826e405836721cf40be3809da0dc6364, type: 3}
+    reload: {fileID: -6546522387328717478, guid: 50f71b756bdde96479a87b69de66a397, type: 3}
+    precisionAim: {fileID: 0}
+    precisionShoot: {fileID: 0}
+  gripEuler: {x: 29.715996, y: 85.801834, z: 93.82328}
+  aimedGripEuler: {x: 29.715996, y: 85.801834, z: 93.82328}
+  dualWield: 0
+  leftGripEuler: {x: 0, y: 0, z: 0}
+  leftAimedGripEuler: {x: 0, y: 0, z: 0}
+  leftAimHandOffset: {x: 0, y: 0.1, z: -0.08}
+  aimHandOffset: {x: 0, y: 0.28, z: -0.12}
+  muzzleLocalPosition: {x: -0.0004087666, y: 0.1260479, z: 0.9191688}
+  supportHand: 1
+  supportHandLocalPosition: {x: -0.009244459, y: 0.04, z: 0.3}
+  supportHandLocalEuler: {x: 358.2606, y: 11.741058, z: 187.59409}
+  hipFireSpread: 3
+  aimedSpread: 0.25
+  bloomPerShot: 0.55
+  maximumBloom: 4
+  fireSound: {fileID: 8300000, guid: 7a1788b10a259394b9019d21bef463ae, type: 3}
+  loopFireSound: 0
+  shotVariations:
+  - {fileID: 8300000, guid: 7a1788b10a259394b9019d21bef463ae, type: 3}
+  - {fileID: 8300000, guid: 4ae73664f9fa52f41b51a2e050901696, type: 3}
+  - {fileID: 8300000, guid: ada2ae050ed4f114eba3fab31db4313e, type: 3}
+  shotTails:
+  - {fileID: 8300000, guid: a9195d3b8dbaef940af4175ce12d10e3, type: 3}
+  - {fileID: 8300000, guid: 699f3c622cf808749ad5090e05beb115, type: 3}
+  reloadStages:
+  - {fileID: 8300000, guid: 08edb2bef8ffb1f4a8de1858af2f36fb, type: 3}
+  - {fileID: 8300000, guid: ab3d477e689b7c640a37efec61f5a150, type: 3}
+  - {fileID: 8300000, guid: 84b8dc5699eea984d91a0a8e96178771, type: 3}
+  - {fileID: 8300000, guid: d80439cbec359c2429722491566cc218, type: 3}
+  equipSounds:
+  - {fileID: 8300000, guid: 43c1734fa36d1674caeee38cab0f249e, type: 3}
+  - {fileID: 8300000, guid: d0b14abf562284a408a90d207c988ce6, type: 3}
+  aimSounds:
+  - {fileID: 8300000, guid: 065b2c049ac04af40af4bfc9c56a671b, type: 3}
+  - {fileID: 8300000, guid: 14b580bc3375cf6489a46f96c801374d, type: 3}
+  emptySound: {fileID: 8300000, guid: 518117c649a423d43b29e38e577553a0, type: 3}
+  reloadSound: {fileID: 0}
+  reloadCompleteSound: {fileID: 0}
+  impactSound: {fileID: 8300000, guid: 2ef8006fb9c58ec4abb4f6cd906217a9, type: 3}
+  soundVolume: 0.55
+  shotPitch: 0.563
+  flashColor: {r: 1, g: 0.72, b: 0.22, a: 1}
+  flashSize: 0.12
+  cameraKick: {x: 0.12, y: 0.4}
+  weaponKickDistance: 0.04
+  weaponKickAngle: 2
+  kickTime: 0.04
+  recoilRecovery: 0.13
+  firesRocket: 0
+  rocketSpeed: 24
+  blastRadius: 3.5
+  explosionVisualScale: 2
+  explosionSound: {fileID: 0}

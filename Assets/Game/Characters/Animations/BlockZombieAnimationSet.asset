@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d16c6c4f0fd094d48b2e7f146c04753a, type: 3}
+  m_Name: BlockZombieAnimationSet
+  m_EditorClassIdentifier: Assembly-CSharp::StarterGame.Characters.BlockCharacterAnimationSet
+  characterName: Zombie
+  animations:
+  - label: Idle01
+    stateName: Base Layer.Clip_000
+    clip: {fileID: 1942785488916213143, guid: d47b04075336bf94fb3053d613517fc5, type: 3}
+  - label: Attack01
+    stateName: Base Layer.Clip_001
+    clip: {fileID: 1942785488916213143, guid: df45eaf8e6125d74d88e4d605fdf7a40, type: 3}
+  - label: Damage01
+    stateName: Base Layer.Clip_002
+    clip: {fileID: 1942785488916213143, guid: 77edd185276d64a4791549ac2266642e, type: 3}
+  - label: Death01 A
+    stateName: Base Layer.Clip_003
+    clip: {fileID: 1942785488916213143, guid: dab15ef5f6c781b40894c52c4c9938d0, type: 3}
+  - label: Death01 B
+    stateName: Base Layer.Clip_004
+    clip: {fileID: -9175931238977996568, guid: dab15ef5f6c781b40894c52c4c9938d0, type: 3}
+  - label: Idle01 Action01
+    stateName: Base Layer.Clip_005
+    clip: {fileID: -7166771500033037081, guid: 0bbc0899b279757469ab34f7c46f2c04, type: 3}
+  - label: Walk01
+    stateName: Base Layer.Clip_006
+    clip: {fileID: 764570185589334423, guid: 1621ac1817ce8ec4e8f03177b169b81a, type: 3}
+  - label: Walk01 (root motion)
+    stateName: Base Layer.Clip_007
+    clip: {fileID: -4113597564766561022, guid: 1621ac1817ce8ec4e8f03177b169b81a, type: 3}

@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecdd1306e103d643ac5b09a36026dc9, type: 3}
+  m_Name: AutoPistol
+  m_EditorClassIdentifier: Assembly-CSharp::StarterGame.WeaponSettings
+  category: 0
+  creator: Kevin Iglesias
+  sourcePack: Human Soldier Animations FREE
+  displayName: AUTO PISTOL
+  price: 1200
+  magazine: 24
+  reserve: 144
+  fireRate: 0.09
+  triggerMode: 0
+  pumpBackSound: {fileID: 0}
+  pumpForwardSound: {fileID: 0}
+  damage: 13
+  pelletCount: 1
+  range: 55
+  movementMultiplier: 1
+  animationFamily: 0
+  model: {fileID: 6911259687157051056, guid: 6d9201052a9e1914faa0058d24a9a798, type: 3}
+  icon: {fileID: 2800000, guid: caf3b441ea5482440800df429940f0d7, type: 3}
+  wallOutlineMaterial: {fileID: 0}
+  animations:
+    aim: {fileID: 7300238579497392160, guid: d5d65196dad7126438cf6f02f7d3c705, type: 3}
+    shoot: {fileID: 7509725071946486263, guid: d1a32219ce3b7364f88545d8877f8f8f, type: 3}
+    reload: {fileID: 4981891606819842003, guid: bdb80e4d639605e42a7d10532126585d, type: 3}
+    precisionAim: {fileID: 4072314899578035812, guid: a8978c393cae9044dbc5e8ec87c947b4, type: 3}
+    precisionShoot: {fileID: -6735769038492794813, guid: 911184f12339f3b4fa101016c7a3223b, type: 3}
+  gripEuler: {x: 355.30728, y: 89.91009, z: 91.64836}
+  aimedGripEuler: {x: 351.00418, y: 83.551926, z: 92.42254}
+  dualWield: 0
+  leftGripEuler: {x: 0, y: 0, z: 0}
+  leftAimedGripEuler: {x: 0, y: 0, z: 0}
+  leftAimHandOffset: {x: 0, y: 0.1, z: -0.08}
+  aimHandOffset: {x: 0, y: 0.24, z: -0.06}
+  muzzleLocalPosition: {x: 0.001033054, y: 0.08119437, z: 0.24311422}
+  supportHand: 0
+  supportHandLocalPosition: {x: 0, y: 0, z: 0}
+  supportHandLocalEuler: {x: 0, y: 0, z: 0}
+  hipFireSpread: 3
+  aimedSpread: 0.25
+  bloomPerShot: 0.55
+  maximumBloom: 4
+  fireSound: {fileID: 8300000, guid: cf725ad7b8129814ca5a4927b91a02b7, type: 3}
+  loopFireSound: 0
+  shotVariations: []
+  shotTails: []
+  reloadStages: []
+  equipSounds: []
+  aimSounds: []
+  emptySound: {fileID: 8300000, guid: 518117c649a423d43b29e38e577553a0, type: 3}
+  reloadSound: {fileID: 8300000, guid: 637d430fb7830e04ba2cb22f8deac600, type: 3}
+  reloadCompleteSound: {fileID: 8300000, guid: d9040042bd7f4d74bac78d1d81715af5, type: 3}
+  impactSound: {fileID: 8300000, guid: 2ef8006fb9c58ec4abb4f6cd906217a9, type: 3}
+  soundVolume: 0.55
+  shotPitch: 1
+  flashColor: {r: 1, g: 0.72, b: 0.22, a: 1}
+  flashSize: 0.12
+  cameraKick: {x: 0.048, y: 0.32}
+  weaponKickDistance: 0.028
+  weaponKickAngle: 3
+  kickTime: 0.04
+  recoilRecovery: 0.13
+  firesRocket: 0
+  rocketSpeed: 24
+  blastRadius: 3.5
+  explosionVisualScale: 2
+  explosionSound: {fileID: 8300000, guid: 8daa2f82df709f542adda5f2cca02847, type: 3}

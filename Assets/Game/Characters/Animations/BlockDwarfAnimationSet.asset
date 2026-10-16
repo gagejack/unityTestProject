@@ -1,0 +1,262 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d16c6c4f0fd094d48b2e7f146c04753a, type: 3}
+  m_Name: BlockDwarfAnimationSet
+  m_EditorClassIdentifier: Assembly-CSharp::StarterGame.Characters.BlockCharacterAnimationSet
+  characterName: Dwarf
+  animations:
+  - label: Idle01
+    stateName: Base Layer.Clip_000
+    clip: {fileID: -2576967968662016515, guid: a53d031a312ba7645a0da2544a959daf, type: 3}
+  - label: Attack1H01 L
+    stateName: Base Layer.Clip_001
+    clip: {fileID: 3094330708855449807, guid: add66b336c150ef498d68171bfb983d0, type: 3}
+  - label: Attack1H01 R
+    stateName: Base Layer.Clip_002
+    clip: {fileID: 3094330708855449807, guid: f9aac283324ddff42a99957463825411, type: 3}
+  - label: Attack1H02 R
+    stateName: Base Layer.Clip_003
+    clip: {fileID: 4581743459487333738, guid: 77f22393ce1199d42a93f91b7d169562, type: 3}
+  - label: Attack2H01
+    stateName: Base Layer.Clip_004
+    clip: {fileID: 3094330708855449807, guid: 9b72bfaf34cf80a45af18d3f2cb39f19, type: 3}
+  - label: AttackPolearm01
+    stateName: Base Layer.Clip_005
+    clip: {fileID: 3094330708855449807, guid: 1a0192c3bb6d44743bd79bb9fb4304e7, type: 3}
+  - label: AttackShield01
+    stateName: Base Layer.Clip_006
+    clip: {fileID: 3094330708855449807, guid: 1c86aa3cde1655e4991fafbce105f527, type: 3}
+  - label: CombatDamage01
+    stateName: Base Layer.Clip_007
+    clip: {fileID: 3094330708855449807, guid: 446d609ef9975144396f0bbb2907b657, type: 3}
+  - label: CombatIdle01
+    stateName: Base Layer.Clip_008
+    clip: {fileID: 3094330708855449807, guid: 281b56cc57eb6e341acfaa8022617a17, type: 3}
+  - label: CombatIdle1H01
+    stateName: Base Layer.Clip_009
+    clip: {fileID: 3094330708855449807, guid: 442fea9986707394d8ad3191502c772a, type: 3}
+  - label: CombatIdle2H01
+    stateName: Base Layer.Clip_010
+    clip: {fileID: 3094330708855449807, guid: 3cebf97ce7162d1468b17812648f7a51, type: 3}
+  - label: CombatIdlePolearm01
+    stateName: Base Layer.Clip_011
+    clip: {fileID: 3094330708855449807, guid: adca64870022ee74eaa34b17e71df386, type: 3}
+  - label: Death01
+    stateName: Base Layer.Clip_012
+    clip: {fileID: -6298473264308222846, guid: 135b1c9adcd1abf43b58591ab745d2c0, type: 3}
+  - label: Fall01
+    stateName: Base Layer.Clip_013
+    clip: {fileID: 8908273484855622883, guid: 74c36fedb82bba14db9fb00b0b9983eb, type: 3}
+  - label: Idle01-Idle02
+    stateName: Base Layer.Clip_014
+    clip: {fileID: 3094330708855449807, guid: e2cd69ccb67388041b7177c683c8ba97, type: 3}
+  - label: Idle02
+    stateName: Base Layer.Clip_015
+    clip: {fileID: 3094330708855449807, guid: 0a55f8d577c810546972c119eb1b656d, type: 3}
+  - label: Idle02-Idle01
+    stateName: Base Layer.Clip_016
+    clip: {fileID: 3094330708855449807, guid: efa0a5bf4c2913542ac6a86259b91b4d, type: 3}
+  - label: Jump01
+    stateName: Base Layer.Clip_017
+    clip: {fileID: 8973767263969007744, guid: 7badfb8d344d1a84c8a727e953462754, type: 3}
+  - label: Jump01 - Begin
+    stateName: Base Layer.Clip_018
+    clip: {fileID: 3094330708855449807, guid: 01200c6ae6a54df4bbc459102ef34e6a, type: 3}
+  - label: Jump01 - Land
+    stateName: Base Layer.Clip_019
+    clip: {fileID: 3094330708855449807, guid: b681e8db67f60394b951fc39c474228d, type: 3}
+  - label: Jump01 (root motion)
+    stateName: Base Layer.Clip_020
+    clip: {fileID: 5692786936955401851, guid: 8a3bf8660890d0c418c666110b2bed28, type: 3}
+  - label: Jump01 (root motion) - Begin
+    stateName: Base Layer.Clip_021
+    clip: {fileID: 3094330708855449807, guid: 7cdb3dde7ffebd44ca84cae283c0a3c8, type: 3}
+  - label: Jump01 (root motion) - Land
+    stateName: Base Layer.Clip_022
+    clip: {fileID: 3094330708855449807, guid: 270a589ed174bd546b62d834bca7cc0d, type: 3}
+  - label: Run01 Backward
+    stateName: Base Layer.Clip_023
+    clip: {fileID: 3094330708855449807, guid: 949e790912385bf43b82178295cfc3f2, type: 3}
+  - label: Run01 Backward (root motion)
+    stateName: Base Layer.Clip_024
+    clip: {fileID: 3094330708855449807, guid: 285b4603e0a5c054582e7f654560c2ef, type: 3}
+  - label: Run01 BackwardLeft
+    stateName: Base Layer.Clip_025
+    clip: {fileID: 3094330708855449807, guid: d2525d34573f4254593171175bcd1f1a, type: 3}
+  - label: Run01 BackwardLeft (root motion)
+    stateName: Base Layer.Clip_026
+    clip: {fileID: 3094330708855449807, guid: 9eb20dea268301a42bcd43dc8909b66d, type: 3}
+  - label: Run01 BackwardRight
+    stateName: Base Layer.Clip_027
+    clip: {fileID: 3094330708855449807, guid: e00177dcd6052de4d95c20056966ae7e, type: 3}
+  - label: Run01 BackwardRight (root motion)
+    stateName: Base Layer.Clip_028
+    clip: {fileID: 3094330708855449807, guid: 08d575feafc95b5468cfe8e7206c9bf9, type: 3}
+  - label: Run01 Forward
+    stateName: Base Layer.Clip_029
+    clip: {fileID: 3094330708855449807, guid: 33e0c0e9ee9b5c74a94b447e86aa7962, type: 3}
+  - label: Run01 Forward (root motion)
+    stateName: Base Layer.Clip_030
+    clip: {fileID: 3094330708855449807, guid: d1e7c1283c46e6a4fbd5b93a6c45a8dd, type: 3}
+  - label: Run01 ForwardLeft
+    stateName: Base Layer.Clip_031
+    clip: {fileID: 3094330708855449807, guid: 137d136ca22be8247893a9155a1de7bd, type: 3}
+  - label: Run01 ForwardLeft (root motion)
+    stateName: Base Layer.Clip_032
+    clip: {fileID: 3094330708855449807, guid: 22d1b0579516c2445b48713b8c909494, type: 3}
+  - label: Run01 ForwardRight
+    stateName: Base Layer.Clip_033
+    clip: {fileID: 3094330708855449807, guid: 4c32d922b84e6cd4088316b02487c93d, type: 3}
+  - label: Run01 ForwardRight (root motion)
+    stateName: Base Layer.Clip_034
+    clip: {fileID: 3094330708855449807, guid: 48cad3222fa94dd4ea38b67b19c67417, type: 3}
+  - label: Run01 Left
+    stateName: Base Layer.Clip_035
+    clip: {fileID: 3094330708855449807, guid: e3f647a2c0cab314a8ceb87d3073c308, type: 3}
+  - label: Run01 Left (root motion)
+    stateName: Base Layer.Clip_036
+    clip: {fileID: 3094330708855449807, guid: 56ec3fc3487edfc4da9c2d66ba2e03ca, type: 3}
+  - label: Run01 Right
+    stateName: Base Layer.Clip_037
+    clip: {fileID: 3094330708855449807, guid: b0fa926637c0448459fef88fb8aee2b3, type: 3}
+  - label: Run01 Right (root motion)
+    stateName: Base Layer.Clip_038
+    clip: {fileID: 3094330708855449807, guid: b2935cd6f2809e34ea71d889da852ace, type: 3}
+  - label: Sprint01 Forward
+    stateName: Base Layer.Clip_039
+    clip: {fileID: 3094330708855449807, guid: cfd9015a50045af4d84fa8a354719d25, type: 3}
+  - label: Sprint01 Forward (root motion)
+    stateName: Base Layer.Clip_040
+    clip: {fileID: 3094330708855449807, guid: 258c496dac1101045aa94acba991efd4, type: 3}
+  - label: Sprint01 ForwardLeft
+    stateName: Base Layer.Clip_041
+    clip: {fileID: 3094330708855449807, guid: 5430eba395c92704cb62f14d39bb7825, type: 3}
+  - label: Sprint01 ForwardLeft (root motion)
+    stateName: Base Layer.Clip_042
+    clip: {fileID: 3094330708855449807, guid: fb0b58e07c66a2e4abe634845e4b1cc5, type: 3}
+  - label: Sprint01 ForwardRight
+    stateName: Base Layer.Clip_043
+    clip: {fileID: 3094330708855449807, guid: 656f6337ac92d3a4aa9073d3449a8b77, type: 3}
+  - label: Sprint01 ForwardRight (root motion)
+    stateName: Base Layer.Clip_044
+    clip: {fileID: 3094330708855449807, guid: 65c39e991bf1a5d4dac0dafbf1565649, type: 3}
+  - label: Sprint01 Left
+    stateName: Base Layer.Clip_045
+    clip: {fileID: 3094330708855449807, guid: 622b6beb5b8504643a3b874f934c7b50, type: 3}
+  - label: Sprint01 Left (root motion)
+    stateName: Base Layer.Clip_046
+    clip: {fileID: 3094330708855449807, guid: 7b3741182422f45408bb73f4bd8e5f7d, type: 3}
+  - label: Sprint01 Right
+    stateName: Base Layer.Clip_047
+    clip: {fileID: 3094330708855449807, guid: 746d5003eb22c264690ffe8c2ca36416, type: 3}
+  - label: Sprint01 Right (root motion)
+    stateName: Base Layer.Clip_048
+    clip: {fileID: 3094330708855449807, guid: bd4ed5a3e19b4bd49896417ba97f6de2, type: 3}
+  - label: StrafeRun01 BackwardLeft
+    stateName: Base Layer.Clip_049
+    clip: {fileID: -3093763982061039955, guid: 80fbe19a0443c2741bfcd1302fceabcd, type: 3}
+  - label: StrafeRun01 BackwardLeft (root motion)
+    stateName: Base Layer.Clip_050
+    clip: {fileID: -6313650752802900462, guid: 0709e1d51ca6c044c9fc5aefcb5488e4, type: 3}
+  - label: StrafeRun01 BackwardRight
+    stateName: Base Layer.Clip_051
+    clip: {fileID: -2904948948297995288, guid: 00a04fcb7c726f048a775e59cec4d3b6, type: 3}
+  - label: StrafeRun01 BackwardRight (root motion)
+    stateName: Base Layer.Clip_052
+    clip: {fileID: -7072701719231043848, guid: 84d9cd554900c2e4191b7674af234c70, type: 3}
+  - label: StrafeRun01 ForwardLeft
+    stateName: Base Layer.Clip_053
+    clip: {fileID: 2446839127348834666, guid: 4af4624738f0e85459129b1ab7a290a6, type: 3}
+  - label: StrafeRun01 ForwardLeft (root motion)
+    stateName: Base Layer.Clip_054
+    clip: {fileID: 3140941701694642846, guid: 319a9c95e555ade45a70a17b632d7cdf, type: 3}
+  - label: StrafeRun01 ForwardRight
+    stateName: Base Layer.Clip_055
+    clip: {fileID: 8223370510960711957, guid: da398ae25a5e1cb459c66da01cf05e6d, type: 3}
+  - label: StrafeRun01 ForwardRight (root motion)
+    stateName: Base Layer.Clip_056
+    clip: {fileID: 1325547605264807418, guid: 44f8a6b014a46344d8e38ce6fbc706f9, type: 3}
+  - label: StrafeRun01 Left
+    stateName: Base Layer.Clip_057
+    clip: {fileID: 3094330708855449807, guid: 0ef00b05f4d34b647aa11f4955c7b9db, type: 3}
+  - label: StrafeRun01 Left (root motion)
+    stateName: Base Layer.Clip_058
+    clip: {fileID: 3094330708855449807, guid: 1f6737fdf35675e48a4ac657c7c0f71b, type: 3}
+  - label: StrafeRun01 Right
+    stateName: Base Layer.Clip_059
+    clip: {fileID: 3094330708855449807, guid: a3d681ab5872ef247aaa454452c777b4, type: 3}
+  - label: StrafeRun01 Right (root motion)
+    stateName: Base Layer.Clip_060
+    clip: {fileID: 3094330708855449807, guid: 2815f544a8ae9fe438e2f1da80b2d9ea, type: 3}
+  - label: Talk01
+    stateName: Base Layer.Clip_061
+    clip: {fileID: 3094330708855449807, guid: 13ea125498e7a8d4c91c2a9bb443afcf, type: 3}
+  - label: Turn01 Left
+    stateName: Base Layer.Clip_062
+    clip: {fileID: 3094330708855449807, guid: 1f83b99d6235454458652cbc9f0417d9, type: 3}
+  - label: Turn01 Left (root motion)
+    stateName: Base Layer.Clip_063
+    clip: {fileID: 3094330708855449807, guid: 073d4444562039943808097fa674e2a3, type: 3}
+  - label: Turn01 Right
+    stateName: Base Layer.Clip_064
+    clip: {fileID: 3094330708855449807, guid: ea212229ec3d6f0479facd8ad911f7ee, type: 3}
+  - label: Turn01 Right (root motion)
+    stateName: Base Layer.Clip_065
+    clip: {fileID: 3094330708855449807, guid: ea90ff0dbbadee7449be41f3bb408235, type: 3}
+  - label: Walk01 Backward
+    stateName: Base Layer.Clip_066
+    clip: {fileID: 3094330708855449807, guid: 1d0344d8ff8bfe6499ea9124ff6c1d6a, type: 3}
+  - label: Walk01 Backward (root motion)
+    stateName: Base Layer.Clip_067
+    clip: {fileID: 3094330708855449807, guid: 3682e27d6f1424840b4247833281de99, type: 3}
+  - label: Walk01 BackwardLeft
+    stateName: Base Layer.Clip_068
+    clip: {fileID: 3094330708855449807, guid: 148ee9ba4f86a6d408cdebf7e661608d, type: 3}
+  - label: Walk01 BackwardLeft (root motion)
+    stateName: Base Layer.Clip_069
+    clip: {fileID: 3094330708855449807, guid: 633febc0ce0548d43a39dfe981179e16, type: 3}
+  - label: Walk01 BackwardRight
+    stateName: Base Layer.Clip_070
+    clip: {fileID: 3094330708855449807, guid: 613c35f877eb32d4d8fb19ab2fd2182d, type: 3}
+  - label: Walk01 BackwardRight (root motion)
+    stateName: Base Layer.Clip_071
+    clip: {fileID: 3094330708855449807, guid: 8220732aa646f9c41be77eb7a5878a09, type: 3}
+  - label: Walk01 Forward
+    stateName: Base Layer.Clip_072
+    clip: {fileID: 3094330708855449807, guid: 06dbfe98689eee0468b5d32f885f16f5, type: 3}
+  - label: Walk01 Forward (root motion)
+    stateName: Base Layer.Clip_073
+    clip: {fileID: 3094330708855449807, guid: 0adf4b6058fdee1499bc0a767cf66e35, type: 3}
+  - label: Walk01 ForwardLeft
+    stateName: Base Layer.Clip_074
+    clip: {fileID: 3094330708855449807, guid: 23a56a48ab4cf044eb8be63ffcbb2fa4, type: 3}
+  - label: Walk01 ForwardLeft (root motion)
+    stateName: Base Layer.Clip_075
+    clip: {fileID: 3094330708855449807, guid: 2e5be35d7ca28624294c04c7b56429bf, type: 3}
+  - label: Walk01 ForwardRight
+    stateName: Base Layer.Clip_076
+    clip: {fileID: 3094330708855449807, guid: d83b4d83b61fedc4fa78e5e40bc27965, type: 3}
+  - label: Walk01 ForwardRight (root motion)
+    stateName: Base Layer.Clip_077
+    clip: {fileID: 3094330708855449807, guid: 523de184bd3794a438c0ad2e7e6421f7, type: 3}
+  - label: Walk01 Left
+    stateName: Base Layer.Clip_078
+    clip: {fileID: 3094330708855449807, guid: 1cde499d3dd08e948b5dea60b6ff43da, type: 3}
+  - label: Walk01 Left (root motion)
+    stateName: Base Layer.Clip_079
+    clip: {fileID: 3094330708855449807, guid: 5f899505980acdd46b1dc7ad27996ba5, type: 3}
+  - label: Walk01 Right
+    stateName: Base Layer.Clip_080
+    clip: {fileID: 3094330708855449807, guid: a34534a3707ce864daea00b2b10636c3, type: 3}
+  - label: Walk01 Right (root motion)
+    stateName: Base Layer.Clip_081
+    clip: {fileID: 3094330708855449807, guid: 3892706afe98e4e428576368f63d8dc2, type: 3}

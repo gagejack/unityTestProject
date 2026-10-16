@@ -1,24 +1,21 @@
 # Status
 
-**Checkpoint 1: inspection of the original project (no assets copied yet).**
-Source: `C:\Users\gagej\Projects\Unity\My project` (working tree; most of it is uncommitted there).
+**Checkpoint 2: unchanged baseline migrated (no gameplay changes).**
 
 ## Current state
-- Empty URP project (Unity 6000.6.5f1) with the Unity Pipeline package for MCP. Nothing migrated.
-- Original inspected through MCP and source reading only; it was not modified.
+- 844 assets copied from the original with their `.meta` files (GUIDs preserved), at their original paths. Folder reorganisation comes later as its own step.
+- Scene: `Assets/Game/Scenes/SampleScene.unity` (only build scene).
+- Migration-only edits: Mystery Weapon Box removed from the scene (script kept so weapons compile); Spider Drone removed from the mob spawner list; gravity -10 and Run In Background copied from the original.
+- Left behind: spider drone prefab/legs/camera/art, mystery box art, character showcase, all old editor setup/check scripts, unused AR Pack 1 and SMG Pack 3.
+- Smoke test (Play mode): compiles with 0 errors; 0 missing scripts; all 6 mobs spawn, path to the player, attack and accept damage; all 46 catalogue weapons equip; console clean.
 
-## Known problems (from the handoff prompt), verified
-| # | Claim | Result |
-|---|---|---|
-| 1 | WeaponCombatController mixes many jobs | Confirmed: 1,033 lines; firing, reload, HUD building, pickups, points, debug spawn, arm IK, hand pose |
-| 2 | MaleWalkRetarget hand-builds the graph and moves bones in code | Confirmed: 597 lines; graph + run-arm tuck + chest pitch + unarmed attack selection/timing |
-| 3 | Order-dependent work spread across files | Confirmed: 7 explicit orders (-120 to 220); up to 5 writers touch an upper-arm bone per frame. Jitter itself not yet measured |
-| 4 | One ~270-line movement method | Confirmed: `SimulateMovement` is 272 lines |
-| 5 | Overlapping docs | Confirmed: 21 top-level files in `docs/` plus 7 system pages; at least one documented value is stale |
-| 6 | Mob AI lives in `SpiderDroneBrain` | Confirmed: humanoid mobs use Watching/Tracking/Investigating/Searching/Attacking only; pounce states are spider-only |
+## Known issues carried over unchanged
+- 21 pack weapons (AR_*, Pistol_*, Shotgun*, SMG_*) share a material whose texture slot points at a file missing in the original too.
+- Import warnings from the source packs: old ModelImporter versions; Fighting Motions clips report "Transform 'Root' not found" on their avatar setup.
+- NavMesh data still lives at `Assets/Game/Characters/SpiderDrone/Navigation/` (moved during reorganisation).
 
 ## Last feedback
-"continue" (after checkpoint 0). Open questions are listed in the checkpoint summary.
+Bring the debug menu unchanged; bring only the mystery box script; leave the original as it is; asked what Git LFS is (recommended: not needed, largest carried file is 5 MB).
 
 ## Next step
-Checkpoint 2 (proposed): copy assets with GUIDs preserved and get the unchanged baseline running in the new project.
+Checkpoint 3 (proposed): baseline measurement harness (per-frame log + fixed action sequences) run on this unchanged code.

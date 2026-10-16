@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecdd1306e103d643ac5b09a36026dc9, type: 3}
+  m_Name: Classic_SniperRifle
+  m_EditorClassIdentifier: Assembly-CSharp::StarterGame.WeaponSettings
+  category: 4
+  creator: A Cup Of Polygons
+  sourcePack: Low Poly Weapons
+  displayName: CLASSIC SNIPERRIFLE
+  price: 3900
+  magazine: 30
+  reserve: 180
+  fireRate: 1.15
+  triggerMode: 1
+  pumpBackSound: {fileID: 0}
+  pumpForwardSound: {fileID: 0}
+  damage: 75
+  pelletCount: 1
+  range: 150
+  movementMultiplier: 0.8
+  animationFamily: 2
+  model: {fileID: 5986486687453538896, guid: c0486bd70b33c1a43a45cb687465cc06, type: 3}
+  icon: {fileID: 2800000, guid: e65a01fa64a8fb04b98e9915cf3be949, type: 3}
+  wallOutlineMaterial: {fileID: 2100000, guid: f13373f3cf1d8044c85b4b6b6a6b151d, type: 2}
+  animations:
+    aim: {fileID: -1561750860778243614, guid: 9f48806bfc583234ebb98dcd73323854, type: 3}
+    shoot: {fileID: -7620934768546458441, guid: 4779cd213d4f3d14c806ea5b630817f1, type: 3}
+    reload: {fileID: -392741443452813142, guid: 13df193d70211f14592969dc962d1e70, type: 3}
+    precisionAim: {fileID: 0}
+    precisionShoot: {fileID: 0}
+  gripEuler: {x: 26.911602, y: 77.96008, z: 98.87017}
+  aimedGripEuler: {x: 26.911602, y: 77.96008, z: 98.87017}
+  dualWield: 0
+  leftGripEuler: {x: 0, y: 0, z: 0}
+  leftAimedGripEuler: {x: 0, y: 0, z: 0}
+  leftAimHandOffset: {x: 0, y: 0.1, z: -0.08}
+  aimHandOffset: {x: 0, y: 0.22, z: -0.12}
+  muzzleLocalPosition: {x: -0.0024667094, y: 0.08993245, z: 1.017131}
+  supportHand: 1
+  supportHandLocalPosition: {x: -0.010779998, y: 0.04, z: 0.3}
+  supportHandLocalEuler: {x: 4.029285, y: 25.822025, z: 192.33556}
+  hipFireSpread: 3.5
+  aimedSpread: 0.15
+  bloomPerShot: 0.55
+  maximumBloom: 4
+  fireSound: {fileID: 8300000, guid: a42a25bfe713e63498febabb408fceea, type: 3}
+  loopFireSound: 0
+  shotVariations:
+  - {fileID: 8300000, guid: a42a25bfe713e63498febabb408fceea, type: 3}
+  - {fileID: 8300000, guid: b322a4e6a9f59b04a82a3336dde02871, type: 3}
+  - {fileID: 8300000, guid: ae2d2db46850b7c47ab85240cdc448f9, type: 3}
+  shotTails:
+  - {fileID: 8300000, guid: 5efe7e8da212005439ca38f9d1208e4d, type: 3}
+  - {fileID: 8300000, guid: 0f3516a8b2677cd46a4e35d0cabce703, type: 3}
+  reloadStages:
+  - {fileID: 8300000, guid: 0131125a5e370054d8c35f9d76872305, type: 3}
+  - {fileID: 8300000, guid: b36593ecec3d81d4a959516b91c8f25e, type: 3}
+  - {fileID: 8300000, guid: d99d971ec0a16cb40a74f53191fb704b, type: 3}
+  - {fileID: 8300000, guid: 1e33cfc113bf1b945b17141369ca7953, type: 3}
+  - {fileID: 8300000, guid: a9ba81f40042d9a459cc55ed3001caa1, type: 3}
+  equipSounds:
+  - {fileID: 8300000, guid: 22eeebf8ebfe4fe41b78c2508d1f8ea8, type: 3}
+  - {fileID: 8300000, guid: 31297ebcdacc8f04eac0b21df172502c, type: 3}
+  aimSounds:
+  - {fileID: 8300000, guid: 45c44be430237414b8194dd84cfad1d9, type: 3}
+  - {fileID: 8300000, guid: 6032f093d2a47ee4982fa573f7a8257a, type: 3}
+  emptySound: {fileID: 8300000, guid: 518117c649a423d43b29e38e577553a0, type: 3}
+  reloadSound: {fileID: 0}
+  reloadCompleteSound: {fileID: 0}
+  impactSound: {fileID: 8300000, guid: 2ef8006fb9c58ec4abb4f6cd906217a9, type: 3}
+  soundVolume: 0.55
+  shotPitch: 1.092
+  flashColor: {r: 1, g: 0.72, b: 0.22, a: 1}
+  flashSize: 0.22
+  cameraKick: {x: 0.12, y: 1.5}
+  weaponKickDistance: 0.035
+  weaponKickAngle: 3
+  kickTime: 0.04
+  recoilRecovery: 0.14
+  firesRocket: 0
+  rocketSpeed: 24
+  blastRadius: 3.5
+  explosionVisualScale: 2
+  explosionSound: {fileID: 0}

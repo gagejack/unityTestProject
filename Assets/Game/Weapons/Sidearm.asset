@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecdd1306e103d643ac5b09a36026dc9, type: 3}
+  m_Name: Sidearm
+  m_EditorClassIdentifier: Assembly-CSharp::StarterGame.WeaponSettings
+  category: 0
+  creator: Simon Mercuzot
+  sourcePack: Low Poly Weapons VOL.1
+  displayName: M1911 HANDGUN
+  price: 500
+  magazine: 12
+  reserve: 72
+  fireRate: 0.24
+  triggerMode: 1
+  pumpBackSound: {fileID: 0}
+  pumpForwardSound: {fileID: 0}
+  damage: 24
+  pelletCount: 1
+  range: 60
+  movementMultiplier: 1
+  animationFamily: 0
+  model: {fileID: 67857610247600874, guid: d71f5693c3597774ba8cfb4a018abe91, type: 3}
+  icon: {fileID: 2800000, guid: 248244078ef3f334285f954b445b7270, type: 3}
+  wallOutlineMaterial: {fileID: 2100000, guid: 0d9462384dfeef74e985bc6cee3ef550, type: 2}
+  animations:
+    aim: {fileID: 7300238579497392160, guid: d5d65196dad7126438cf6f02f7d3c705, type: 3}
+    shoot: {fileID: 7509725071946486263, guid: d1a32219ce3b7364f88545d8877f8f8f, type: 3}
+    reload: {fileID: 4981891606819842003, guid: bdb80e4d639605e42a7d10532126585d, type: 3}
+    precisionAim: {fileID: 4072314899578035812, guid: a8978c393cae9044dbc5e8ec87c947b4, type: 3}
+    precisionShoot: {fileID: -6735769038492794813, guid: 911184f12339f3b4fa101016c7a3223b, type: 3}
+  gripEuler: {x: 355.30728, y: 89.91009, z: 91.64836}
+  aimedGripEuler: {x: 351.00418, y: 83.551926, z: 92.42254}
+  dualWield: 0
+  leftGripEuler: {x: 0, y: 0, z: 0}
+  leftAimedGripEuler: {x: 0, y: 0, z: 0}
+  leftAimHandOffset: {x: 0, y: 0.1, z: -0.08}
+  aimHandOffset: {x: 0, y: 0.1, z: -0.08}
+  muzzleLocalPosition: {x: 0.000000022895495, y: 0.106563084, z: 0.27623704}
+  supportHand: 0
+  supportHandLocalPosition: {x: -0.045, y: -0.015, z: -0.005}
+  supportHandLocalEuler: {x: 282.97433, y: 305.0725, z: 148.8138}
+  hipFireSpread: 3
+  aimedSpread: 0.25
+  bloomPerShot: 0.55
+  maximumBloom: 4
+  fireSound: {fileID: 8300000, guid: 99348524f0ef5b3469b6d1976f17370c, type: 3}
+  loopFireSound: 0
+  shotVariations:
+  - {fileID: 8300000, guid: 99348524f0ef5b3469b6d1976f17370c, type: 3}
+  - {fileID: 8300000, guid: 0910b552636052c42a5d5fb6d168dc27, type: 3}
+  - {fileID: 8300000, guid: 8115c336b0fa59f41b1cb0af599a2271, type: 3}
+  shotTails:
+  - {fileID: 8300000, guid: cfbfd56219291e849a6a163cb5fc3004, type: 3}
+  - {fileID: 8300000, guid: d22916c763b7929458cfdf209d67f0be, type: 3}
+  reloadStages:
+  - {fileID: 8300000, guid: 3de7713f7dd4a144fb85bdf1efdc1ead, type: 3}
+  - {fileID: 8300000, guid: 6e95c1f9872c66348afdabf419de6f7a, type: 3}
+  - {fileID: 8300000, guid: d715b7c425963954b8732277063971ee, type: 3}
+  - {fileID: 8300000, guid: 8a6916b0948e95a458df68134a4ec9ae, type: 3}
+  - {fileID: 8300000, guid: 0691163014aba1549afecc26fec14ab4, type: 3}
+  equipSounds:
+  - {fileID: 8300000, guid: 2b0c5653779f53f47bdfef4344b73cd6, type: 3}
+  - {fileID: 8300000, guid: 1adebd98321258449a4307c51780352e, type: 3}
+  aimSounds:
+  - {fileID: 8300000, guid: a79f72cbd7279be42bd74394ccfbf31e, type: 3}
+  - {fileID: 8300000, guid: 508fb02395d1ece479c427664be238dd, type: 3}
+  emptySound: {fileID: 8300000, guid: 518117c649a423d43b29e38e577553a0, type: 3}
+  reloadSound: {fileID: 0}
+  reloadCompleteSound: {fileID: 0}
+  impactSound: {fileID: 8300000, guid: 2ef8006fb9c58ec4abb4f6cd906217a9, type: 3}
+  soundVolume: 0.55
+  shotPitch: 1.08
+  flashColor: {r: 1, g: 0.72, b: 0.22, a: 1}
+  flashSize: 0.12
+  cameraKick: {x: 0.12, y: 0.65}
+  weaponKickDistance: 0.028
+  weaponKickAngle: 3
+  kickTime: 0.04
+  recoilRecovery: 0.13
+  firesRocket: 0
+  rocketSpeed: 24
+  blastRadius: 3.5
+  explosionVisualScale: 2
+  explosionSound: {fileID: 0}
