@@ -2,7 +2,7 @@
 
 The single home for numeric feel targets. Values come from the baseline harness (**Tools > Baseline > Run All Sequences (Play Mode)**): fixed action sequences in `Assets/Game/Diagnostics/Sequences/`, played from the test-area start markers with a fixed timestep of 1/30, 1/60 and 1/144 s. Raw per-frame logs and frame captures go to `Logs/Baseline/latest/` (not committed). Metric code: `BaselineMetrics`.
 
-**Baseline** = the migrated, unchanged code (recorded 2026-10-16). **Targets** were approved by the owner on 2026-10-16; Play-mode checks will enforce them as each system is rebuilt. "n/a" means the run lost window focus on all three attempts.
+**Baseline** = the migrated, unchanged code (recorded 2026-10-16). Jump apex baselines were corrected after the metric was fixed to measure from the frame before take-off. An arrow shows the value after a rebuild. **Targets** were approved by the owner on 2026-10-16; Play-mode checks will enforce them as each system is rebuilt. "n/a" means the run lost window focus on all three attempts.
 
 How to read the columns: values are listed as 30 / 60 / 144 fps.
 
@@ -12,11 +12,11 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Input to motion | Frames from the first frame a move key is down to the first frame the body moves | 0 / 0 / 0 | Keep 0 |
 | Walk / run top speed | Planar speed at the end of a hold (m/s) | 4.5 / 4.5 / 4.5 and 6.75 / 6.75 / 6.75 | Keep |
 | Walk time to top speed | Seconds until speed stays within 5% of the final value | 0.10 / 0.10 / 0.10 | Keep |
-| Walk stopping distance | Meters travelled after releasing W | 0.11 / 0.14 / 0.17 | Same at all frame rates (±0.02) |
-| Run stopping distance | Same, from a run | 0.30 / 0.35 / 0.38 | Same at all frame rates (±0.02) |
+| Walk stopping distance | Meters travelled after releasing W | 0.11 / 0.14 / 0.17 → **0.18 / 0.18 / 0.18** after the movement rebuild | Same at all frame rates (±0.02); checked by `MovementFeelTests` (0.18 ±0.02) |
+| Run stopping distance | Same, from a run | 0.30 / 0.35 / 0.38 → **0.405 / 0.405 / 0.405** | Same at all frame rates (±0.02) |
 | Reverse time | Seconds from S pressed (while walking) until settled backwards | 0.03 / 0.02 / 0.01 | Keep |
-| Jump apex | Highest point minus take-off height (m); Jump Height is set to 1.6 | 1.21 / 1.40 / 1.51 | 1.6 ±0.03 at all frame rates |
-| Dive (jump, Caps Lock 0.2 s later) | Seconds from jump to dive start / slide duration (s) / total distance (m) | 0.30, 0.83, 12.0 / 0.30, 0.80, 12.0 / 0.30, 0.80, 12.0 | Keep (recorded after the air dash was removed) |
+| Jump apex | Highest point minus the height just before take-off (m); Jump Height is set to 1.6 | 1.46 / 1.53 / 1.57 → **1.60 / 1.60 / 1.60** | 1.6 ±0.03 at all frame rates; checked by `MovementFeelTests` |
+| Dive (jump, Caps Lock 0.2 s later) | Seconds from jump to dive start / slide duration (s) / total distance (m) | 0.30, 0.83, 12.0 / 0.30, 0.80, 12.0 / 0.30, 0.80, 12.0 → after rebuild distance 12.5 / 12.24 / 12.11 | Keep; the landing frame adds up to one frame of dive travel (known limit) |
 
 ## Animation (same sequences)
 | Metric | Definition | Baseline 30 / 60 / 144 | Target |

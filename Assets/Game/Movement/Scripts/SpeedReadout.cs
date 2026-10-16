@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace StarterGame
+namespace Game.Movement
 {
     /// <summary>Shows the player's horizontal speed in meters per second.</summary>
     public sealed class SpeedReadout : MonoBehaviour

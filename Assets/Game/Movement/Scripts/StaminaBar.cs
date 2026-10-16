@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace StarterGame
+namespace Game.Movement
 {
     public sealed class StaminaBar : MonoBehaviour
     {

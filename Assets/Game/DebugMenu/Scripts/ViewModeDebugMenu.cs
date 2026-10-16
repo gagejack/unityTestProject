@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Core;
+using Game.Movement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,7 +11,7 @@ namespace StarterGame
     public enum PlayerViewMode { FixedCamera, ThirdPerson, FreeRoam }
 
     [DefaultExecutionOrder(-120)]
-    public sealed class ViewModeDebugMenu : MonoBehaviour
+    public sealed class ViewModeDebugMenu : MonoBehaviour, IControlBlocker
     {
         [SerializeField] private CapsuleMovement player;
         [SerializeField] private FollowCamera followCamera;
@@ -305,7 +307,9 @@ namespace StarterGame
             GUILayout.Label(text, WrapStyle());
         }
 
-        private void OnDisable() { PlayerPrefs.Save(); }
+        public bool BlocksPlayerControl => IsOpen;
+        private void OnEnable() => PlayerControl.Register(this);
+        private void OnDisable() { PlayerControl.Unregister(this); PlayerPrefs.Save(); }
 
         private void DrawVolumeControls()
         {

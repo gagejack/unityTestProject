@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace StarterGame
+namespace Game.Movement
 {
     /// <summary>Square stamina fill with a continuous vertical yellow gradient and thin outline.</summary>
     [AddComponentMenu("UI/Stamina Graphic")]

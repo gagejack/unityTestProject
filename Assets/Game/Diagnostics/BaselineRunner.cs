@@ -7,6 +7,7 @@ using System.Text;
 using Game.TestAreas;
 using StarterGame;
 using Game.Mobs;
+using Game.Movement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;

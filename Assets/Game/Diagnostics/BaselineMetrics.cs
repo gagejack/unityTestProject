@@ -85,7 +85,8 @@ namespace Game.Diagnostics
         {
             int press = rows.FindIndex(r => (r.input & (int)HeldKeys.Space) != 0);
             if (press < 0) return;
-            float startY = rows[press].position.y;
+            // The press row already includes the jump frame's rise, so measure from the frame before.
+            float startY = rows[Mathf.Max(0, press - 1)].position.y;
             int leave = Find(rows, press, i => !rows[i].grounded);
             m["jump_apex_m"] = rows.Skip(press).Max(r => r.position.y) - startY;
             int dive = rows.FindIndex(r => r.diving);

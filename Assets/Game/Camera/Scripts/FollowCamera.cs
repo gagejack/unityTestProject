@@ -1,10 +1,12 @@
+using Game.Core;
+using Game.Movement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace StarterGame
 {
     [DefaultExecutionOrder(-100)]
-    public sealed class FollowCamera : MonoBehaviour
+    public sealed class FollowCamera : MonoBehaviour, IViewHeading, IControlBlocker
     {
         [SerializeField] private Transform target;
         [SerializeField] private Vector3 offset = new Vector3(0f, 9f, -12f);
@@ -155,8 +157,14 @@ namespace StarterGame
             Cursor.visible = !captured;
         }
 
+        public bool FacesViewHeading => ThirdPerson;
+        public bool BlocksPlayerControl => IsFlying;
+
+        private void OnEnable() => PlayerControl.Register(this);
+
         private void OnDisable()
         {
+            PlayerControl.Unregister(this);
             IsFlying = false;
             SetMouseCaptured(false);
             if (viewCamera) viewCamera.fieldOfView = normalFieldOfView;

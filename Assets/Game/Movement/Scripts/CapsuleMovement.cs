@@ -1,128 +1,151 @@
+using System.Collections.Generic;
+using Game.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace StarterGame
+namespace Game.Movement
 {
+    /// <summary>
+    /// Owns the player's travel: reads movement input, decides the movement state (walk, run, crouch, jump,
+    /// wall jump, roll, dive, slide) and moves the CharacterController once per frame. Other systems change
+    /// movement only through <see cref="IMovementModifier"/> components on the player and read the result
+    /// from the public state below.
+    /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(PlayerStamina))]
     public sealed class CapsuleMovement : MonoBehaviour
     {
+        [Tooltip("Walking speed in meters per second.")]
         [SerializeField, Min(0f)] private float moveSpeed = 4.5f;
         [Header("Running — double-tap W or hold Shift")]
+        [Tooltip("Running speed as a multiple of walking speed.")]
         [SerializeField, Min(1f)] private float runSpeedMultiplier = 1.5f;
+        [Tooltip("Seconds allowed between two W presses for a double-tap run.")]
         [SerializeField, Range(0.1f, 0.5f)] private float forwardDoubleTapWindow = 0.28f;
-        private bool runRequested;
-        private bool holdRunRequested;
-        private float lastForwardTap = float.NegativeInfinity;
-        public bool IsRunning { get; private set; }
-        public bool FaceCameraDirection { get; set; } = true;
-        private Transform movementCamera;
-        private FollowCamera cameraView;
-        private ViewModeDebugMenu debugMenu;
-        public bool PlayerControlEnabled => (!cameraView || !cameraView.IsFlying) && (!debugMenu || !debugMenu.IsOpen);
-        public Transform MovementCamera
-        {
-            get => movementCamera;
-            set
-            {
-                movementCamera = value;
-                cameraView = value != null ? value.GetComponent<FollowCamera>() : null;
-                debugMenu = cameraView ? cameraView.GetComponent<ViewModeDebugMenu>() : null;
-            }
-        }
-        [Tooltip("Turning speed in fixed-camera mode. Third-person facing follows mouse-look directly.")]
+        [Tooltip("Turning speed in degrees per second in fixed-camera mode. Third-person facing follows mouse-look directly.")]
         [InspectorName("Steering Speed")]
         [SerializeField, Min(0f)] private float turnSpeed = 360f;
-        [Tooltip("Degrees per second when turning toward the camera's aim direction, including while strafing or backing up.")]
+        [Tooltip("Degrees per second when turning toward the aim direction outside third person.")]
         [SerializeField, Min(0f)] private float aimTurnSpeed = 720f;
+        [Tooltip("Height of an ordinary jump in meters, the same at every frame rate.")]
         [SerializeField, Min(0f)] private float jumpHeight = 1.6f;
+        [Tooltip("Downward acceleration in meters per second squared (negative). Stronger gravity feels less floaty.")]
         [SerializeField] private float gravity = -22f;
-        [Tooltip("Midair steering strength: 0 preserves takeoff momentum, 1 gives full control. Also scales dash-jump and wall-jump steering. Ground movement and committed dives are unaffected.")]
+        [Tooltip("Midair steering strength: 0 keeps takeoff momentum, 1 gives full control. Also scales dash-jump and wall-jump steering. Ground movement and dives are unaffected.")]
         [SerializeField, Range(0f, 1f)] private float airControl = 1f;
-        private Vector3 horizontalVelocity;
         [Header("Movement response")]
+        [Tooltip("Seconds to go from standing to walking speed. Lower is snappier.")]
         [SerializeField, Min(0f)] private float accelerationTime = 0.1f;
+        [Tooltip("Seconds to stop from walking speed. Lower stops shorter.")]
         [SerializeField, Min(0f)] private float brakingTime = 0.08f;
+        [Tooltip("Seconds to ease into and out of an attack's slowdown.")]
         [SerializeField, Min(0.01f)] private float combatSlowdownTime = 0.05f;
-        private float combatSpeedWeight = 1f;
-        public bool IsGrounded => controller && controller.isGrounded;
-        public float VerticalVelocity => verticalSpeed;
-        public Vector3 PlanarVelocity => horizontalVelocity;
         [Header("Stamina costs")]
+        [Tooltip("Stamina spent by a dash roll.")]
         [SerializeField, Min(0f)] private float dashStaminaCost = 25f;
+        [Tooltip("Stamina spent by an air dive.")]
         [SerializeField, Min(0f)] private float diveStaminaCost = 20f;
+        [Tooltip("Stamina spent by a jump or wall jump.")]
         [SerializeField, Min(0f)] private float jumpStaminaCost = 10f;
-        private PlayerStamina stamina;
-        private MaleWalkRetarget fightingAnimation;
-        private WeaponCombatController weaponCombat;
-
         [Header("Wall jump")]
         [Tooltip("Maximum successful wall jumps before touching the ground. Set to 0 to disable wall jumps.")]
         [InspectorName("Max Wall Jumps")]
         [SerializeField, Min(0)] private int maxWallJumps = 2;
+        [Tooltip("Height of a wall jump in meters.")]
         [SerializeField, Min(0f)] private float wallJumpHeight = 1.8f;
+        [Tooltip("Push away from the wall in meters per second.")]
         [SerializeField, Min(0f)] private float wallJumpSpeed = 8f;
         [Tooltip("Time for air steering to change horizontal speed by Wall Jump Speed. Lower values respond faster.")]
         [InspectorName("Wall Jump Control Time")]
         [SerializeField, Min(0.05f)] private float wallJumpPushTime = 0.2f;
         [Tooltip("How much camera-relative WASD input affects the initial bounce away from the wall.")]
         [SerializeField, Range(0f, 1f)] private float wallJumpInputInfluence = 0.5f;
-        private bool steeringWallJump;
-        private float wallJumpCooldown;
-        private int wallJumpsSinceGrounded;
-        private Vector3 wallJumpVelocity;
-        private Collider lastWallJumpCollider;
-        private readonly RaycastHit[] wallHits = new RaycastHit[16];
-        private readonly Vector3[] wallNormals = new Vector3[8];
-
         [Header("Crouch")]
+        [Tooltip("Collision capsule height while crouched, in meters.")]
         [SerializeField, Min(0.1f)] private float crouchHeight = 1.3f;
+        [Tooltip("Crouch-walking speed as a fraction of walking speed.")]
         [SerializeField, Range(0f, 1f)] private float crouchSpeedMultiplier = 0.5f;
-        public bool IsCrouching { get; private set; }
-        public float CrouchDrop => standingHeight - controller.height;
-        private float standingHeight;
-        private Vector3 standingCenter;
-        private InputAction crouchAction;
-        private readonly Collider[] standingObstacles = new Collider[32];
-
         [Header("Dash roll")]
+        [Tooltip("Roll speed as a multiple of walking speed.")]
         [SerializeField, Min(0f)] private float dashSpeedMultiplier = 1f;
+        [Tooltip("Seconds a roll lasts.")]
         [SerializeField, Min(0.1f)] private float dashDuration = 0.5f;
+        [Tooltip("Seconds after a roll or slide before the next roll.")]
         [SerializeField, Min(0f)] private float dashCooldown = 0.35f;
-        [Tooltip("How quickly held WASD turns retained dash momentum toward the camera-relative input direction. Releasing input keeps the current velocity.")]
+        [Tooltip("Degrees per second that held WASD turns momentum carried from a roll into the air. Releasing input keeps the current velocity.")]
         [SerializeField, Min(0f)] private float dashAirTurnSpeed = 180f;
-        private bool carryingDashMomentum;
-        private Vector3 dashAirVelocity;
-
         [Header("Air dive")]
+        [Tooltip("Dive speed as a multiple of walking speed. Caps Lock in the air dives; hold S to dive backward.")]
         [SerializeField, Min(0f)] private float diveSpeedMultiplier = 1f;
         [Header("Dive landing slide")]
+        [Tooltip("How quickly the landing slide slows down, in meters per second squared.")]
         [SerializeField, Min(0.1f)] private float slideDeceleration = 26f;
+
+        // ---- State other systems read (calculated once per frame here) ----
+        public bool PlayerControlEnabled => PlayerControl.Enabled;
+        public bool IsGrounded => controller && controller.isGrounded;
+        public float VerticalVelocity => verticalSpeed;
+        public Vector3 PlanarVelocity => horizontalVelocity;
+        public bool IsRunning { get; private set; }
+        public bool IsCrouching { get; private set; }
+        public float CrouchDrop => standingHeight - controller.height;
+        public bool IsRolling { get; private set; }
+        public bool IsDiving { get; private set; }
         public bool IsSliding { get; private set; }
         public float SlideSpeed { get; private set; }
-        public bool IsDiving { get; private set; }
-        public bool IsRolling { get; private set; }
-        public Vector3 RollDirection => carryingDashMomentum && dashAirVelocity.sqrMagnitude > 0.001f
-            ? dashAirVelocity.normalized : rollDirection;
+        public Vector3 RollDirection => carryingDashMomentum && dashAirVelocity.sqrMagnitude > 0.001f ? dashAirVelocity.normalized : rollDirection;
         public bool IsRollingBackward => IsRolling && Vector3.Dot(rollDirection, transform.forward) < 0f;
         public bool IsDivingBackward => (IsDiving || IsSliding) && Vector3.Dot(rollDirection, transform.forward) < 0f;
         public float RollProgress => IsRolling ? Mathf.Clamp01(rollElapsed / activeRollDuration) : 0f;
-        private float rollElapsed;
-        private float activeRollDuration;
-        private float cooldownRemaining;
-        private Vector3 rollDirection;
-        private InputAction rollAction;
-        private CharacterController controller;
-        private InputAction moveAction;
-        private InputAction jumpAction;
-        private float verticalSpeed;
-        private Vector3 spawnPosition;
+
+        /// <summary>Third-person facing: the body faces the view heading. Fixed and parked views turn toward travel instead.</summary>
+        public bool FaceCameraDirection { get; set; } = true;
+
+        /// <summary>The camera the player steers by.</summary>
+        public Transform MovementCamera
+        {
+            get => movementCamera;
+            set { movementCamera = value; view = value ? value.GetComponent<IViewHeading>() : null; }
+        }
+
+        // ---- Collaborators ----
+        CharacterController controller;
+        PlayerStamina stamina;
+        Transform movementCamera;
+        IViewHeading view;
+        readonly List<IMovementModifier> modifiers = new List<IMovementModifier>();
+        InputAction moveAction, jumpAction, rollAction, crouchAction;
+
+        // ---- Movement state ----
+        Vector3 horizontalVelocity;
+        float verticalSpeed;
+        float combatSpeedWeight = 1f;
+        Vector3 spawnPosition;
+        bool runRequested, holdRunRequested;
+        float lastForwardTap = float.NegativeInfinity;
+        float standingHeight;
+        Vector3 standingCenter;
+        readonly Collider[] standingObstacles = new Collider[32];
+        bool steeringWallJump;
+        float wallJumpCooldown;
+        int wallJumpsSinceGrounded;
+        Vector3 wallJumpVelocity;
+        Collider lastWallJumpCollider;
+        readonly RaycastHit[] wallHits = new RaycastHit[16];
+        readonly Vector3[] wallNormals = new Vector3[8];
+        bool carryingDashMomentum;
+        Vector3 dashAirVelocity;
+        float rollElapsed, activeRollDuration, cooldownRemaining;
+        Vector3 rollDirection;
+
+        // ---- This frame's combined modifier effect ----
+        float directSpeedMultiplier = 1f, easedSpeedTarget = 1f;
+        bool runningBlocked, committedMovesBlocked, momentumLimited;
 
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
             stamina = GetComponent<PlayerStamina>();
-            fightingAnimation = GetComponent<MaleWalkRetarget>();
-            weaponCombat = GetComponent<WeaponCombatController>();
+            GetComponents(modifiers);
             standingHeight = controller.height;
             standingCenter = controller.center;
             spawnPosition = transform.position;
@@ -139,12 +162,12 @@ namespace StarterGame
             crouchAction = new InputAction("Crouch", InputActionType.Button);
             crouchAction.AddBinding("<Keyboard>/leftCtrl");
             crouchAction.AddBinding("<Keyboard>/rightCtrl");
-            Game.Core.PlayerRequests.TeleportRequested += OnTeleportRequested;
+            PlayerRequests.TeleportRequested += ResetTo;
         }
 
         private void OnEnable()
         {
-            Game.Core.PlayerPresence.Register(transform);
+            PlayerPresence.Register(transform);
             moveAction.Enable();
             jumpAction.Enable();
             rollAction.Enable();
@@ -153,7 +176,7 @@ namespace StarterGame
 
         private void OnDisable()
         {
-            Game.Core.PlayerPresence.Unregister(transform);
+            PlayerPresence.Unregister(transform);
             runRequested = holdRunRequested = IsRunning = false;
             lastForwardTap = float.NegativeInfinity;
             horizontalVelocity = Vector3.zero;
@@ -162,13 +185,10 @@ namespace StarterGame
             jumpAction.Disable();
             rollAction.Disable();
             crouchAction.Disable();
-            IsRolling = false;
-            IsDiving = false;
-            IsSliding = false;
+            IsRolling = IsDiving = IsSliding = false;
             SlideSpeed = 0f;
             cooldownRemaining = 0f;
-            steeringWallJump = false;
-            wallJumpVelocity = Vector3.zero;
+            EndWallJumpSteering();
             wallJumpCooldown = 0f;
             lastWallJumpCollider = null;
             ClearDashMomentum();
@@ -176,156 +196,110 @@ namespace StarterGame
 
         private void OnDestroy()
         {
-            Game.Core.PlayerRequests.TeleportRequested -= OnTeleportRequested;
+            PlayerRequests.TeleportRequested -= ResetTo;
             moveAction.Dispose();
             jumpAction.Dispose();
             rollAction.Dispose();
             crouchAction.Dispose();
         }
 
-        private void UpdateCrouch()
-        {
-            bool requested = PlayerControlEnabled && crouchAction.IsPressed();
-            if (!requested && IsCrouching && !CanStand()) requested = true;
-            if (requested == IsCrouching) return;
-            IsCrouching = requested;
-            float height = requested ? Mathf.Clamp(crouchHeight, controller.radius * 2f, standingHeight) : standingHeight;
-            // Keep the bottom of the collision capsule at the same world height.
-            controller.height = height;
-            controller.center = standingCenter - Vector3.up * ((standingHeight - height) * 0.5f);
-        }
-
-        private bool CanStand()
-        {
-            Vector3 scale = transform.lossyScale;
-            float radius = Mathf.Max(0.01f, controller.radius - controller.skinWidth) * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
-            float halfHeight = standingHeight * Mathf.Abs(scale.y) * 0.5f;
-            Vector3 center = transform.TransformPoint(standingCenter);
-            Vector3 offset = transform.up * Mathf.Max(0f, halfHeight - controller.radius * Mathf.Abs(scale.y));
-            int count = Physics.OverlapCapsuleNonAlloc(center - offset, center + offset, radius,
-                standingObstacles, Physics.AllLayers, QueryTriggerInteraction.Ignore);
-            if (count == standingObstacles.Length) return false;
-            for (int i = 0; i < count; i++)
-            {
-                Collider obstacle = standingObstacles[i];
-                if (obstacle.transform.IsChildOf(transform) ||
-                    Physics.GetIgnoreLayerCollision(gameObject.layer, obstacle.gameObject.layer) ||
-                    Physics.GetIgnoreCollision(controller, obstacle)) continue;
-                return false;
-            }
-            return true;
-        }
-
-        private bool TryWallJump(Vector3 requestedDirection)
-        {
-            if (controller.isGrounded || wallJumpCooldown > 0f ||
-                wallJumpsSinceGrounded >= maxWallJumps) return false;
-            Vector3 scale = transform.lossyScale;
-            float radius = controller.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
-            float skin = controller.skinWidth * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
-            Vector3 center = transform.TransformPoint(controller.center);
-            Vector3 extent = Vector3.up * Mathf.Max(0f, controller.height * Mathf.Abs(scale.y) * 0.5f - radius);
-            int normalCount = 0;
-            Vector3 outward = Vector3.zero;
-            Collider jumpWall = null;
-            float closestWall = float.PositiveInfinity;
-            // Probe current contact, rather than retaining a stale collision from a previous frame.
-            for (int side = 0; side < 8; side++)
-            {
-                Vector3 probe = Quaternion.Euler(0f, side * 45f, 0f) * Vector3.forward;
-                int hits = Physics.CapsuleCastNonAlloc(center - extent, center + extent,
-                    Mathf.Max(0.01f, radius - skin), probe, wallHits, skin + 0.07f,
-                    Physics.AllLayers, QueryTriggerInteraction.Ignore);
-                for (int i = 0; i < hits; i++)
-                {
-                    RaycastHit hit = wallHits[i];
-                    if (hit.collider.transform.IsChildOf(transform) || Mathf.Abs(hit.normal.y) > 0.2f ||
-                        Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer) ||
-                        Physics.GetIgnoreCollision(controller, hit.collider)) continue;
-                    if (hit.collider != lastWallJumpCollider && hit.distance < closestWall)
-                    {
-                        jumpWall = hit.collider;
-                        closestWall = hit.distance;
-                    }
-                    Vector3 normal = Vector3.ProjectOnPlane(hit.normal, Vector3.up).normalized;
-                    bool duplicate = false;
-                    for (int n = 0; n < normalCount; n++)
-                        if (Vector3.Dot(normal, wallNormals[n]) > 0.95f) duplicate = true;
-                    if (duplicate || normalCount == wallNormals.Length) continue;
-                    wallNormals[normalCount++] = normal;
-                    outward += normal;
-                }
-            }
-            if (normalCount == 0 || jumpWall == null) return false;
-            if (!stamina.TrySpend(jumpStaminaCost)) return false;
-            outward.Normalize();
-            // Start with a push away from the wall, then add the player's held input.
-            // Into-wall input brakes the bounce instead of being reflected into a full-strength push.
-            Vector3 launch = outward * wallJumpSpeed + requestedDirection * moveSpeed * wallJumpInputInfluence * Mathf.Clamp01(airControl);
-            for (int n = 0; n < normalCount; n++)
-            {
-                float separationSpeed = Vector3.Dot(launch, wallNormals[n]);
-                if (separationSpeed < 1f)
-                    launch += wallNormals[n] * (1f - separationSpeed);
-            }
-            lastWallJumpCollider = jumpWall;
-            if (fightingAnimation) fightingAnimation.CancelFightingMotion();
-            wallJumpVelocity = launch;
-            wallJumpsSinceGrounded++;
-            steeringWallJump = true;
-            ClearDashMomentum();
-            wallJumpCooldown = Mathf.Max(0.05f, wallJumpPushTime) + 0.1f;
-            verticalSpeed = Mathf.Sqrt(wallJumpHeight * -2f * gravity);
-            IsRolling = IsDiving = IsSliding = false;
-            SlideSpeed = 0f;
-            transform.rotation = Quaternion.LookRotation(launch.normalized);
-            return true;
-        }
-
-        private void OnControllerColliderHit(ControllerColliderHit hit)
-        {
-            if (Mathf.Abs(hit.normal.y) > 0.2f) return;
-            Vector3 normal = Vector3.ProjectOnPlane(hit.normal, Vector3.up).normalized;
-            if (steeringWallJump)
-            {
-                float intoWall = Vector3.Dot(wallJumpVelocity, normal);
-                if (intoWall < 0f) wallJumpVelocity -= normal * intoWall;
-            }
-            if (carryingDashMomentum)
-            {
-                float intoWall = Vector3.Dot(dashAirVelocity, normal);
-                if (intoWall < 0f) dashAirVelocity -= normal * intoWall;
-            }
-        }
-
-        private void ClearDashMomentum()
-        {
-            carryingDashMomentum = false;
-            dashAirVelocity = Vector3.zero;
-        }
-
-        private void CaptureDashMomentum()
-        {
-            carryingDashMomentum = true;
-            dashAirVelocity = rollDirection * (moveSpeed * dashSpeedMultiplier);
-        }
-
         private void Update()
         {
+            ReadModifiers(Time.deltaTime);
             var keyboard = Keyboard.current;
             UpdateRunInput(Time.unscaledTime, keyboard != null && keyboard.wKey.wasPressedThisFrame,
                 keyboard != null && keyboard.wKey.isPressed,
                 keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed));
-            SimulateMovement(Time.deltaTime, moveAction.ReadValue<Vector2>(),
-                jumpAction.WasPressedThisFrame(), rollAction.WasPressedThisFrame());
+            Step(Time.deltaTime, moveAction.ReadValue<Vector2>(), jumpAction.WasPressedThisFrame(), rollAction.WasPressedThisFrame());
         }
 
-        private void UpdateRunInput(float now, bool forwardPressed, bool forwardHeld, bool runModifierHeld)
+        /// <summary>One frame of movement: decide the state, then move the capsule once.</summary>
+        void Step(float dt, Vector2 moveInput, bool jumpPressed, bool rollPressed)
         {
-            bool blocked = !PlayerControlEnabled || !Application.isFocused || IsCrouching || IsRolling || IsDiving || IsSliding ||
-                (weaponCombat && (weaponCombat.IsAiming || weaponCombat.IsReloading || weaponCombat.IsRecoveringFromShot || weaponCombat.ShootingMovementMultiplier < 0.999f)) ||
-                (fightingAnimation && fightingAnimation.IsAttacking);
-            // Either Shift key can request sprinting while W is held.
+            if (dt <= 0f) return;
+            if (!PlayerControlEnabled) { moveInput = Vector2.zero; jumpPressed = rollPressed = false; }
+            // Steering and walking stay available; only an attack's swing commits jump, roll and crouch.
+            if (committedMovesBlocked) jumpPressed = rollPressed = false;
+            AdvanceTimers(dt);
+            if (!committedMovesBlocked && !IsRolling && !IsDiving && !IsSliding) UpdateCrouch();
+
+            Vector2 input = Vector2.ClampMagnitude(new Vector2(Mathf.Clamp(moveInput.x, -1f, 1f), Mathf.Clamp(moveInput.y, -1f, 1f)), 1f);
+            bool grounded = controller.isGrounded;
+            if (grounded) ResetAirAllowances();
+            if (grounded && verticalSpeed < 0f) verticalSpeed = -2f;
+
+            Vector3 forward = Heading();
+            Vector3 direction = forward * input.y + Vector3.Cross(Vector3.up, forward) * input.x;
+            if (!IsRolling && !IsDiving && !IsSliding)
+            {
+                UpdateFacing(forward, direction, dt);
+                SteerDashMomentum(direction, dt);
+            }
+
+            if (rollPressed && !grounded) TryStartDive(input, forward);
+            if (rollPressed && grounded) TryStartRoll(direction);
+            if (jumpPressed)
+            {
+                if (grounded) TryJump();
+                else TryWallJump(direction);
+            }
+
+            UpdateRunning(input);
+            combatSpeedWeight = Mathf.MoveTowards(combatSpeedWeight, easedSpeedTarget, dt / Mathf.Max(0.01f, combatSlowdownTime));
+            Vector3 requestedVelocity = direction * moveSpeed * (IsRunning ? runSpeedMultiplier : 1f) *
+                combatSpeedWeight * directSpeedMultiplier * (IsCrouching ? crouchSpeedMultiplier : 1f);
+
+            Vector3 endVelocity = TravelVelocity(dt, grounded, direction, requestedVelocity, out Vector3 horizontalStep);
+            bool slidingThisFrame = IsSliding;
+            horizontalStep = CommittedMoveStep(dt, direction, horizontalStep);
+            // Retained dash or wall-jump momentum cannot bypass an attack's speed limit.
+            if (momentumLimited) horizontalStep = Vector3.ClampMagnitude(horizontalStep, moveSpeed * combatSpeedWeight * dt);
+
+            // Exact constant-acceleration step: the same jump height at every frame rate.
+            Vector3 verticalStep = Vector3.up * (verticalSpeed * dt + 0.5f * gravity * dt * dt);
+            verticalSpeed += gravity * dt;
+
+            Vector3 before = transform.position;
+            CollisionFlags collisions = controller.Move(horizontalStep + verticalStep);
+            KeepVelocityAfterMove(transform.position - before, horizontalStep, endVelocity, dt);
+            ResolveCollisions(collisions, slidingThisFrame);
+            if (transform.position.y < -10f) ResetTo(spawnPosition, transform.rotation);
+        }
+
+        // ---------------------------------------------------------------- Modifiers and input
+
+        void ReadModifiers(float dt)
+        {
+            directSpeedMultiplier = easedSpeedTarget = 1f;
+            runningBlocked = committedMovesBlocked = momentumLimited = false;
+            foreach (var modifier in modifiers)
+            {
+                if (modifier is Behaviour b && !b.isActiveAndEnabled) continue;
+                if (modifier.EaseSpeedChange) easedSpeedTarget *= Mathf.Clamp01(modifier.SpeedMultiplier);
+                else directSpeedMultiplier *= Mathf.Clamp01(modifier.SpeedMultiplier);
+                runningBlocked |= modifier.BlocksRunning;
+                committedMovesBlocked |= modifier.BlocksCommittedMoves;
+                momentumLimited |= modifier.LimitsMomentum;
+            }
+        }
+
+        void Announce(MovementAction action)
+        {
+            foreach (var modifier in modifiers) modifier.OnMovementAction(action);
+        }
+
+        bool TryGetModifierFacing(out Vector3 planarForward)
+        {
+            foreach (var modifier in modifiers)
+                if (!(modifier is Behaviour b && !b.isActiveAndEnabled) && modifier.TryGetFacing(out planarForward)) return true;
+            planarForward = Vector3.zero;
+            return false;
+        }
+
+        void UpdateRunInput(float now, bool forwardPressed, bool forwardHeld, bool runModifierHeld)
+        {
+            bool blocked = !PlayerControlEnabled || !Application.isFocused || IsCrouching || IsRolling || IsDiving || IsSliding || runningBlocked;
+            // Either Shift key can request running while W is held.
             holdRunRequested = !blocked && forwardHeld && runModifierHeld;
             if (blocked)
             {
@@ -340,18 +314,51 @@ namespace StarterGame
             lastForwardTap = doubleTap ? float.NegativeInfinity : now;
         }
 
-        private void SimulateMovement(float dt, Vector2 moveInput, bool jumpPressed, bool rollPressed)
+        void UpdateRunning(Vector2 input)
         {
-            if (dt <= 0f) return;
-            if (!PlayerControlEnabled)
+            bool canRun = PlayerControlEnabled && input.y > 0.1f && !IsCrouching && !IsRolling && !IsDiving && !IsSliding && !runningBlocked;
+            if (!canRun) runRequested = holdRunRequested = false;
+            IsRunning = (runRequested || holdRunRequested) && canRun;
+        }
+
+        // ---------------------------------------------------------------- Heading and facing
+
+        // This frame's view heading, independent of camera follow smoothing and pitch.
+        Vector3 Heading()
+        {
+            Vector3 forward = FaceCameraDirection && view != null && view.FacesViewHeading ? view.PlanarForward
+                : movementCamera ? Vector3.ProjectOnPlane(movementCamera.forward, Vector3.up).normalized
+                : Vector3.forward;
+            if (forward.sqrMagnitude < 0.001f) forward = view != null ? view.PlanarForward : Vector3.forward;
+            return forward;
+        }
+
+        void UpdateFacing(Vector3 forward, Vector3 direction, float dt)
+        {
+            bool directView = FaceCameraDirection && view != null && view.FacesViewHeading;
+            if (TryGetModifierFacing(out Vector3 aimForward))
             {
-                moveInput = Vector2.zero;
-                jumpPressed = rollPressed = false;
+                var aim = Quaternion.LookRotation(aimForward.sqrMagnitude > 0.001f ? aimForward : forward);
+                // Mouse-facing movement keeps the same direct response when aiming starts.
+                transform.rotation = directView ? aim : Quaternion.RotateTowards(transform.rotation, aim, aimTurnSpeed * dt);
             }
-            bool attackCommitted = fightingAnimation && fightingAnimation.IsAttackCommitted;
-            // Keep steering and walking available. Only the swing itself commits jump/dash/crouch.
-            if (attackCommitted) jumpPressed = rollPressed = false;
-            // Capture before the roll timer expires, including a dash that just left a ledge.
+            else if (FaceCameraDirection) transform.rotation = Quaternion.LookRotation(forward);
+            else if (direction.sqrMagnitude > 0.001f)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), turnSpeed * dt);
+        }
+
+        void SteerDashMomentum(Vector3 direction, float dt)
+        {
+            if (carryingDashMomentum && direction.sqrMagnitude > 0.001f)
+                dashAirVelocity = Vector3.RotateTowards(dashAirVelocity, direction * dashAirVelocity.magnitude,
+                    dashAirTurnSpeed * Mathf.Clamp01(airControl) * Mathf.Deg2Rad * dt, 0f);
+        }
+
+        // ---------------------------------------------------------------- Timers and allowances
+
+        void AdvanceTimers(float dt)
+        {
+            // Capture before the roll timer expires, including a roll that just left a ledge.
             if (IsRolling && !controller.isGrounded && !carryingDashMomentum) CaptureDashMomentum();
             wallJumpCooldown = Mathf.Max(0f, wallJumpCooldown - dt);
             cooldownRemaining = Mathf.Max(0f, cooldownRemaining - dt);
@@ -360,209 +367,308 @@ namespace StarterGame
                 IsRolling = false;
                 cooldownRemaining = dashCooldown;
             }
-            if (!attackCommitted && !IsRolling && !IsDiving && !IsSliding)
-                UpdateCrouch();
-            Vector2 input = new Vector2(Mathf.Clamp(moveInput.x, -1f, 1f), Mathf.Clamp(moveInput.y, -1f, 1f));
-            bool grounded = controller.isGrounded;
-            if (grounded)
+        }
+
+        void ResetAirAllowances()
+        {
+            lastWallJumpCollider = null;
+            wallJumpsSinceGrounded = 0;
+            EndWallJumpSteering();
+            ClearDashMomentum();
+        }
+
+        // ---------------------------------------------------------------- Committed moves
+
+        void TryJump()
+        {
+            // Jumping works throughout a grounded roll; the roll's momentum carries into the air.
+            if (IsDiving || IsSliding || !stamina.TrySpend(jumpStaminaCost)) return;
+            Announce(MovementAction.Jump);
+            verticalSpeed = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            if (IsRolling) CaptureDashMomentum();
+        }
+
+        void TryStartRoll(Vector3 direction)
+        {
+            if (IsRolling || IsDiving || IsSliding || IsCrouching || cooldownRemaining > 0f || !stamina.TrySpend(dashStaminaCost)) return;
+            IsRolling = true;
+            Announce(MovementAction.Roll);
+            EndWallJumpSteering();
+            rollElapsed = 0f;
+            activeRollDuration = Mathf.Max(0.1f, dashDuration);
+            if (!FaceCameraDirection && direction.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(direction);
+            rollDirection = direction.sqrMagnitude > 0.001f ? direction.normalized : transform.forward;
+        }
+
+        // Caps Lock in the air: a committed dive from exactly where the player is (no upward impulse).
+        // A fresh press can also turn a roll that left a ledge into a dive. Hold S to dive backward.
+        void TryStartDive(Vector2 input, Vector3 forward)
+        {
+            if (IsCrouching || IsDiving || IsSliding || !stamina.TrySpend(diveStaminaCost)) return;
+            IsRolling = false;
+            IsDiving = true;
+            Announce(MovementAction.Dive);
+            ClearDashMomentum();
+            EndWallJumpSteering();
+            // A backward dive launches away from the view heading while the body keeps facing forward.
+            bool backward = input.y < -0.1f;
+            if (backward) transform.rotation = Quaternion.LookRotation(forward);
+            rollDirection = backward ? -forward : transform.forward;
+            verticalSpeed = Mathf.Min(verticalSpeed, 0f);
+        }
+
+        bool TryWallJump(Vector3 requestedDirection)
+        {
+            if (controller.isGrounded || wallJumpCooldown > 0f || wallJumpsSinceGrounded >= maxWallJumps) return false;
+            if (!FindWall(out Vector3 outward, out int normalCount, out Collider wall)) return false;
+            if (!stamina.TrySpend(jumpStaminaCost)) return false;
+            // Push away from the wall, then add held input. Input into the wall brakes the bounce
+            // instead of being reflected into a full-strength push.
+            Vector3 launch = outward * wallJumpSpeed + requestedDirection * moveSpeed * wallJumpInputInfluence * Mathf.Clamp01(airControl);
+            for (int n = 0; n < normalCount; n++)
             {
-                lastWallJumpCollider = null;
-                wallJumpsSinceGrounded = 0;
-                steeringWallJump = false;
-                wallJumpVelocity = Vector3.zero;
-                ClearDashMomentum();
+                float separationSpeed = Vector3.Dot(launch, wallNormals[n]);
+                if (separationSpeed < 1f) launch += wallNormals[n] * (1f - separationSpeed);
             }
+            lastWallJumpCollider = wall;
+            Announce(MovementAction.WallJump);
+            wallJumpVelocity = launch;
+            wallJumpsSinceGrounded++;
+            steeringWallJump = true;
+            ClearDashMomentum();
+            wallJumpCooldown = Mathf.Max(0.05f, wallJumpPushTime) + 0.1f;
+            verticalSpeed = Mathf.Sqrt(wallJumpHeight * -2f * gravity);
+            IsRolling = IsDiving = IsSliding = false;
+            SlideSpeed = 0f;
+            transform.rotation = Quaternion.LookRotation(launch.normalized);
+            return true;
+        }
 
-            if (grounded && verticalSpeed < 0f)
-                verticalSpeed = -2f;
-
-            // Use this frame's mouse heading, independent of camera follow smoothing and pitch.
-            Vector3 forward = FaceCameraDirection && cameraView != null && cameraView.ThirdPerson
-                ? cameraView.PlanarForward
-                : MovementCamera != null
-                    ? Vector3.ProjectOnPlane(MovementCamera.forward, Vector3.up).normalized
-                    : Vector3.forward;
-            if (forward.sqrMagnitude < 0.001f) forward = cameraView ? cameraView.PlanarForward : Vector3.forward;
-            Vector3 right = Vector3.Cross(Vector3.up, forward);
-            Vector2 planarInput = Vector2.ClampMagnitude(input, 1f);
-            Vector3 direction = forward * planarInput.y + right * planarInput.x;
-            if (!IsRolling && !IsDiving && !IsSliding)
+        // Probes current wall contact around the capsule rather than trusting a stale collision.
+        bool FindWall(out Vector3 outward, out int normalCount, out Collider jumpWall)
+        {
+            Vector3 scale = transform.lossyScale;
+            float radius = controller.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+            float skin = controller.skinWidth * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+            Vector3 center = transform.TransformPoint(controller.center);
+            Vector3 extent = Vector3.up * Mathf.Max(0f, controller.height * Mathf.Abs(scale.y) * 0.5f - radius);
+            normalCount = 0;
+            outward = Vector3.zero;
+            jumpWall = null;
+            float closestWall = float.PositiveInfinity;
+            for (int side = 0; side < 8; side++)
             {
-                if (weaponCombat && weaponCombat.IsAiming)
+                Vector3 probe = Quaternion.Euler(0f, side * 45f, 0f) * Vector3.forward;
+                int hits = Physics.CapsuleCastNonAlloc(center - extent, center + extent, Mathf.Max(0.01f, radius - skin), probe,
+                    wallHits, skin + 0.07f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+                for (int i = 0; i < hits; i++)
                 {
-                    Quaternion aimRotation = Quaternion.LookRotation(weaponCombat.AimPlanarForward.sqrMagnitude > 0.001f
-                        ? weaponCombat.AimPlanarForward : forward);
-                    // Mouse-facing movement keeps the same direct response when aim starts.
-                    transform.rotation = FaceCameraDirection && cameraView != null && cameraView.ThirdPerson
-                        ? aimRotation : Quaternion.RotateTowards(transform.rotation, aimRotation, aimTurnSpeed * dt);
-                }
-                else if (FaceCameraDirection)
-                    transform.rotation = Quaternion.LookRotation(forward);
-                else if (direction.sqrMagnitude > 0.001f)
-                    transform.rotation = Quaternion.RotateTowards(transform.rotation,
-                        Quaternion.LookRotation(direction), turnSpeed * dt);
-
-                if (carryingDashMomentum && direction.sqrMagnitude > 0.001f)
-                    dashAirVelocity = Vector3.RotateTowards(dashAirVelocity, direction * dashAirVelocity.magnitude,
-                        dashAirTurnSpeed * Mathf.Clamp01(airControl) * Mathf.Deg2Rad * dt, 0f);
-            }
-            // Caps Lock in the air starts a committed dive (hold S to dive backward).
-            // Air dives begin exactly where the player is: no teleport or upward impulse.
-            // A fresh press can also turn a roll that left a ledge into a dive.
-            if (!grounded && !IsCrouching && !IsDiving && !IsSliding && rollPressed && stamina.TrySpend(diveStaminaCost))
-            {
-                IsRolling = false;
-                IsDiving = true;
-                if (fightingAnimation) fightingAnimation.CancelFightingMotion();
-                ClearDashMomentum();
-                steeringWallJump = false;
-                wallJumpVelocity = Vector3.zero;
-                // S launches away from the camera heading while keeping the body facing
-                // forward, including in fixed/parked views that normally turn toward WASD.
-                bool backwardDive = input.y < -0.1f;
-                if (backwardDive) transform.rotation = Quaternion.LookRotation(forward);
-                rollDirection = backwardDive ? -forward : transform.forward;
-                verticalSpeed = Mathf.Min(verticalSpeed, 0f);
-            }
-
-            if (!IsRolling && !IsDiving && !IsSliding && !IsCrouching && grounded && cooldownRemaining <= 0f && rollPressed && stamina.TrySpend(dashStaminaCost))
-            {
-                IsRolling = true;
-                if (fightingAnimation) fightingAnimation.CancelFightingMotion();
-                steeringWallJump = false;
-                wallJumpVelocity = Vector3.zero;
-                rollElapsed = 0f;
-                activeRollDuration = Mathf.Max(0.1f, dashDuration);
-                if (!FaceCameraDirection && direction.sqrMagnitude > 0.001f)
-                    transform.rotation = Quaternion.LookRotation(direction);
-                rollDirection = direction.sqrMagnitude > 0.001f ? direction.normalized : transform.forward;
-            }
-
-            if (jumpPressed)
-            {
-                if (grounded)
-                {
-                    // Jumping is available throughout a grounded dash; its forward motion
-                    // and roll animation continue for the rest of the dash duration.
-                    if (!IsDiving && !IsSliding && stamina.TrySpend(jumpStaminaCost))
+                    RaycastHit hit = wallHits[i];
+                    if (hit.collider.transform.IsChildOf(transform) || Mathf.Abs(hit.normal.y) > 0.2f ||
+                        Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer) ||
+                        Physics.GetIgnoreCollision(controller, hit.collider)) continue;
+                    if (hit.collider != lastWallJumpCollider && hit.distance < closestWall)
                     {
-                        if (fightingAnimation) fightingAnimation.CancelFightingMotion();
-                        verticalSpeed = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                        if (IsRolling) CaptureDashMomentum();
+                        jumpWall = hit.collider;
+                        closestWall = hit.distance;
                     }
+                    Vector3 normal = Vector3.ProjectOnPlane(hit.normal, Vector3.up).normalized;
+                    bool duplicate = false;
+                    for (int n = 0; n < normalCount; n++) if (Vector3.Dot(normal, wallNormals[n]) > 0.95f) duplicate = true;
+                    if (duplicate || normalCount == wallNormals.Length) continue;
+                    wallNormals[normalCount++] = normal;
+                    outward += normal;
                 }
-                else
-                    TryWallJump(direction);
             }
+            if (normalCount == 0 || jumpWall == null) return false;
+            outward.Normalize();
+            return true;
+        }
 
-            float attackSpeed = fightingAnimation ? fightingAnimation.AttackMovementMultiplier : 1f;
-            float shootingSpeed = weaponCombat ? weaponCombat.ShootingMovementMultiplier : 1f;
-            float aimingSpeed = weaponCombat ? weaponCombat.AimingMovementMultiplier : 1f;
-            float weaponSpeed = weaponCombat ? weaponCombat.EquippedMovementMultiplier : 1f;
-            bool canRun = PlayerControlEnabled && input.y > 0.1f && !IsCrouching && !IsRolling && !IsDiving && !IsSliding &&
-                !(fightingAnimation && fightingAnimation.IsAttacking) &&
-                !(weaponCombat && (weaponCombat.IsAiming || weaponCombat.IsReloading || weaponCombat.IsRecoveringFromShot || shootingSpeed < 0.999f));
-            if (!canRun) runRequested = holdRunRequested = false;
-            IsRunning = (runRequested || holdRunRequested) && canRun;
-            combatSpeedWeight = Mathf.MoveTowards(combatSpeedWeight, attackSpeed, dt / Mathf.Max(0.01f, combatSlowdownTime));
-            Vector3 requestedVelocity = direction * moveSpeed * (IsRunning ? runSpeedMultiplier : 1f) *
-                combatSpeedWeight * weaponSpeed * aimingSpeed * shootingSpeed * (IsCrouching ? crouchSpeedMultiplier : 1f);
+        void EndWallJumpSteering()
+        {
+            steeringWallJump = false;
+            wallJumpVelocity = Vector3.zero;
+        }
+
+        void ClearDashMomentum()
+        {
+            carryingDashMomentum = false;
+            dashAirVelocity = Vector3.zero;
+        }
+
+        void CaptureDashMomentum()
+        {
+            carryingDashMomentum = true;
+            dashAirVelocity = rollDirection * (moveSpeed * dashSpeedMultiplier);
+        }
+
+        // ---------------------------------------------------------------- Integration
+
+        /// <summary>
+        /// Ordinary walking/running/air travel. Returns the velocity at the end of the frame and the step for this frame.
+        /// On the ground, speed changes at a constant rate and the step is integrated exactly, so start and stopping
+        /// distances are the same at every frame rate.
+        /// </summary>
+        Vector3 TravelVelocity(float dt, bool grounded, Vector3 direction, Vector3 requestedVelocity, out Vector3 step)
+        {
             if (grounded)
             {
-                // Turn immediately; ease speed only so steering stays responsive.
+                // Turn immediately; ease speed only, so steering stays responsive.
                 float targetSpeed = requestedVelocity.magnitude;
                 float currentSpeed = horizontalVelocity.magnitude;
                 float response = targetSpeed > currentSpeed ? accelerationTime : brakingTime;
-                float easedSpeed = response <= 0f ? targetSpeed : Mathf.MoveTowards(currentSpeed, targetSpeed, moveSpeed * dt / response);
-                horizontalVelocity = direction.sqrMagnitude > 0.000001f ? direction.normalized * easedSpeed
-                    : horizontalVelocity.normalized * easedSpeed;
+                Vector3 heading = direction.sqrMagnitude > 0.000001f ? direction.normalized : horizontalVelocity.normalized;
+                if (response <= 0f)
+                {
+                    step = heading * (targetSpeed * dt);
+                    return heading * targetSpeed;
+                }
+                float rate = moveSpeed / response;
+                float reachTime = Mathf.Abs(targetSpeed - currentSpeed) / Mathf.Max(0.0001f, rate);
+                float endSpeed = Mathf.MoveTowards(currentSpeed, targetSpeed, rate * dt);
+                float distance = reachTime >= dt
+                    ? (currentSpeed + endSpeed) * 0.5f * dt
+                    : (currentSpeed + targetSpeed) * 0.5f * reachTime + targetSpeed * (dt - reachTime);
+                step = heading * distance;
+                return heading * endSpeed;
             }
-            else
-            {
-                float control = Mathf.Clamp01(airControl);
-                // Preserve the original immediate response at full control. Lower values
-                // accelerate toward input instead of reducing takeoff speed.
-                horizontalVelocity = control >= 1f ? requestedVelocity : Vector3.MoveTowards(
-                    horizontalVelocity, requestedVelocity,
-                    moveSpeed * 5f * control / Mathf.Max(0.001f, 1f - control) * dt);
-            }
-            Vector3 horizontalStep = horizontalVelocity * dt;
+            float control = Mathf.Clamp01(airControl);
+            // Full control keeps the immediate response; lower values accelerate toward input instead.
+            Vector3 next = control >= 1f ? requestedVelocity : Vector3.MoveTowards(horizontalVelocity, requestedVelocity,
+                moveSpeed * 5f * control / Mathf.Max(0.001f, 1f - control) * dt);
+            step = control >= 1f ? next * dt : (horizontalVelocity + next) * (0.5f * dt);
+            return next;
+        }
+
+        /// <summary>Rolls, carried dash momentum, dives, landing slides and wall-jump steering replace ordinary travel.</summary>
+        Vector3 CommittedMoveStep(float dt, Vector3 direction, Vector3 step)
+        {
             if (IsRolling)
             {
-                // Clamp the last step so dash distance is independent of frame rate.
+                // Clamp the last step so roll distance is independent of frame rate.
                 float rollStep = Mathf.Min(dt, activeRollDuration - rollElapsed);
-                horizontalStep = rollDirection * (moveSpeed * dashSpeedMultiplier) * rollStep;
-                // Keep full airborne velocity even on the frame containing the end of the roll.
-                if (carryingDashMomentum) horizontalStep = dashAirVelocity * dt;
+                step = carryingDashMomentum ? dashAirVelocity * dt : rollDirection * (moveSpeed * dashSpeedMultiplier) * rollStep;
                 rollElapsed += rollStep;
             }
-            else if (carryingDashMomentum)
+            else if (carryingDashMomentum) step = dashAirVelocity * dt;
+            if (IsDiving) step = rollDirection * (moveSpeed * diveSpeedMultiplier) * dt;
+            if (IsSliding)
             {
-                horizontalStep = dashAirVelocity * dt;
-            }
-            if (IsDiving)
-                horizontalStep = rollDirection * (moveSpeed * diveSpeedMultiplier) * dt;
-            bool slidingThisFrame = IsSliding;
-            if (slidingThisFrame)
-            {
-                // Integrate constant friction, including a partial final frame.
+                // Constant friction, including a partial final frame.
                 float friction = Mathf.Max(0.1f, slideDeceleration);
                 float slideTime = Mathf.Min(dt, SlideSpeed / friction);
                 float nextSpeed = Mathf.Max(0f, SlideSpeed - friction * slideTime);
-                horizontalStep = rollDirection * ((SlideSpeed + nextSpeed) * 0.5f * slideTime);
+                step = rollDirection * ((SlideSpeed + nextSpeed) * 0.5f * slideTime);
                 SlideSpeed = nextSpeed;
             }
             if (steeringWallJump)
             {
-                Vector3 targetVelocity = direction * moveSpeed * (IsCrouching ? crouchSpeedMultiplier : 1f);
+                Vector3 target = direction * moveSpeed * (IsCrouching ? crouchSpeedMultiplier : 1f);
                 float acceleration = Mathf.Max(1f, wallJumpSpeed) / Mathf.Max(0.05f, wallJumpPushTime);
-                Vector3 previousVelocity = wallJumpVelocity;
+                Vector3 previous = wallJumpVelocity;
                 if (direction.sqrMagnitude > 0.000001f)
-                    wallJumpVelocity = Vector3.MoveTowards(previousVelocity, targetVelocity, acceleration * Mathf.Clamp01(airControl) * dt);
-                horizontalStep = (previousVelocity + wallJumpVelocity) * (0.5f * dt);
+                    wallJumpVelocity = Vector3.MoveTowards(previous, target, acceleration * Mathf.Clamp01(airControl) * dt);
+                step = (previous + wallJumpVelocity) * (0.5f * dt);
             }
-            // Retained dash/wall-jump momentum cannot bypass the attack speed limit.
-            if (fightingAnimation && fightingAnimation.IsAttacking)
-                horizontalStep = Vector3.ClampMagnitude(horizontalStep, moveSpeed * combatSpeedWeight * dt);
-            verticalSpeed += gravity * dt;
-            Vector3 verticalStep = Vector3.up * verticalSpeed * dt;
-            Vector3 beforeMove = transform.position;
-            CollisionFlags collisions = controller.Move(horizontalStep + verticalStep);
-            // Retain actual motion, including wall collisions, for the next airborne frame.
-            horizontalVelocity = Vector3.ProjectOnPlane((transform.position - beforeMove) / dt, Vector3.up);
+            return step;
+        }
 
-            if ((collisions & CollisionFlags.Below) != 0)
+        // Keep the end-of-frame speed, reduced in proportion when a wall or slope shortened the step,
+        // and follow the direction actually travelled (sliding along walls).
+        void KeepVelocityAfterMove(Vector3 moved, Vector3 intendedStep, Vector3 endVelocity, float dt)
+        {
+            Vector3 actual = Vector3.ProjectOnPlane(moved, Vector3.up) / dt;
+            Vector3 intended = Vector3.ProjectOnPlane(intendedStep, Vector3.up) / dt;
+            if (intended.sqrMagnitude < 0.000001f || IsRolling || IsDiving || IsSliding || steeringWallJump || carryingDashMomentum)
+            {
+                horizontalVelocity = actual;
+                return;
+            }
+            float kept = Mathf.Clamp01(actual.magnitude / intended.magnitude);
+            Vector3 heading = actual.sqrMagnitude > 0.000001f ? actual.normalized : endVelocity.normalized;
+            horizontalVelocity = heading * (endVelocity.magnitude * kept);
+        }
+
+        void ResolveCollisions(CollisionFlags collisions, bool slidingThisFrame)
+        {
+            bool below = (collisions & CollisionFlags.Below) != 0;
+            if (below)
             {
                 wallJumpsSinceGrounded = 0;
                 ClearDashMomentum();
             }
-
-            if (IsDiving && (collisions & CollisionFlags.Below) != 0)
+            if (IsDiving && below)
             {
                 IsDiving = false;
                 IsSliding = true;
                 SlideSpeed = moveSpeed * diveSpeedMultiplier;
                 verticalSpeed = -2f;
             }
-
-            if (IsSliding && ((collisions & CollisionFlags.Sides) != 0 ||
-                (slidingThisFrame && (SlideSpeed <= 0f || (collisions & CollisionFlags.Below) == 0))))
+            if (IsSliding && ((collisions & CollisionFlags.Sides) != 0 || (slidingThisFrame && (SlideSpeed <= 0f || !below))))
             {
                 IsSliding = false;
                 SlideSpeed = 0f;
                 cooldownRemaining = dashCooldown;
             }
-
-            if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f)
-                verticalSpeed = 0f;
-
-            if (transform.position.y < -10f) ResetTo(spawnPosition, transform.rotation);
+            if ((collisions & CollisionFlags.Above) != 0 && verticalSpeed > 0f) verticalSpeed = 0f;
         }
 
-        private void OnTeleportRequested(Vector3 position, Quaternion facing) => ResetTo(position, facing);
+        void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            if (Mathf.Abs(hit.normal.y) > 0.2f) return;
+            // Walls remove momentum that points into them.
+            Vector3 normal = Vector3.ProjectOnPlane(hit.normal, Vector3.up).normalized;
+            if (steeringWallJump)
+            {
+                float intoWall = Vector3.Dot(wallJumpVelocity, normal);
+                if (intoWall < 0f) wallJumpVelocity -= normal * intoWall;
+            }
+            if (carryingDashMomentum)
+            {
+                float intoWall = Vector3.Dot(dashAirVelocity, normal);
+                if (intoWall < 0f) dashAirVelocity -= normal * intoWall;
+            }
+        }
 
-        /// <summary>Places the player and clears every movement state, as the fall reset does.</summary>
-        private void ResetTo(Vector3 position, Quaternion facing)
+        // ---------------------------------------------------------------- Crouch
+
+        void UpdateCrouch()
+        {
+            bool requested = PlayerControlEnabled && crouchAction.IsPressed();
+            if (!requested && IsCrouching && !CanStand()) requested = true;
+            if (requested == IsCrouching) return;
+            IsCrouching = requested;
+            float height = requested ? Mathf.Clamp(crouchHeight, controller.radius * 2f, standingHeight) : standingHeight;
+            // Keep the bottom of the collision capsule at the same world height.
+            controller.height = height;
+            controller.center = standingCenter - Vector3.up * ((standingHeight - height) * 0.5f);
+        }
+
+        bool CanStand()
+        {
+            Vector3 scale = transform.lossyScale;
+            float radius = Mathf.Max(0.01f, controller.radius - controller.skinWidth) * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+            float halfHeight = standingHeight * Mathf.Abs(scale.y) * 0.5f;
+            Vector3 center = transform.TransformPoint(standingCenter);
+            Vector3 offset = transform.up * Mathf.Max(0f, halfHeight - controller.radius * Mathf.Abs(scale.y));
+            int count = Physics.OverlapCapsuleNonAlloc(center - offset, center + offset, radius, standingObstacles, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            if (count == standingObstacles.Length) return false;
+            for (int i = 0; i < count; i++)
+            {
+                Collider obstacle = standingObstacles[i];
+                if (obstacle.transform.IsChildOf(transform) ||
+                    Physics.GetIgnoreLayerCollision(gameObject.layer, obstacle.gameObject.layer) ||
+                    Physics.GetIgnoreCollision(controller, obstacle)) continue;
+                return false;
+            }
+            return true;
+        }
+
+        // ---------------------------------------------------------------- Teleport and fall reset
+
+        /// <summary>Places the player and clears every movement state (fall reset and test teleports).</summary>
+        void ResetTo(Vector3 position, Quaternion facing)
         {
             controller.enabled = false;
             transform.SetPositionAndRotation(position, facing);
@@ -572,13 +678,10 @@ namespace StarterGame
             controller.center = standingCenter;
             IsCrouching = false;
             verticalSpeed = 0f;
-            IsRolling = false;
-            IsDiving = false;
-            IsSliding = false;
+            IsRolling = IsDiving = IsSliding = false;
             SlideSpeed = 0f;
             cooldownRemaining = 0f;
-            steeringWallJump = false;
-            wallJumpVelocity = Vector3.zero;
+            EndWallJumpSteering();
             wallJumpCooldown = 0f;
             wallJumpsSinceGrounded = 0;
             lastWallJumpCollider = null;

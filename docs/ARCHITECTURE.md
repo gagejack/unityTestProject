@@ -3,8 +3,8 @@
 ## Systems and ownership
 | System | Folder | Owns | Page |
 |---|---|---|---|
-| Core | `Assets/Game/Core/` | Shared contracts only: `IDamageable`, `CombatEvents` (damage reports), `PlayerRequests` (teleport, refill ammo), `PlayerPresence` (where the player is), the project-wide input actions asset | (this page) |
-| Movement | `Assets/Game/Movement/` | Character position, velocity, movement state (walk, run, jump, crouch, roll, dive, slide, wall jump), stamina | [movement](systems/movement.md) |
+| Core | `Assets/Game/Core/` | Shared contracts only: `IDamageable`, `CombatEvents` (damage reports), `PlayerRequests` (teleport, refill ammo), `PlayerPresence` (where the player is), the movement contracts (`IMovementModifier`, `IViewHeading`, `IControlBlocker`, `PlayerControl`), the project-wide input actions asset | (this page) |
+| Movement | `Assets/Game/Movement/` | Character position, velocity, movement state (walk, run, jump, crouch, roll, dive, slide, wall jump), stamina, speed readout. Own assembly, references Core only | [movement](systems/movement.md) |
 | Camera | `Assets/Game/Camera/` | View yaw/pitch, aim direction, follow and collision, aim zoom, camera recoil and landing dip, free roam | [camera](systems/camera.md) |
 | Animation | `Assets/Game/Animation/` | The block player character: Humanoid rig, animation graph, special-move poses, block placement, rounding | [animation](systems/animation.md) |
 | Unarmed | `Assets/Game/Unarmed/` | Limb contact for punches and kicks (attack selection and timing currently sit in Animation) | [unarmed](systems/unarmed.md) |
@@ -19,13 +19,13 @@
 Third-party files used by these systems are in `Assets/ThirdParty/`. Render pipeline settings are in `Assets/Settings/`.
 
 ## Dependencies today
-Apart from Core, Mobs, Test areas and the editor tools, the gameplay code is the migrated baseline: it compiles into the default assembly and systems still call each other directly (arrows read "calls or reads"):
+Apart from Core, Movement, Mobs, Test areas and the editor tools, the gameplay code is the migrated baseline: it compiles into the default assembly and systems still call each other directly (arrows read "calls or reads"):
 
 ```mermaid
 flowchart LR
     Menu[DebugMenu] --> Camera & Movement & Weapons & Mobs & Combat
     Camera --> Movement & Weapons & Menu
-    Movement --> Camera & Animation & Weapons & Menu
+    Movement --> Core
     Animation --> Movement & Weapons & Unarmed & Menu
     Unarmed --> Animation & Weapons & Movement
     Weapons --> Movement & Camera & Animation & Combat & Menu
@@ -36,6 +36,8 @@ flowchart LR
     Diagnostics -.-> Mobs
     TestAreas --> Core
 ```
+
+Movement gets its heading, control gate and slowdowns only through Core contracts, which the camera, debug menu, weapons and attack animation implement. Camera, animation, unarmed and weapons still read movement's public state directly (one way, allowed because Game.Movement is its own assembly); when they are rebuilt they will read it through a Core contract.
 
 Test areas reach the game only through Core: they raise `PlayerRequests` (movement teleports, the camera re-frames, weapons refill) and listen to `CombatEvents`. Diagnostics is a measuring tool outside the dependency rules; it will read Core contracts instead once the systems it measures are rebuilt.
 

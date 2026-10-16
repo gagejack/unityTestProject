@@ -1,3 +1,5 @@
+using Game.Core;
+using Game.Movement;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -9,7 +11,7 @@ namespace StarterGame
     // Read attack clicks before CapsuleMovement.Update so movement uses the current attack phase.
     [DefaultExecutionOrder(-50)]
     [RequireComponent(typeof(CharacterController))]
-    public sealed class MaleWalkRetarget : MonoBehaviour
+    public sealed class MaleWalkRetarget : MonoBehaviour, IMovementModifier
     {
         [SerializeField] private Animator rigAnimator;
         [Header("Unarmed animations")]
@@ -581,6 +583,16 @@ namespace StarterGame
             Quaternion corrected = Quaternion.FromToRotation(current, transform.TransformDirection(target)) * upper.rotation;
             upper.rotation = Quaternion.Slerp(upper.rotation, corrected, weight);
         }
+
+        // How an unarmed attack changes movement (see IMovementModifier): the swing slows travel (eased),
+        // stops running, commits jump/roll/crouch until recovery, and caps carried momentum.
+        float IMovementModifier.SpeedMultiplier => AttackMovementMultiplier;
+        bool IMovementModifier.EaseSpeedChange => true;
+        bool IMovementModifier.BlocksRunning => IsAttacking;
+        bool IMovementModifier.BlocksCommittedMoves => IsAttackCommitted;
+        bool IMovementModifier.LimitsMomentum => IsAttacking;
+        bool IMovementModifier.TryGetFacing(out Vector3 planarForward) { planarForward = Vector3.zero; return false; }
+        void IMovementModifier.OnMovementAction(MovementAction action) => CancelFightingMotion();
 
         private void OnDisable()
         {

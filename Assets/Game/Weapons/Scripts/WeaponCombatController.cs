@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Game.Core;
+using Game.Movement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -7,7 +9,7 @@ namespace StarterGame
 {
     /// <summary>Camera-directed, muzzle-origin weapons with deliberate pickups and editable settings.</summary>
     [DefaultExecutionOrder(-25)]
-    public sealed class WeaponCombatController : MonoBehaviour
+    public sealed class WeaponCombatController : MonoBehaviour, IMovementModifier
     {
         [Header("Weapon catalogue")]
         [SerializeField] private WeaponSettings[] offers = new WeaponSettings[5];
@@ -228,6 +230,20 @@ namespace StarterGame
             if (IsAiming != wasAiming && HasWeapon && feedback)
                 feedback.Handling(CurrentWeapon.aimSounds, MuzzlePosition, CurrentWeapon.shotPitch);
         }
+
+        // How the held gun changes movement (see IMovementModifier): weight, aiming and firing slow travel,
+        // and aiming, reloading or firing stop running. Aiming makes the body face the aim.
+        float IMovementModifier.SpeedMultiplier => EquippedMovementMultiplier * AimingMovementMultiplier * ShootingMovementMultiplier;
+        bool IMovementModifier.EaseSpeedChange => false;
+        bool IMovementModifier.BlocksRunning => IsAiming || IsReloading || IsRecoveringFromShot || ShootingMovementMultiplier < 0.999f;
+        bool IMovementModifier.BlocksCommittedMoves => false;
+        bool IMovementModifier.LimitsMomentum => false;
+        bool IMovementModifier.TryGetFacing(out Vector3 planarForward)
+        {
+            planarForward = IsAiming ? AimPlanarForward : Vector3.zero;
+            return IsAiming;
+        }
+        void IMovementModifier.OnMovementAction(MovementAction action) { }
 
         private void OnDisable()
         {

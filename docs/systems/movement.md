@@ -4,8 +4,8 @@
 Moves the player's collision capsule and decides the movement state: walking, running, jumping, wall jumping, crouching, rolling, diving and sliding. Also owns stamina. It does not animate the body (see [animation](animation.md)).
 
 ## Files
-- Folder: `Assets/Game/Movement/`
-- `CapsuleMovement` (on Player): reads WASD, jump, crouch and roll input, moves the `CharacterController`, and sets facing. All movement modes are in one long method (SimulateMovement).
+- Folder: `Assets/Game/Movement/`, its own assembly (Game.Movement) that references only Core.
+- `CapsuleMovement` (on Player): reads WASD, jump, crouch and roll input, decides the movement state once per frame and moves the `CharacterController`. Each frame is a short sequence of named steps (timers, crouch, facing, committed moves, travel, gravity, collisions). Other systems change movement only through `IMovementModifier` components on the Player (guns and unarmed attacks), take control away through `IControlBlocker` (debug menu, flying camera), and supply the steering heading through `IViewHeading` (the camera); all three are in Core.
 - `PlayerStamina` (on Player): spends and recovers stamina. Infinite stamina switches on at the start of every Play session; turn it off in F1 > Player.
 - `StaminaBar` and `RoundedStaminaGraphic` (on Canvas > Stamina Bar and its child Stamina Fill): draw the stamina bar.
 - `SpeedReadout` (on the scene object Speed HUD): shows horizontal speed in m/s above the points and ammo text, bottom right. Speed HUD has its own canvas scaled like the gun HUD so the two stay aligned.
@@ -20,13 +20,12 @@ All on Player > Capsule Movement unless noted.
 - **Dash Roll / Air Dive / Dive Landing Slide** groups: speed, duration and cooldown of the roll, the dive (Caps Lock in the air; hold S to dive backward) and the slide it turns into on landing.
 - Player > Player Stamina: capacity, recovery rate and the pause before recovery.
 - Speed HUD > Speed Readout: **Smoothing** steadies the number (0 shows every frame's raw speed); **Decimals** sets precision.
-- Gun aim and fire slow movement down; those settings are on `WeaponCombatController` (see [weapons](weapons.md)).
+- Gun aim and fire slow movement down; those settings are on `WeaponCombatController` (see [weapons](weapons.md)). Attack slowdowns are on `MaleWalkRetarget` attack timings (see [unarmed](unarmed.md)).
 
 ## How to test
-Use the Movement Course (F6): start/stop on the meter lane, slopes, steps, ledges, gaps, the tunnel and wall jumps. Turn off Infinite Stamina in F1 > Player to test costs. Measured by the movement and jump sequences of the baseline harness ([feel spec](../FEEL_SPEC.md#movement)).
+Use the Movement Course (F6): start/stop on the meter lane, slopes, steps, ledges, gaps, the tunnel and wall jumps. Turn off Infinite Stamina in F1 > Player to test costs. Measured by the movement and jump sequences of the baseline harness ([feel spec](../FEEL_SPEC.md#movement)). Play-mode checks in `MovementFeelTests` (Window > General > Test Runner > PlayMode > Game.Movement.Tests) assert jump height and walk stopping distance at 30, 60 and 144 fps.
 
 ## Known limits
 - Character facing snaps to the camera heading every frame in third person.
-- Jump height and stopping distance change with frame rate: jumps are lower at low frame rates (measured; numbers in [feel spec](../FEEL_SPEC.md#movement)).
-- Movement reads the debug menu and weapon and animation state directly (see [architecture](../ARCHITECTURE.md#dependencies-today)).
+- A dive's landing is detected on the frame it touches the ground, which still carries that frame's full dive travel, so total dive distance varies by up to one frame of travel (about 0.4 m at 30 fps; [feel spec](../FEEL_SPEC.md#movement)).
 - Falling below the world returns the player to the start; there is no health or death.
