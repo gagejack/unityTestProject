@@ -63,6 +63,8 @@ Covered by the weapon and unarmed rows above (camera kick, hits). No separate ta
 | Warrior | 3.09 | 39 / 36 / 35 % | 2.0 |
 | Zombie | 1.90 | 98 / 98 / 98 % | 3.3 |
 
+Re-measured after the mob AI moved to `MobBrain`: every value above is identical at all three frame rates.
+
 Target for mobs: foot slide ≤ 20 %. Over 100 % means the planted foot moves faster than the body: the clip's stride does not match the chase speed.
 
 ## Notes on the measures

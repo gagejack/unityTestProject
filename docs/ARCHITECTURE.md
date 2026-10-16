@@ -3,14 +3,14 @@
 ## Systems and ownership
 | System | Folder | Owns | Page |
 |---|---|---|---|
-| Core | `Assets/Game/Core/` | Shared contracts only: `IDamageable`, `CombatEvents` (damage reports), `PlayerRequests` (teleport, refill ammo), the project-wide input actions asset | (this page) |
+| Core | `Assets/Game/Core/` | Shared contracts only: `IDamageable`, `CombatEvents` (damage reports), `PlayerRequests` (teleport, refill ammo), `PlayerPresence` (where the player is), the project-wide input actions asset | (this page) |
 | Movement | `Assets/Game/Movement/` | Character position, velocity, movement state (walk, run, jump, crouch, roll, dive, slide, wall jump), stamina | [movement](systems/movement.md) |
 | Camera | `Assets/Game/Camera/` | View yaw/pitch, aim direction, follow and collision, aim zoom, camera recoil and landing dip, free roam | [camera](systems/camera.md) |
 | Animation | `Assets/Game/Animation/` | The block player character: Humanoid rig, animation graph, special-move poses, block placement, rounding | [animation](systems/animation.md) |
 | Unarmed | `Assets/Game/Unarmed/` | Limb contact for punches and kicks (attack selection and timing currently sit in Animation) | [unarmed](systems/unarmed.md) |
 | Weapons | `Assets/Game/Weapons/` | Equipped gun, ammo, reload, firing, weapon pose, pickups, weapon data | [weapons](systems/weapons.md) |
 | Combat | `Assets/Game/Combat/` | Hit queries, the damage receiver, shot and hit feedback, combat audio volume | [combat](systems/combat.md) |
-| Mobs | `Assets/Game/Mobs/` | The six block mobs: AI, attacks, animation playback, prefabs, test spawner | [mobs](systems/mobs.md) |
+| Mobs | `Assets/Game/Mobs/` | The six block mobs: AI, attacks, animation playback, prefabs, test spawner. Own assembly, references Core only | [mobs](systems/mobs.md) |
 | Debug menu | `Assets/Game/DebugMenu/` | F1 menu (equip, spawn, stamina, camera, audio tabs) and the "menu is open" input gate | this page |
 | World | `Assets/Game/World/` | Grid shader and level materials, NavMesh data | [test areas](TEST_AREAS.md) |
 | Test areas | `Assets/Game/TestAreas/` | Start markers, target reset, moving targets, damage numbers, shortcuts, and the area builder. Own assembly, references Core only | [test areas](TEST_AREAS.md) |
@@ -19,7 +19,7 @@
 Third-party files used by these systems are in `Assets/ThirdParty/`. Render pipeline settings are in `Assets/Settings/`.
 
 ## Dependencies today
-The gameplay code is the migrated baseline. Apart from Core, test areas and editor tools, it compiles into the default assembly, and systems still call each other directly (arrows read "calls or reads"):
+Apart from Core, Mobs, Test areas and the editor tools, the gameplay code is the migrated baseline: it compiles into the default assembly and systems still call each other directly (arrows read "calls or reads"):
 
 ```mermaid
 flowchart LR
@@ -30,9 +30,10 @@ flowchart LR
     Unarmed --> Animation & Weapons & Movement
     Weapons --> Movement & Camera & Animation & Combat & Menu
     Combat --> Weapons
-    Mobs --> Movement & Combat
+    Mobs --> Core
     Combat --> Core
     Movement & Camera & Weapons --> Core
+    Diagnostics -.-> Mobs
     TestAreas --> Core
 ```
 

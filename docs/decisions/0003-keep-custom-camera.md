@@ -1,6 +1,6 @@
 # 0003: Keep the custom third-person camera instead of Cinemachine
 
-**Status:** proposed (waiting for the owner's approval)
+**Status:** accepted (owner approved 2026-10-16)
 
 ## Context
 `FollowCamera` (289 lines) does mouse look, shoulder aim, follow smoothing, collision pull-in, recoil, a landing dip, a fixed view and free roam. Cinemachine (com.unity.cinemachine 6.6.0) could provide follow, collision (deoccluder), impulse shake and aim blending.

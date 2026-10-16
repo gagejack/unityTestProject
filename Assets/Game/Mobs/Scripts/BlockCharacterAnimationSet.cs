@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace StarterGame.Characters
+namespace Game.Mobs
 {
     [CreateAssetMenu(menuName = "Block Characters/Animation Set")]
     public sealed class BlockCharacterAnimationSet : ScriptableObject

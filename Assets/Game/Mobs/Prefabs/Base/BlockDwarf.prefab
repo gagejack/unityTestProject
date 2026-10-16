@@ -4054,6 +4054,12 @@ MonoBehaviour:
   twoHandedWeapon: {fileID: 4640795111254648683}
   polearm: {fileID: 7878093487243334590}
   shield: {fileID: 9109111600188052138}
+  assaultRifle: {fileID: 0}
+  handgun: {fileID: 0}
+  leftHandgun: {fileID: 0}
+  rifle: {fileID: 0}
+  bazooka: {fileID: 0}
+  grenade: {fileID: 0}
 --- !u!1 &7085957073926341658
 GameObject:
   m_ObjectHideFlags: 0

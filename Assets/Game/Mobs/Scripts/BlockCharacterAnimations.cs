@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace StarterGame.Characters
+namespace Game.Mobs
 {
     /// <summary>Plays the character's retargeted clips without moving its display position.</summary>
     public sealed class BlockCharacterAnimations : MonoBehaviour

@@ -245,13 +245,3 @@ MonoBehaviour:
   repathInterval: 0.25
   predictionSeconds: 0.32
   searchSeconds: 7
-  attackRange: 3.3
-  rearDuration: 0.6
-  leapDuration: 0.65
-  leapHeight: 0.95
-  recoveryDuration: 0.75
-  attackCooldown: 2.8
-  onPounceHit:
-    m_PersistentCalls:
-      m_Calls: []
-  showStatus: 0

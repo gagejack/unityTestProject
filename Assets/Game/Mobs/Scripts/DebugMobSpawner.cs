@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace StarterGame.Characters
+namespace Game.Mobs
 {
     public sealed class DebugMobSpawner : MonoBehaviour
     {
@@ -52,7 +52,7 @@ namespace StarterGame.Characters
                 if (Physics.CheckCapsule(bottom, top, radius, ~0, QueryTriggerInteraction.Ignore)) continue;
                 var mob = Instantiate(prefab, point.position, Quaternion.LookRotation(Vector3.ProjectOnPlane(player.position - point.position, Vector3.up)));
                 mob.name = mobs[selected].label;
-                mob.GetComponent<SpiderDroneBrain>().SetTarget(player);
+                mob.GetComponent<MobBrain>().SetTarget(player);
                 spawned.Add(mob);
                 Status = "Spawned " + SelectedName + ".";
                 return mob;

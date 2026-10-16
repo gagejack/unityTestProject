@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text;
 using Game.Core;
 using StarterGame;
-using StarterGame.Characters;
+using Game.Mobs;
 using UnityEngine;
 
 namespace Game.Diagnostics
@@ -116,7 +116,7 @@ namespace Game.Diagnostics
             if (Mob)
             {
                 row.mobPosition = Mob.transform.position;
-                var brain = Mob.GetComponent<SpiderDroneBrain>();
+                var brain = Mob.GetComponent<MobBrain>();
                 row.mobState = brain ? brain.State.ToString() : "";
                 row.mobAttacks = brain ? brain.AttacksStarted : 0;
                 var mobRig = Mob.GetComponent<BlockCharacterAnimations>()?.Animator;

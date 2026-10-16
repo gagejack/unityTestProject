@@ -144,6 +144,7 @@ namespace StarterGame
 
         private void OnEnable()
         {
+            Game.Core.PlayerPresence.Register(transform);
             moveAction.Enable();
             jumpAction.Enable();
             rollAction.Enable();
@@ -152,6 +153,7 @@ namespace StarterGame
 
         private void OnDisable()
         {
+            Game.Core.PlayerPresence.Unregister(transform);
             runRequested = holdRunRequested = IsRunning = false;
             lastForwardTap = float.NegativeInfinity;
             horizontalVelocity = Vector3.zero;

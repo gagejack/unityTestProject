@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Game.TestAreas;
 using StarterGame;
-using StarterGame.Characters;
+using Game.Mobs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;

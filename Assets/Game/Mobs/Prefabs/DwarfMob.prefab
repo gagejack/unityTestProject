@@ -240,16 +240,6 @@ MonoBehaviour:
   repathInterval: 0.25
   predictionSeconds: 0.32
   searchSeconds: 7
-  attackRange: 3.3
-  rearDuration: 0.6
-  leapDuration: 0.65
-  leapHeight: 0.95
-  recoveryDuration: 0.75
-  attackCooldown: 2.8
-  onPounceHit:
-    m_PersistentCalls:
-      m_Calls: []
-  showStatus: 0
 --- !u!4 &7077756259797324537 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8330775645145603159, guid: 56c978b61d7b3714b8261bd9d3fe9883, type: 3}

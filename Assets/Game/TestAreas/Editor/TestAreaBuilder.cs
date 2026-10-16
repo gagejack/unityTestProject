@@ -169,7 +169,7 @@ namespace Game.TestAreas.Editor
             mob.name = prefabName + " (stationary)";
             mob.transform.localPosition = local;
             mob.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-            foreach (string behaviour in new[] { "SpiderDroneBrain", "MobAttackDriver" })
+            foreach (string behaviour in new[] { "MobBrain", "MobAttackDriver" })
                 if (mob.GetComponent(behaviour) is Behaviour b) b.enabled = false;
             if (mob.TryGetComponent(out UnityEngine.AI.NavMeshAgent agent)) agent.enabled = false;
             Readout(mob.transform, new Vector3(0f, 4.2f, 0f));

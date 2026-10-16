@@ -17,7 +17,7 @@ namespace StarterGame
         [SerializeField] private bool showMenu = true;
         private CombatFeedback combatFeedback;
         private PlayerStamina playerStamina;
-        private Characters.DebugMobSpawner mobSpawner;
+        private Game.Mobs.DebugMobSpawner mobSpawner;
         private WeaponCombatController weapons;
         private static readonly string[] Tabs = { "Weapons", "Mobs", "Player", "Camera", "Audio", "Controls" };
         private static readonly string[] Categories = { "All Weapons", "Pistols & Duals", "SMGs", "Assault Rifles", "Shotguns", "Rifles & Snipers", "Machine Guns", "Launchers" };
@@ -54,7 +54,7 @@ namespace StarterGame
             combatFeedback = player.GetComponent<CombatFeedback>();
             playerStamina = player.GetComponent<PlayerStamina>();
             weapons = player.GetComponent<WeaponCombatController>();
-            mobSpawner = GetComponent<Characters.DebugMobSpawner>();
+            mobSpawner = GetComponent<Game.Mobs.DebugMobSpawner>();
             BuildPackFilters();
             SetMode(startingMode);
             if (showMenu) followCamera.SetMouseCaptured(false);

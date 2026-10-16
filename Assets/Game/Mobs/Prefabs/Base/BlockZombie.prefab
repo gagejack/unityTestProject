@@ -3237,3 +3237,9 @@ MonoBehaviour:
   twoHandedWeapon: {fileID: 0}
   polearm: {fileID: 0}
   shield: {fileID: 0}
+  assaultRifle: {fileID: 0}
+  handgun: {fileID: 0}
+  leftHandgun: {fileID: 0}
+  rifle: {fileID: 0}
+  bazooka: {fileID: 0}
+  grenade: {fileID: 0}

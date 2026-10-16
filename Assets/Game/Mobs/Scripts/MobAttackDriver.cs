@@ -2,18 +2,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace StarterGame.Characters
+namespace Game.Mobs
 {
-    /// <summary>Connects the shared pursuit brain to a mob's existing humanoid animations.</summary>
+    /// <summary>Picks a mob's attack, idle, walk and run clips, and checks range and facing when an attack lands.</summary>
     [RequireComponent(typeof(BlockCharacterAnimations))]
     public sealed class MobAttackDriver : MonoBehaviour
     {
+        [Tooltip("Distance in meters at which the mob stops chasing and starts an attack.")]
         [SerializeField, Min(.5f)] private float range = 1.7f;
+        [Tooltip("Seconds after an attack ends before the next one can start.")]
         [SerializeField, Min(.1f)] private float cooldown = .9f;
+        [Tooltip("Point in the attack clip, as a fraction of its length, where the hit is checked.")]
         [SerializeField, Range(.1f, .9f)] private float contactTime = .45f;
+        [Tooltip("Damage dealt to the target if it is in range and in front when the hit is checked.")]
         [SerializeField, Min(0f)] private float damage = 15f;
         private BlockCharacterAnimations playback;
-        private SpiderDroneBrain brain;
+        private MobBrain brain;
         private NavMeshAgent agent;
         private readonly List<int> attacks = new List<int>();
         private int idle = -1, walk = -1, run = -1, attackCursor;
@@ -26,7 +30,7 @@ namespace StarterGame.Characters
         private void Awake()
         {
             playback = GetComponent<BlockCharacterAnimations>();
-            brain = GetComponent<SpiderDroneBrain>();
+            brain = GetComponent<MobBrain>();
             agent = GetComponent<NavMeshAgent>();
             playback.LoopPreview = false;
             var entries = playback.AnimationSet.animations;
@@ -68,14 +72,14 @@ namespace StarterGame.Characters
             if (!target || !visible) return false;
             Vector3 offset = Vector3.ProjectOnPlane(target.position - transform.position, Vector3.up);
             if (offset.magnitude > range + .2f || Vector3.Angle(transform.forward, offset) > 65f) return false;
-            var health = target.GetComponent<StarterGame.TargetHealth>();
-            if (health) health.TakeDamage(damage);
+            var health = target.GetComponent<Game.Core.IDamageable>();
+            health?.TakeDamage(damage);
             return true;
         }
 
         private void LateUpdate()
         {
-            if (!brain || brain.State == SpiderDroneBrain.BehaviourState.Attacking) return;
+            if (!brain || brain.State == MobBrain.BehaviourState.Attacking) return;
             float speed = agent && agent.enabled && agent.isOnNavMesh ? agent.velocity.magnitude : 0f;
             int index = speed < .1f ? idle : brain.TargetVisible ? run : walk;
             var animator = playback.Animator;
