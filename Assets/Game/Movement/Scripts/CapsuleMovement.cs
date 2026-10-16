@@ -93,18 +93,6 @@ namespace StarterGame
         private bool carryingDashMomentum;
         private Vector3 dashAirVelocity;
 
-        [Header("Air dash")]
-        [SerializeField, Min(0f)] private float airDashSpeed = 12f;
-        [SerializeField, Min(.05f)] private float airDashDuration = .22f;
-        [SerializeField, Min(0)] private int maxAirDashes = 1;
-        public bool IsAirDashing { get; private set; }
-        public Vector3 AirDashDirection => airDashVelocity.normalized;
-        private Vector3 airDashVelocity;
-        private float airDashRemaining;
-        private int airDashesSinceGrounded;
-        private float airDashVerticalInput;
-        private bool diveModifierHeld;
-
         [Header("Air dive")]
         [SerializeField, Min(0f)] private float diveSpeedMultiplier = 1f;
         [Header("Dive landing slide")]
@@ -173,9 +161,6 @@ namespace StarterGame
             rollAction.Disable();
             crouchAction.Disable();
             IsRolling = false;
-            IsAirDashing = false;
-            airDashRemaining = 0f;
-            airDashesSinceGrounded = 0;
             IsDiving = false;
             IsSliding = false;
             SlideSpeed = 0f;
@@ -290,7 +275,6 @@ namespace StarterGame
             wallJumpCooldown = Mathf.Max(0.05f, wallJumpPushTime) + 0.1f;
             verticalSpeed = Mathf.Sqrt(wallJumpHeight * -2f * gravity);
             IsRolling = IsDiving = IsSliding = false;
-            IsAirDashing = false;
             SlideSpeed = 0f;
             transform.rotation = Quaternion.LookRotation(launch.normalized);
             return true;
@@ -327,9 +311,6 @@ namespace StarterGame
         private void Update()
         {
             var keyboard = Keyboard.current;
-            diveModifierHeld = keyboard != null && (keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed);
-            airDashVerticalInput = keyboard == null ? 0f :
-                (keyboard.spaceKey.isPressed ? 1f : 0f) - (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed ? 1f : 0f);
             UpdateRunInput(Time.unscaledTime, keyboard != null && keyboard.wKey.wasPressedThisFrame,
                 keyboard != null && keyboard.wKey.isPressed,
                 keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed));
@@ -377,7 +358,7 @@ namespace StarterGame
                 IsRolling = false;
                 cooldownRemaining = dashCooldown;
             }
-            if (!attackCommitted && !IsRolling && !IsDiving && !IsSliding && !IsAirDashing)
+            if (!attackCommitted && !IsRolling && !IsDiving && !IsSliding)
                 UpdateCrouch();
             Vector2 input = new Vector2(Mathf.Clamp(moveInput.x, -1f, 1f), Mathf.Clamp(moveInput.y, -1f, 1f));
             bool grounded = controller.isGrounded;
@@ -388,8 +369,6 @@ namespace StarterGame
                 steeringWallJump = false;
                 wallJumpVelocity = Vector3.zero;
                 ClearDashMomentum();
-                airDashesSinceGrounded = 0;
-                IsAirDashing = false;
             }
 
             if (grounded && verticalSpeed < 0f)
@@ -405,7 +384,7 @@ namespace StarterGame
             Vector3 right = Vector3.Cross(Vector3.up, forward);
             Vector2 planarInput = Vector2.ClampMagnitude(input, 1f);
             Vector3 direction = forward * planarInput.y + right * planarInput.x;
-            if (!IsRolling && !IsDiving && !IsSliding && !IsAirDashing)
+            if (!IsRolling && !IsDiving && !IsSliding)
             {
                 if (weaponCombat && weaponCombat.IsAiming)
                 {
@@ -425,13 +404,10 @@ namespace StarterGame
                     dashAirVelocity = Vector3.RotateTowards(dashAirVelocity, direction * dashAirVelocity.magnitude,
                         dashAirTurnSpeed * Mathf.Clamp01(airControl) * Mathf.Deg2Rad * dt, 0f);
             }
-            if (!grounded && rollPressed && !diveModifierHeld)
-                TryAirDash(direction + Vector3.up * airDashVerticalInput);
-
-            // Alt + Caps Lock retains the existing committed air dive.
+            // Caps Lock in the air starts a committed dive (hold S to dive backward).
             // Air dives begin exactly where the player is: no teleport or upward impulse.
             // A fresh press can also turn a roll that left a ledge into a dive.
-            if (!grounded && diveModifierHeld && !IsAirDashing && !IsCrouching && !IsDiving && !IsSliding && rollPressed && stamina.TrySpend(diveStaminaCost))
+            if (!grounded && !IsCrouching && !IsDiving && !IsSliding && rollPressed && stamina.TrySpend(diveStaminaCost))
             {
                 IsRolling = false;
                 IsDiving = true;
@@ -460,7 +436,7 @@ namespace StarterGame
                 rollDirection = direction.sqrMagnitude > 0.001f ? direction.normalized : transform.forward;
             }
 
-            if (jumpPressed && !IsAirDashing)
+            if (jumpPressed)
             {
                 if (grounded)
                 {
@@ -481,7 +457,7 @@ namespace StarterGame
             float shootingSpeed = weaponCombat ? weaponCombat.ShootingMovementMultiplier : 1f;
             float aimingSpeed = weaponCombat ? weaponCombat.AimingMovementMultiplier : 1f;
             float weaponSpeed = weaponCombat ? weaponCombat.EquippedMovementMultiplier : 1f;
-            bool canRun = PlayerControlEnabled && input.y > 0.1f && !IsCrouching && !IsRolling && !IsDiving && !IsSliding && !IsAirDashing &&
+            bool canRun = PlayerControlEnabled && input.y > 0.1f && !IsCrouching && !IsRolling && !IsDiving && !IsSliding &&
                 !(fightingAnimation && fightingAnimation.IsAttacking) &&
                 !(weaponCombat && (weaponCombat.IsAiming || weaponCombat.IsReloading || weaponCombat.IsRecoveringFromShot || shootingSpeed < 0.999f));
             if (!canRun) runRequested = holdRunRequested = false;
@@ -546,23 +522,8 @@ namespace StarterGame
             // Retained dash/wall-jump momentum cannot bypass the attack speed limit.
             if (fightingAnimation && fightingAnimation.IsAttacking)
                 horizontalStep = Vector3.ClampMagnitude(horizontalStep, moveSpeed * combatSpeedWeight * dt);
-            Vector3 verticalStep;
-            bool airDashingThisFrame = IsAirDashing;
-            if (airDashingThisFrame)
-            {
-                float dashStep = Mathf.Min(dt, airDashRemaining);
-                float remainder = dt - dashStep;
-                horizontalStep = Vector3.ProjectOnPlane(airDashVelocity, Vector3.up) * dashStep + requestedVelocity * remainder;
-                verticalStep = Vector3.up * (airDashVelocity.y * dashStep + .5f * gravity * remainder * remainder);
-                verticalSpeed = gravity * remainder;
-                airDashRemaining = Mathf.Max(0f, airDashRemaining - dashStep);
-                if (airDashRemaining <= 0f) IsAirDashing = false;
-            }
-            else
-            {
-                verticalSpeed += gravity * dt;
-                verticalStep = Vector3.up * verticalSpeed * dt;
-            }
+            verticalSpeed += gravity * dt;
+            Vector3 verticalStep = Vector3.up * verticalSpeed * dt;
             Vector3 beforeMove = transform.position;
             CollisionFlags collisions = controller.Move(horizontalStep + verticalStep);
             // Retain actual motion, including wall collisions, for the next airborne frame.
@@ -572,14 +533,6 @@ namespace StarterGame
             {
                 wallJumpsSinceGrounded = 0;
                 ClearDashMomentum();
-                airDashesSinceGrounded = 0;
-            }
-
-            if (airDashingThisFrame && collisions != CollisionFlags.None)
-            {
-                IsAirDashing = false;
-                airDashRemaining = 0f;
-                verticalSpeed = Mathf.Min(verticalSpeed, 0f);
             }
 
             if (IsDiving && (collisions & CollisionFlags.Below) != 0)
@@ -618,9 +571,6 @@ namespace StarterGame
             IsCrouching = false;
             verticalSpeed = 0f;
             IsRolling = false;
-            IsAirDashing = false;
-            airDashRemaining = 0f;
-            airDashesSinceGrounded = 0;
             IsDiving = false;
             IsSliding = false;
             SlideSpeed = 0f;
@@ -633,25 +583,6 @@ namespace StarterGame
             controller.enabled = true;
             ClearDashMomentum();
             stamina.Refill();
-        }
-
-        public bool TryAirDash(Vector3 worldDirection)
-        {
-            if (!controller || controller.isGrounded || !PlayerControlEnabled || IsAirDashing || IsDiving || IsSliding ||
-                airDashesSinceGrounded >= maxAirDashes || (fightingAnimation && fightingAnimation.IsAttackCommitted)) return false;
-            if (!stamina.TrySpend(dashStaminaCost)) return false;
-            if (worldDirection.sqrMagnitude < .001f) worldDirection = transform.forward;
-            airDashVelocity = worldDirection.normalized * airDashSpeed;
-            airDashRemaining = Mathf.Max(.05f, airDashDuration);
-            airDashesSinceGrounded++;
-            IsAirDashing = true;
-            IsRolling = false;
-            verticalSpeed = 0f;
-            steeringWallJump = false;
-            wallJumpVelocity = Vector3.zero;
-            ClearDashMomentum();
-            if (fightingAnimation) fightingAnimation.CancelFightingMotion();
-            return true;
         }
     }
 }

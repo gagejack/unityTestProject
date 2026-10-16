@@ -1,7 +1,7 @@
 # Movement
 
 ## Purpose
-Moves the player's collision capsule and decides the movement state: walking, running, jumping, wall jumping, crouching, rolling, air dashing, diving and sliding. Also owns stamina. It does not animate the body (see [animation](animation.md)).
+Moves the player's collision capsule and decides the movement state: walking, running, jumping, wall jumping, crouching, rolling, diving and sliding. Also owns stamina. It does not animate the body (see [animation](animation.md)).
 
 ## Files
 - Folder: `Assets/Game/Movement/`
@@ -17,7 +17,7 @@ All on Player > Capsule Movement unless noted.
 - **Jump Height / Gravity:** height and hang time. Stronger gravity feels less floaty at the same height.
 - **Air Control:** how much you can steer in the air. Low keeps takeoff momentum (committed jumps); high allows mid-air corrections.
 - **Wall Jump** group: push-off strength, height and how much your WASD input bends it.
-- **Dash Roll / Air Dash / Air Dive** groups: speed, duration and cooldown of each committed move.
+- **Dash Roll / Air Dive / Dive Landing Slide** groups: speed, duration and cooldown of the roll, the dive (Caps Lock in the air; hold S to dive backward) and the slide it turns into on landing.
 - Player > Player Stamina: capacity, recovery rate and the pause before recovery.
 - Speed HUD > Speed Readout: **Smoothing** steadies the number (0 shows every frame's raw speed); **Decimals** sets precision.
 - Gun aim and fire slow movement down; those settings are on `WeaponCombatController` (see [weapons](weapons.md)).

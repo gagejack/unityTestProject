@@ -14,7 +14,7 @@ A third-person movement and combat prototype with a block-built character, 46 gu
 | Run | Double-tap W and hold, or Shift + W |
 | Jump / wall jump | Space (wall jump: Space while touching a wall in the air) |
 | Crouch | Hold Ctrl |
-| Roll / air dash / dive | Caps Lock on the ground / Caps Lock in the air / Alt + Caps Lock in the air |
+| Roll / dive | Caps Lock on the ground / Caps Lock in the air (hold S to dive backward) |
 | Attack (unarmed) or fire (armed) | Left mouse |
 | Aim | Right mouse |
 | Reload / drop gun / pick up | R / Q / F |

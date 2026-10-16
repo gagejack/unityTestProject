@@ -16,6 +16,7 @@
 - Click-to-first-hit for punches differs by frame rate (cause unknown).
 
 ## Last feedback
+"Remove the air dash, bring back the dive." Done: Caps Lock in the air dives again (hold S to dive backward), as before the air dash was added.
 "Add a UI element for meters / s above the bottom right UI." Added: Speed HUD shows horizontal speed (m/s) above the points text.
 Earlier: H toggles holster/draw, and starting a sprint also holsters.
 

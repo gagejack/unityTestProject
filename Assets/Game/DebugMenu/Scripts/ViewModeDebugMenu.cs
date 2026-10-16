@@ -298,7 +298,7 @@ namespace StarterGame
             controlsTab = GUILayout.Toolbar(controlsTab, ControlTabs, GUILayout.Height(28));
             GUILayout.Space(8);
             string text = controlsTab == 0
-                ? "WASD: move\nShift + W or double-tap W: sprint\nSpace: jump   Ctrl: crouch\nCaps Lock: dash\nIn air: WASD + Caps Lock to air dash\nHold Space / Ctrl for up / down dash\nAlt + Caps Lock: dive (S for backward dive)"
+                ? "WASD: move\nShift + W or double-tap W: sprint\nSpace: jump   Ctrl: crouch\nCaps Lock: dash roll\nIn air: Caps Lock to dive (hold S for a backward dive)"
                 : controlsTab == 1
                 ? "LMB: fire / unarmed attack\nRMB: aim   R: reload\nQ: drop equipped weapon\nF: pick up while unarmed / interact with mystery box\nWeapons tab: equip freely or spawn a pickup"
                 : "Third person: mouse aims camera and character\nFixed camera: WASD moves relative to screen\nFree roam: WASD + mouse to fly\nSpace / Ctrl: up / down   Shift: boost\nK: fly / park camera and control character\nF1: open / close debug menu\nEsc: release cursor; click outside menu to resume";

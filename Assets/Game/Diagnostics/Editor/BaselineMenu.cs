@@ -56,6 +56,8 @@ namespace Game.Diagnostics.Editor
             Make("M05_WalkArmed", "MC-Lane", SequenceKind.Movement, "AssaultRifle", false, K("walk", 3f, W), K("stop", 1.5f, None));
             Make("M06_RunArmed", "MC-Lane", SequenceKind.Movement, "AssaultRifle", true, K("run", 4f, Run), K("stop", 1.5f, None));
             Make("J01_Jump", "MC-Lane", SequenceKind.Jump, "", false, K("idle", 0.3f, None), K("jump", 0.1f, HeldKeys.Space), K("air", 2f, None));
+            Make("J02_JumpDive", "MC-Lane", SequenceKind.Jump, "", false, K("idle", 0.3f, None), K("jump", 0.1f, HeldKeys.Space),
+                K("rise", 0.2f, None), K("dive", 0.05f, HeldKeys.CapsLock), K("dive and slide", 2f, None));
 
             // The default third-person view looks about 20° down; "level" raises it to roughly horizontal (118 px at 0.15°/px).
             var level = new Vector2(0f, 118f);

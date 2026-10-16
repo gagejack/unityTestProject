@@ -16,7 +16,7 @@ namespace Game.Diagnostics
         public float time, dt;
         public Vector3 position, leftFoot, rightFoot, rightHandLocal, cameraPosition;
         public float yaw, cameraYaw, cameraPitch, fov;
-        public bool grounded, running, crouching, rolling, airDashing, diving, sliding, armed, shot, focused;
+        public bool grounded, running, crouching, rolling, diving, sliding, armed, shot, focused;
         public float poseWeight, runPose, fightWeight, soldierWeight, aimWeight, armOutLeft, armOutRight;
         public string fight, soldierAnim;
         public int ammo, damageCount;
@@ -87,7 +87,7 @@ namespace Game.Diagnostics
                 focused = Application.isFocused,
                 position = t.position, yaw = t.eulerAngles.y,
                 grounded = movement.IsGrounded, running = movement.IsRunning, crouching = movement.IsCrouching,
-                rolling = movement.IsRolling, airDashing = movement.IsAirDashing, diving = movement.IsDiving, sliding = movement.IsSliding,
+                rolling = movement.IsRolling, diving = movement.IsDiving, sliding = movement.IsSliding,
                 poseWeight = animation.PoseWeight, runPose = animation.RunningPoseWeight, fightWeight = animation.FightingWeight,
                 fight = animation.CurrentFightingMotion, soldierWeight = animation.SoldierAnimationWeight, soldierAnim = animation.CurrentSoldierAnimation,
                 armed = weapons.HasWeapon, aimWeight = weapons.AimWeight, ammo = weapons.MagazineAmmo, shot = shot,
@@ -149,7 +149,7 @@ namespace Game.Diagnostics
         public static string ToCsv(List<FrameRow> rows)
         {
             var c = CultureInfo.InvariantCulture;
-            var sb = new StringBuilder("frame,time,dt,step,input,focused,px,py,pz,yaw,grounded,running,crouching,rolling,airDashing,diving,sliding," +
+            var sb = new StringBuilder("frame,time,dt,step,input,focused,px,py,pz,yaw,grounded,running,crouching,rolling,diving,sliding," +
                 "poseWeight,runPose,fightWeight,fight,soldierWeight,soldierAnim,armed,aimWeight,ammo,shot,damage,damageCount," +
                 "lfx,lfy,lfz,rfx,rfy,rfz,rhx,rhy,rhz,armOutL,armOutR,supportGap,gunAimError,camX,camY,camZ,camYaw,camPitch,fov," +
                 "mobX,mobY,mobZ,mobState,mobAttacks,mlfx,mlfy,mlfz,mrfx,mrfy,mrfz\n");
@@ -159,7 +159,7 @@ namespace Game.Diagnostics
             foreach (var r in rows)
                 sb.Append(r.frame).Append(',').Append(F(r.time)).Append(',').Append(F(r.dt)).Append(',').Append(r.step).Append(',').Append(r.input).Append(',').Append(B(r.focused)).Append(',')
                   .Append(V(r.position)).Append(',').Append(F(r.yaw)).Append(',').Append(B(r.grounded)).Append(',').Append(B(r.running)).Append(',')
-                  .Append(B(r.crouching)).Append(',').Append(B(r.rolling)).Append(',').Append(B(r.airDashing)).Append(',').Append(B(r.diving)).Append(',')
+                  .Append(B(r.crouching)).Append(',').Append(B(r.rolling)).Append(',').Append(B(r.diving)).Append(',')
                   .Append(B(r.sliding)).Append(',').Append(F(r.poseWeight)).Append(',').Append(F(r.runPose)).Append(',').Append(F(r.fightWeight)).Append(',')
                   .Append(r.fight).Append(',').Append(F(r.soldierWeight)).Append(',').Append(r.soldierAnim).Append(',').Append(B(r.armed)).Append(',')
                   .Append(F(r.aimWeight)).Append(',').Append(r.ammo).Append(',').Append(B(r.shot)).Append(',').Append(F(r.damage)).Append(',').Append(r.damageCount).Append(',')

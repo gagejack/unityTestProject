@@ -16,6 +16,7 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Run stopping distance | Same, from a run | 0.30 / 0.35 / 0.38 | Same at all frame rates (±0.02) |
 | Reverse time | Seconds from S pressed (while walking) until settled backwards | 0.03 / 0.02 / 0.01 | Keep |
 | Jump apex | Highest point minus take-off height (m); Jump Height is set to 1.6 | 1.21 / 1.40 / 1.51 | 1.6 ±0.03 at all frame rates |
+| Dive (jump, Caps Lock 0.2 s later) | Seconds from jump to dive start / slide duration (s) / total distance (m) | 0.30, 0.83, 12.0 / 0.30, 0.80, 12.0 / 0.30, 0.80, 12.0 | Keep (recorded after the air dash was removed) |
 
 ## Animation (same sequences)
 | Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |

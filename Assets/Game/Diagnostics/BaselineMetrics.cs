@@ -88,6 +88,18 @@ namespace Game.Diagnostics
             float startY = rows[press].position.y;
             int leave = Find(rows, press, i => !rows[i].grounded);
             m["jump_apex_m"] = rows.Skip(press).Max(r => r.position.y) - startY;
+            int dive = rows.FindIndex(r => r.diving);
+            if (dive >= 0)
+            {
+                m["dive_started_s"] = rows[dive].time - rows[press].time;
+                int slide = Find(rows, dive, i => rows[i].sliding);
+                if (slide >= 0)
+                {
+                    int end = Find(rows, slide, i => !rows[i].sliding);
+                    m["dive_slide_s"] = (end >= 0 ? rows[end].time : rows[rows.Count - 1].time) - rows[slide].time;
+                }
+                m["dive_distance_m"] = Vector3.ProjectOnPlane(rows[rows.Count - 1].position - rows[press].position, Vector3.up).magnitude;
+            }
             if (leave >= 0)
             {
                 m["input_to_takeoff_frames"] = leave - press;
