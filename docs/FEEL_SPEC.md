@@ -2,12 +2,12 @@
 
 The single home for numeric feel targets. Values come from the baseline harness (**Tools > Baseline > Run All Sequences (Play Mode)**): fixed action sequences in `Assets/Game/Diagnostics/Sequences/`, played from the test-area start markers with a fixed timestep of 1/30, 1/60 and 1/144 s. Raw per-frame logs and frame captures go to `Logs/Baseline/latest/` (not committed). Metric code: `BaselineMetrics`.
 
-**Baseline** = the migrated, unchanged code (recorded 2026-10-16). **Proposed** targets are suggestions waiting for the owner's approval; nothing is enforced yet. "n/a" means the run lost window focus on all three attempts.
+**Baseline** = the migrated, unchanged code (recorded 2026-10-16). **Targets** were approved by the owner on 2026-10-16; Play-mode checks will enforce them as each system is rebuilt. "n/a" means the run lost window focus on all three attempts.
 
 How to read the columns: values are listed as 30 / 60 / 144 fps.
 
 ## Movement (start pad MC-Lane, MC-Open)
-| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+| Metric | Definition | Baseline 30 / 60 / 144 | Target |
 |---|---|---|---|
 | Input to motion | Frames from the first frame a move key is down to the first frame the body moves | 0 / 0 / 0 | Keep 0 |
 | Walk / run top speed | Planar speed at the end of a hold (m/s) | 4.5 / 4.5 / 4.5 and 6.75 / 6.75 / 6.75 | Keep |
@@ -19,7 +19,7 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Dive (jump, Caps Lock 0.2 s later) | Seconds from jump to dive start / slide duration (s) / total distance (m) | 0.30, 0.83, 12.0 / 0.30, 0.80, 12.0 / 0.30, 0.80, 12.0 | Keep (recorded after the air dash was removed) |
 
 ## Animation (same sequences)
-| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+| Metric | Definition | Baseline 30 / 60 / 144 | Target |
 |---|---|---|---|
 | Walk foot slide | While a foot is planted, its travel as % of body travel (0 = foot stays put) | 24 / 27 / 28 % | ≤ 10 % |
 | Run foot slide | Same, running | 51 / 59 / 60 % | ≤ 15 % |
@@ -28,7 +28,7 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Input to walk pose | Frames from key down to the walk blend starting | 0 / 0 / 0 | Keep 0 |
 
 ## Weapons (start pad GR-Firing, GR-Strafe, GR-Rocket)
-| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+| Metric | Definition | Baseline 30 / 60 / 144 | Target |
 |---|---|---|---|
 | Assault rifle fire rate | Rounds per minute while held; the asset says 0.1 s = 600 | 600 / 563 / 576 | 600 ±1 % at all frame rates |
 | Pistol fire interval | Seconds between shots when clicking every 0.2 s (fire rate 0.24) | 0.40 / 0.40 / 0.40 | Investigate: clicks during cooldown are dropped |
@@ -40,12 +40,14 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Speed while strafing and firing | m/s (rifle movement multiplier and fire slowdown) | 3.04 / n/a / 3.04 | Keep |
 
 ## Unarmed (start pad GR-Melee)
-| Metric | Definition | Baseline 30 / 60 / 144 | Proposed target |
+| Metric | Definition | Baseline 30 / 60 / 144 | Target |
 |---|---|---|---|
 | Click to attack | Frames from click to the attack clip starting | 0 / 0 / 0 | Keep 0 |
 | Attacks started from 8 clicks | Clicks 0.35 s apart | 8 / 8 / 8 | Keep |
-| Hits on the dummy from 8 attacks | Damage events | 6 / 6 / 5 | Same at all frame rates |
-| Click to first hit | Seconds | 0.40 / 0.07 / 0.17 | Same at all frame rates (investigate) |
+| Hits on the dummy from 8 attacks | Damage events (each run starts at a different attack in the combo) | 6 / 6 / 5 | Same at all frame rates |
+| Attacks that reach the dummy | Of the 12 attacks in the combo, at 1.2 m | 9 of 12 (left jab, two kicks miss) | All attacks that are meant to connect at this range |
+| Click to hit, per attack | Seconds from click to the hit, compared attack by attack | Within one frame across frame rates (e.g. left hook 0.20 / 0.18 / 0.17) | Keep |
+| Straight right contact | Seconds from click to the hit registering | 0.07 at every rate (before the punch visibly extends) | Contact when the fist visibly arrives |
 | Speed while attacking and walking | m/s | 2.16 / 2.24 / 2.38 | Same at all frame rates |
 
 ## Combat feedback
@@ -61,7 +63,7 @@ Covered by the weapon and unarmed rows above (camera kick, hits). No separate ta
 | Warrior | 3.09 | 39 / 36 / 35 % | 2.0 |
 | Zombie | 1.90 | 98 / 98 / 98 % | 3.3 |
 
-Proposed target for mobs: foot slide ≤ 20 %. Over 100 % means the planted foot moves faster than the body: the clip's stride does not match the chase speed.
+Target for mobs: foot slide ≤ 20 %. Over 100 % means the planted foot moves faster than the body: the clip's stride does not match the chase speed.
 
 ## Notes on the measures
 - Hand jitter (in the raw logs) is a frame-to-frame second difference and shrinks with frame rate; compare it only at the same frame rate.

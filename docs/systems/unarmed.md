@@ -20,4 +20,5 @@ Use the melee dummy (start pad GR-Melee on the Gun Range) or the stationary mobs
 ## Known limits
 - Attacks without an assigned contact limb use a timed sphere check instead of real contact.
 - Unarmed attacks are disabled while a gun is held (drop it with Q).
-- The time from the first click to the first hit differs between frame rates (measured; cause not yet known).
+- The 12-attack combo continues from wherever the last attack stopped; it never resets to the first attack.
+- Three of the twelve attacks (the left jab and two kicks) do not reach a target at 1.2 m, and the straight right registers its hit before the punch visibly extends (measured; [feel spec](../FEEL_SPEC.md#unarmed)). Contact checks use the whole arm from 8 % of the swing.
