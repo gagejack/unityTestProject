@@ -1,21 +1,19 @@
 # Status
 
-**Checkpoint 2: unchanged baseline migrated (no gameplay changes).**
+**Checkpoint 2b: project structure (no gameplay changes).**
 
 ## Current state
-- 844 assets copied from the original with their `.meta` files (GUIDs preserved), at their original paths. Folder reorganisation comes later as its own step.
-- Scene: `Assets/Game/Scenes/SampleScene.unity` (only build scene).
-- Migration-only edits: Mystery Weapon Box removed from the scene (script kept so weapons compile); Spider Drone removed from the mob spawner list; gravity -10 and Run In Background copied from the original.
-- Left behind: spider drone prefab/legs/camera/art, mystery box art, character showcase, all old editor setup/check scripts, unused AR Pack 1 and SMG Pack 3.
-- Smoke test (Play mode): compiles with 0 errors; 0 missing scripts; all 6 mobs spawn, path to the player, attack and accept damage; all 46 catalogue weapons equip; console clean.
+- Migrated baseline reorganised into one folder per system under `Assets/Game/` (Core, Movement, Camera, Animation, Unarmed, Weapons, Combat, Mobs, DebugMenu, World, Scenes, Editor). Third-party pack files trimmed to what is used, in `Assets/ThirdParty/`. Template leftovers removed. Scene renamed to `Assets/Game/Scenes/Main.unity`.
+- New: Core assembly with `IDamageable` (implemented by `TargetHealth`); editor tools assembly with **Tools > Project > Check Docs**.
+- Docs replaced with the layout in `AGENTS.md`. Systems still reference each other directly; assemblies per system come as each is rebuilt ([decision 0001](decisions/0001-project-structure.md)).
+- Verified: compiles, 0 missing scripts, only the pre-existing broken weapon texture, all 6 mobs spawn/chase/attack/take damage, all 46 guns equip, docs check clean.
 
-## Known issues carried over unchanged
-- 21 pack weapons (AR_*, Pistol_*, Shotgun*, SMG_*) share a material whose texture slot points at a file missing in the original too.
-- Import warnings from the source packs: old ModelImporter versions; Fighting Motions clips report "Transform 'Root' not found" on their avatar setup.
-- NavMesh data still lives at `Assets/Game/Characters/SpiderDrone/Navigation/` (moved during reorganisation).
+## Baseline size (C# lines per system)
+Movement 807, Camera 289, Animation 1,106, Unarmed 168, Weapons 1,435, Combat 585, Mobs 676, Debug menu 374, Core 11, Editor tools 77.
 
 ## Last feedback
-Bring the debug menu unchanged; bring only the mystery box script; leave the original as it is; asked what Git LFS is (recommended: not needed, largest carried file is 5 MB).
+"I did not mean copy the entire project over. Please follow the instructions in handoff_prompt.md to create a new project structure."
 
-## Next step
-Checkpoint 3 (proposed): baseline measurement harness (per-frame log + fixed action sequences) run on this unchanged code.
+## Next step (proposed)
+1. Build the gun range and movement course with labeled start markers.
+2. Baseline harness: per-frame log and fixed action sequences at 30/60/144 fps, recorded in `docs/FEEL_SPEC.md`.
