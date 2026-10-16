@@ -8,6 +8,7 @@ Moves the player's collision capsule and decides the movement state: walking, ru
 - `CapsuleMovement` (on Player): reads WASD, jump, crouch and roll input, moves the `CharacterController`, and sets facing. All movement modes are in one long method (SimulateMovement).
 - `PlayerStamina` (on Player): spends and recovers stamina. Infinite stamina switches on at the start of every Play session; turn it off in F1 > Player.
 - `StaminaBar` and `RoundedStaminaGraphic` (on Canvas > Stamina Bar and its child Stamina Fill): draw the stamina bar.
+- `SpeedReadout` (on the scene object Speed HUD): shows horizontal speed in m/s above the points and ammo text, bottom right. Speed HUD has its own canvas scaled like the gun HUD so the two stay aligned.
 
 ## How to tune by feel
 All on Player > Capsule Movement unless noted.
@@ -18,6 +19,7 @@ All on Player > Capsule Movement unless noted.
 - **Wall Jump** group: push-off strength, height and how much your WASD input bends it.
 - **Dash Roll / Air Dash / Air Dive** groups: speed, duration and cooldown of each committed move.
 - Player > Player Stamina: capacity, recovery rate and the pause before recovery.
+- Speed HUD > Speed Readout: **Smoothing** steadies the number (0 shows every frame's raw speed); **Decimals** sets precision.
 - Gun aim and fire slow movement down; those settings are on `WeaponCombatController` (see [weapons](weapons.md)).
 
 ## How to test

@@ -16,7 +16,8 @@
 - Click-to-first-hit for punches differs by frame rate (cause unknown).
 
 ## Last feedback
-H toggles holster/draw, and starting a sprint also holsters. Checkpoint after test areas and baseline.
+"Add a UI element for meters / s above the bottom right UI." Added: Speed HUD shows horizontal speed (m/s) above the points text.
+Earlier: H toggles holster/draw, and starting a sprint also holsters.
 
 ## Next step (proposed)
 Approve or adjust the proposed targets in FEEL_SPEC, then: interaction analysis and package trade-offs (Animation Rigging, Cinemachine), the mob AI rename, and the first fixes (frame-rate-independent jump and fire rate).
