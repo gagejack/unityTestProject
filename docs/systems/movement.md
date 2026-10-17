@@ -21,6 +21,7 @@ All on Player > Capsule Movement unless noted.
 - Player > Player Stamina: capacity, recovery rate and the pause before recovery.
 - **Ground Snap Distance:** how big a drop the character follows while walking or running down slopes and steps instead of falling. Too small brings back the bounce and floating pose going down stairs; too large makes walking off a ledge feel sticky.
 - Speed HUD > Speed Readout: **Smoothing** steadies the number (0 shows every frame's raw speed); **Decimals** sets precision.
+- Speed HUD > Speed Text > Text > **Font** uses Doppio One to match the weapon HUD.
 - Gun aim and fire slow movement down; those settings are on `WeaponCombatController` (see [weapons](weapons.md)). Attack slowdowns are on `MaleWalkRetarget` attack timings (see [unarmed](unarmed.md)).
 
 ## How to test

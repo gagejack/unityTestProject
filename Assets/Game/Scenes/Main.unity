@@ -16891,7 +16891,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: 9bf7cd6a90d903b4abe3d6c59cbf2b63, type: 3}
     m_FontSize: 23
     m_FontStyle: 0
     m_BestFit: 0
@@ -31175,6 +31175,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 29b86e1e97c01e34696e1e898e063455, type: 2}
   - {fileID: 11400000, guid: ffdf4ae2175dba84eb41f68a6b360104, type: 2}
   startingPoints: 1000000
+  hudFont: {fileID: 12800000, guid: 9bf7cd6a90d903b4abe3d6c59cbf2b63, type: 3}
   fireRate: 0.22
   range: 80
   damage: 25

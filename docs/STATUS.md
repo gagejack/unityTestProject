@@ -1,5 +1,11 @@
 # Status
 
+## HUD font checkpoint
+- Main's speed, points, ammo, weapon name and pickup prompt text now use the bundled Doppio One font. Player > Weapon Combat Controller > HUD Font controls the runtime text; Speed HUD > Speed Text > Text > Font controls speed.
+- Validation: compilation succeeded; all 28 Play-mode tests passed; all five HUD text components use Doppio One in Play mode and the Console has no errors. No per-frame code changed.
+- Docs check remains blocked by the existing missing reference image `docs/spec/UI/DebugMenu/sampleUI.jpg`.
+- Next: owner checks HUD readability in Play mode at the Gun Range (F5), including ammo, points and pickup prompts.
+
 **Checkpoint 16 (plan step 6c): armed sprint. Fixed view aiming specified (not built).**
 
 ## Current state

@@ -12,6 +12,7 @@ The gun the player holds: equipping, aiming, firing (automatic, semi-automatic, 
 - Fitted gun prefabs: `Assets/Game/Weapons/Prefabs/`. Icons and materials: `Assets/Game/Weapons/Art/`. Gun sounds: `Assets/Game/Weapons/Audio/` plus `Assets/ThirdParty/FreeWeaponSFX_v1.1/`.
 
 ## How to tune by feel
+- Player > Weapon Combat Controller > **HUD Font** sets the points, ammo, weapon name and pickup prompt font. Main uses Doppio One from `Assets/Game/UI/Fonts/DoppioOne-Regular.ttf`.
 - On a WeaponSettings asset: fire rate and trigger mode (pace and rhythm), damage and pellets, spread and bloom (how much accuracy falls off when spraying), recoil (camera and gun kick), movement multiplier (how heavy the gun feels to carry), grip and support-hand offsets (how it sits in the hands), the Soldier clips including **Hold** (the arm pose while sprinting; empty for a one-handed carry), sounds and pitch.
 - Player > Weapon Combat Controller: **Aiming Move Speed Multiplier / Shooting Move Speed Multiplier** (how much aiming and firing slow you), **Aim Blend Time** (how quickly aim settles), **Support Hand Weight**; **Run Block After Shot** (how long after a shot before you can sprint again; 0 keeps you sprinting through the shot, slowed briefly by the shooting slowdown). Holding Shift + W resumes the sprint by itself when the block ends; a double-tap W sprint is cancelled by the block and needs another double-tap.
 

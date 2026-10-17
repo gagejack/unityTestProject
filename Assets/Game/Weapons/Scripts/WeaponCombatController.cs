@@ -15,6 +15,9 @@ namespace StarterGame
         [SerializeField] private WeaponSettings[] offers = new WeaponSettings[5];
         [Header("Starting weapon")]
         [SerializeField] private int startingPoints = 10000;
+        [Header("HUD")]
+        [Tooltip("Font used for points, ammo, weapon names and pickup prompts.")]
+        [SerializeField] private Font hudFont;
         // Kept serialized for scene migration; the equipped settings asset supplies these values.
         [SerializeField, HideInInspector] private float fireRate = 0.22f;
         [SerializeField, HideInInspector] private float range = 80f;
@@ -924,7 +927,7 @@ namespace StarterGame
             raw.color = Color.white;
         }
 
-        private static void CreateHudText(Transform parent, string name, string value, int size, Vector2 anchor,
+        private void CreateHudText(Transform parent, string name, string value, int size, Vector2 anchor,
             Vector2 offset, Vector2 dimensions, TextAnchor textAnchor, out Text output)
         {
             GameObject go = new GameObject(name, typeof(Text));
@@ -936,7 +939,7 @@ namespace StarterGame
             rect.sizeDelta = dimensions;
             output = go.GetComponent<Text>();
             output.raycastTarget = false;
-            output.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            output.font = hudFont ? hudFont : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             output.fontSize = size;
             output.alignment = textAnchor;
             output.color = Color.white;
