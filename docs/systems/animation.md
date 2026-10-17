@@ -5,8 +5,8 @@ Makes the block character move: plays walk, run, strafe, idle and fall clips; bl
 
 ## Files
 - Folder: `Assets/Game/Animation/`
-- `MaleWalkRetarget` (on Player): builds the animation graph in code, picks walk/run/strafe blends from measured motion, plays unarmed attacks (selection and timing), layers the Soldier weapon poses, straightens the upper body and tucks the arms while running, and tilts the chest toward the aim.
-- `BlockHumanoidRig` (on Player): special-move poses, copies the skeleton onto the visible blocks, sets the body's height (a fixed offset for clip poses, a snap to the floor for special poses, and never below the floor while grounded), and runs punch contact and the weapon arm pose at the right moment.
+- `MaleWalkRetarget` (on Player): builds the animation graph in code, picks walk/run/strafe blends from measured motion, plays unarmed attacks (selection and timing), layers the Soldier weapon poses, and, in the graph's last step (`BodyPoseJob`), straightens the upper body and tucks the arms while running, tilts the chest toward the aim, and moves the arms to aim the gun and hold its support grip.
+- `BlockHumanoidRig` (on Player): special-move poses, copies the skeleton onto the visible blocks, sets the body's height (a fixed offset for clip poses, a snap to the floor for special poses, and never below the floor while grounded), and runs punch contact at the right moment.
 - `PlayerBlockRounding` (on Player): rounds the block corners.
 - `Assets/Game/Animation/Avatars/BlockHumanoidAvatar.asset`: the Humanoid skeleton description, rebuilt by **Tools > Animation > Rebuild Player Avatar** (`PlayerAvatarSetup`). Its root sits at the feet (rig root 0.96 m below the player's centre), so the clips' hip bob and sway reach the body, and its arm down range is longer than Unity's default so the arms hang close to the wide block torso. Materials for the body are in `Assets/Game/Animation/Materials/`.
 - Clips come from `Assets/ThirdParty/Kevin Iglesias/` (movement, Soldier poses) and `Assets/ThirdParty/FightingMotionsVolume1/` (punches and kicks).
@@ -24,8 +24,8 @@ Walk, run and strafe on the Movement Course (F6) lane and open area; crouch in t
 ## Known limits (measured)
 - Normal movement looks like jogging and running looks like sprinting: the clips were picked to match the travel speeds (walk 4.5, run 6.75 m/s); the original walk clip's planted foot only moves at 1.45 m/s on this rig.
 - Feet still slide somewhat, most visibly when strafing ([feel spec](../FEEL_SPEC.md#animation)).
-- Running lean, the running-arm tuck and the chest aim pitch are code adjustments made inside the animation graph, in its last step (`BodyPoseJob`), so they are part of the pose that later code reads.
+- Running lean, the running-arm tuck, the chest aim pitch and the gun arms are code adjustments made inside the animation graph, in its last step (`BodyPoseJob`), so they are part of the pose that later code reads. The gun arms use a two-bone solver, not Humanoid IK ([decision 0004](../decisions/0004-arm-solver-inside-the-graph.md)).
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor and the other 3-4.5 cm: the one fixed height offset is set so the lowest point of a walking or running stride touches the floor, and the idle clip holds its feet higher than that (measured).
 - Running arms are pulled down toward the body by code (Running Arm Down Angle), not by the clip.
 - While running with a gun, the gun pose and support-hand grip are switched off, so the arms swing freely around the gun (support hand measured over a meter from its grip).
-- Several pieces of code still rotate the same arm bones after the graph in one frame (special poses, punch contact, weapon pose).
+- Several pieces of code still rotate the same arm bones after the graph in one frame (special poses, punch contact).

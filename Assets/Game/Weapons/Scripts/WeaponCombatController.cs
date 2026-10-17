@@ -81,8 +81,7 @@ namespace StarterGame
         public bool LastShotUsedLeftHand { get; private set; }
         private Transform weaponHand;
         private Animator poseAnimator;
-        private Transform rightUpperArm, rightLowerArm, rightHand;
-        private Transform leftUpperArm, leftLowerArm, leftHand;
+        private Transform rightHand, leftHand;
         private Text pointsText;
         private Canvas weaponHud;
         private Text ammoText;
@@ -806,82 +805,68 @@ namespace StarterGame
             RefreshHud();
         }
 
-        internal void ApplyAnimatedWeaponPose(float dt, bool allowSupportHand)
+        // Updates recoil and the support grip, places the gun in the hand, and says where the pose step inside the
+        // animation graph (BodyPoseJob) should put the hands this frame. groundShift is how far grounding is expected
+        // to move the body after the graph, so the gun lines up with the crosshair once it has moved.
+        internal GunHands PrepareGunHands(float dt, bool allowSupportHand, Vector3 groundShift)
         {
-            if (!HasWeapon || !CurrentWeapon) return;
+            var hands = new GunHands();
+            if (!HasWeapon || !CurrentWeapon || !heldWeapon) return hands;
             if (Time.time >= recoilHoldUntil) recoilTarget = 0f;
             recoil = Mathf.SmoothDamp(recoil, recoilTarget, ref recoilVelocity,
                 recoilTarget > recoil ? CurrentWeapon.kickTime : CurrentWeapon.recoilRecovery, Mathf.Infinity, dt);
             if (Time.time >= leftRecoilHoldUntil) leftRecoilTarget = 0f;
             leftRecoil = Mathf.SmoothDamp(leftRecoil, leftRecoilTarget, ref leftRecoilVelocity,
                 leftRecoilTarget > leftRecoil ? CurrentWeapon.kickTime : CurrentWeapon.recoilRecovery, Mathf.Infinity, dt);
+            CacheHandBones();
+            if (!rightHand) return hands;
             float running = characterAnimations ? characterAnimations.RunningPoseWeight : 0f;
             float aim = allowSupportHand && !IsReloading ? AimWeight * (1f - running) : 0f;
             Quaternion grip = Quaternion.Slerp(Quaternion.Euler(CurrentWeapon.gripEuler), Quaternion.Euler(CurrentWeapon.aimedGripEuler), aim);
-            CacheArmBones();
-            Vector3 aimPoint = aim > 0f ? AimTargetPoint() : Vector3.zero;
-            if (aim > 0f && rightHand && rightUpperArm && rightLowerArm)
-            {
-                Vector3 target = rightHand.position + transform.TransformDirection(CurrentWeapon.aimHandOffset) * aim;
-                Vector3 direction = (aimPoint - target).normalized;
-                Quaternion gunRotation = SafeAimRotation(direction);
-                Quaternion handRotation = gunRotation * Quaternion.Inverse(Quaternion.Euler(CurrentWeapon.aimedGripEuler));
-                SolveArm(rightUpperArm, rightLowerArm, rightHand, target,
-                    Quaternion.Slerp(rightHand.rotation, handRotation, aim));
-            }
+            hands.active = true;
+            hands.aim = aim;
+            hands.aimPoint = (aim > 0f ? AimTargetPoint() : Vector3.zero) - groundShift;
+            hands.aimHandOffset = transform.TransformDirection(CurrentWeapon.aimHandOffset) * aim;
+            hands.aimedGrip = Quaternion.Euler(CurrentWeapon.aimedGripEuler);
+            // The gun is a child of the hand bone, so its points in the hand's frame do not depend on the hand's pose.
             heldWeapon.transform.localRotation = grip;
             heldWeapon.transform.localPosition = grip * Vector3.back * (recoil * CurrentWeapon.weaponKickDistance * weaponRecoilScale);
-            if (aim > 0f && rightHand)
-            {
-                // Converge at the crosshair's actual target, including the shoulder
-                // camera's horizontal offset and the muzzle's offset above the grip.
-                Quaternion animatedHand = rightHand.rotation;
-                for (int i = 0; i < 8; i++)
-                {
-                    Vector3 direction = aimPoint - MuzzlePosition;
-                    if (Vector3.Angle(heldWeapon.transform.forward, direction) < 0.02f) break;
-                    Quaternion correction = Quaternion.FromToRotation(heldWeapon.transform.forward, direction);
-                    rightHand.rotation = correction * rightHand.rotation;
-                }
-                rightHand.rotation = Quaternion.Slerp(animatedHand, rightHand.rotation, aim);
-            }
+            Quaternion toHand = Quaternion.Inverse(rightHand.rotation);
+            hands.muzzle = toHand * (MuzzlePosition - rightHand.position);
+            hands.barrel = toHand * heldWeapon.transform.forward;
             heldWeapon.transform.localRotation = grip * Quaternion.Euler(-recoil * CurrentWeapon.weaponKickAngle * weaponRecoilScale, 0f, 0f);
             if (IsDualWielding)
             {
-                ApplyOffhandPose(aim, aimPoint);
-                return;
+                PrepareOffhand(ref hands, aim);
+                return hands;
             }
             float support = CurrentWeapon.supportHand ? 1f : aim;
             gripWeight = Mathf.MoveTowards(gripWeight, allowSupportHand && !IsReloading ? supportHandWeight * support * (1f - running) : 0f, dt / 0.1f);
-            if (gripWeight <= 0f || !allowSupportHand || !leftUpperArm || !leftLowerArm || !leftHand) return;
-            Vector3 supportTarget = Vector3.Lerp(leftHand.position,
-                heldWeapon.transform.TransformPoint(CurrentWeapon.supportHandLocalPosition), gripWeight);
+            if (gripWeight <= 0f || !allowSupportHand || !leftHand) return hands;
+            Vector3 supportPoint = heldWeapon.transform.TransformPoint(CurrentWeapon.supportHandLocalPosition);
             if (CurrentWeapon.triggerMode == WeaponSettings.TriggerMode.PumpAction && !IsReloading)
             {
                 float cycle = Mathf.InverseLerp(0.2f, 0.65f, (Time.time - LastShotTime) / Mathf.Max(0.05f, fireRate));
-                supportTarget -= heldWeapon.transform.forward * (Mathf.Sin(cycle * Mathf.PI) * 0.1f * gripWeight);
+                supportPoint -= heldWeapon.transform.forward * (Mathf.Sin(cycle * Mathf.PI) * 0.1f);
             }
-            Quaternion supportRotation = Quaternion.Slerp(leftHand.rotation,
-                heldWeapon.transform.rotation * Quaternion.Euler(CurrentWeapon.supportHandLocalEuler), gripWeight);
-            SolveArm(leftUpperArm, leftLowerArm, leftHand, supportTarget, supportRotation);
+            hands.support = gripWeight;
+            hands.supportPoint = toHand * (supportPoint - rightHand.position);
+            hands.supportRotation = toHand * (heldWeapon.transform.rotation * Quaternion.Euler(CurrentWeapon.supportHandLocalEuler));
+            return hands;
         }
 
-        private void ApplyOffhandPose(float aim, Vector3 aimPoint)
+        private void PrepareOffhand(ref GunHands hands, float aim)
         {
-            if (!heldWeaponLeft || !leftHand || !leftUpperArm || !leftLowerArm) return;
+            if (!heldWeaponLeft || !leftHand) return;
             Quaternion grip = Quaternion.Slerp(Quaternion.Euler(CurrentWeapon.leftGripEuler), Quaternion.Euler(CurrentWeapon.leftAimedGripEuler), aim);
-            if (aim > 0f)
-            {
-                Vector3 target = leftHand.position + transform.TransformDirection(CurrentWeapon.leftAimHandOffset) * aim;
-                Quaternion rotation = SafeAimRotation((aimPoint - target).normalized) * Quaternion.Inverse(Quaternion.Euler(CurrentWeapon.leftAimedGripEuler));
-                SolveArm(leftUpperArm, leftLowerArm, leftHand, target, Quaternion.Slerp(leftHand.rotation, rotation, aim));
-            }
+            hands.dual = true;
+            hands.leftAimHandOffset = transform.TransformDirection(CurrentWeapon.leftAimHandOffset) * aim;
+            hands.leftAimedGrip = Quaternion.Euler(CurrentWeapon.leftAimedGripEuler);
             heldWeaponLeft.transform.localRotation = grip;
             heldWeaponLeft.transform.localPosition = grip * Vector3.back * (leftRecoil * CurrentWeapon.weaponKickDistance * weaponRecoilScale);
-            if (aim > 0f)
-                for (int i = 0; i < 2; i++)
-                    leftHand.rotation = Quaternion.Slerp(Quaternion.identity,
-                        Quaternion.FromToRotation(heldWeaponLeft.transform.forward, aimPoint - OffhandMuzzlePosition), aim) * leftHand.rotation;
+            Quaternion toHand = Quaternion.Inverse(leftHand.rotation);
+            hands.leftMuzzle = toHand * (OffhandMuzzlePosition - leftHand.position);
+            hands.leftBarrel = toHand * heldWeaponLeft.transform.forward;
             heldWeaponLeft.transform.localRotation = grip * Quaternion.Euler(-leftRecoil * CurrentWeapon.weaponKickAngle * weaponRecoilScale, 0f, 0f);
         }
 
@@ -893,45 +878,13 @@ namespace StarterGame
                 ? hit.point : origin + direction * range;
         }
 
-        private Quaternion SafeAimRotation(Vector3 direction)
-        {
-            // Keep a stable roll even when the camera looks straight up.
-            Vector3 up = Vector3.ProjectOnPlane(transform.up, direction);
-            if (up.sqrMagnitude < 0.001f) up = Vector3.Cross(direction, transform.right);
-            return Quaternion.LookRotation(direction, up);
-        }
-
-        private void CacheArmBones()
+        private void CacheHandBones()
         {
             var animator = characterAnimations ? characterAnimations.RigAnimator : null;
             if (!animator || poseAnimator == animator) return;
             poseAnimator = animator;
-            rightUpperArm = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
-            rightLowerArm = animator.GetBoneTransform(HumanBodyBones.RightLowerArm);
             rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
-            leftUpperArm = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
-            leftLowerArm = animator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
             leftHand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
-        }
-
-        private static void SolveArm(Transform upper, Transform lower, Transform hand, Vector3 target, Quaternion rotation)
-        {
-            float a = Vector3.Distance(upper.position, lower.position);
-            float b = Vector3.Distance(lower.position, hand.position);
-            if (a < 0.001f || b < 0.001f) return;
-            Vector3 toward = target - upper.position;
-            if (toward.sqrMagnitude < 0.000001f) return;
-            float length = Mathf.Clamp(toward.magnitude, Mathf.Abs(a - b) + 0.001f, a + b - 0.001f);
-            Vector3 axis = toward.normalized;
-            Vector3 pole = Vector3.ProjectOnPlane(lower.position - upper.position, axis).normalized;
-            if (pole.sqrMagnitude < 0.01f) pole = Vector3.ProjectOnPlane(-upper.root.up, axis).normalized;
-            if (pole.sqrMagnitude < 0.01f) pole = Vector3.ProjectOnPlane(upper.root.right, axis).normalized;
-            float along = (a * a - b * b + length * length) / (2f * length);
-            Vector3 elbow = upper.position + axis * along + pole * Mathf.Sqrt(Mathf.Max(0f, a * a - along * along));
-            upper.rotation = Quaternion.FromToRotation(lower.position - upper.position, elbow - upper.position) * upper.rotation;
-            Vector3 reachable = upper.position + axis * length;
-            lower.rotation = Quaternion.FromToRotation(hand.position - lower.position, reachable - lower.position) * lower.rotation;
-            hand.rotation = rotation;
         }
 
         private void BuildHud()

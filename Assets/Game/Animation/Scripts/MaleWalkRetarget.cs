@@ -249,8 +249,10 @@ namespace StarterGame
                 chest = Bind(HumanBodyBones.Chest),
                 leftUpperArm = Bind(HumanBodyBones.LeftUpperArm),
                 leftLowerArm = Bind(HumanBodyBones.LeftLowerArm),
+                leftHand = Bind(HumanBodyBones.LeftHand),
                 rightUpperArm = Bind(HumanBodyBones.RightUpperArm),
                 rightLowerArm = Bind(HumanBodyBones.RightLowerArm),
+                rightHand = Bind(HumanBodyBones.RightHand),
             }, 1);
             graph.Connect(pose, 0, bodyPose, 0);
             bodyPose.SetInputWeight(0, 1f);
@@ -405,9 +407,6 @@ namespace StarterGame
             UpdateBodyPose(walk * runBlend, dt);
             graph.Evaluate(dt);
             if (!blockRig || !blockRig.UsingDownloadedAnimation) ApplyPunchContact(dt);
-            // Block characters finish their weapon pose after grounding the body.
-            if (weapons && (!blockRig || !blockRig.UsingDownloadedAnimation))
-                weapons.ApplyAnimatedWeaponPose(dt, !special);
             if (pendingContact != null)
             {
                 if (weapons) weapons.PerformMeleeHit(pendingContact.damage, pendingContact.reach, pendingContact.radius, pendingContact.kick, pendingContact.strikeDirection);
@@ -568,10 +567,11 @@ namespace StarterGame
             for (int i = 0; i < 8; i++)
                 directionWeights[i] = Mathf.Lerp(directionWeights[i], targetDirectionWeights[i], alpha);
         }
-        // Hands this frame's running lean, arm tuck and chest aim pitch to the pose step in the graph.
+        // Hands this frame's running lean, arm tuck, chest aim pitch and gun hands to the pose step in the graph.
         private void UpdateBodyPose(float runWeight, float dt)
         {
-            if (SpecialMoveActive) runWeight = 0f;
+            bool special = SpecialMoveActive;
+            if (special) runWeight = 0f;
             if (weapons && weapons.HasWeapon)
             {
                 Vector3 aim = weapons.AimWorldDirection;
@@ -586,6 +586,9 @@ namespace StarterGame
             job.armWeight = runWeight;
             job.armDownAngle = runningArmDownAngle;
             job.aimPitch = upperBodyAimPitch;
+            // Grounding moves the body after the graph; last frame's shift is the expected one.
+            Vector3 groundShift = blockRig && blockRig.UsingDownloadedAnimation ? Vector3.up * blockRig.GroundHeight : Vector3.zero;
+            job.gun = weapons ? weapons.PrepareGunHands(dt, !special, groundShift) : default;
             bodyPose.SetJobData(job);
         }
 

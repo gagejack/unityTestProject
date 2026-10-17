@@ -1,24 +1,19 @@
 # Status
 
-**Checkpoint 13 (plan step 6b, part 1): one pose step inside the animation graph.**
+**Checkpoint 14 (plan step 6b, part 2): the gun arms move into the pose step.**
 
 ## Current state
-- The running lean, the running-arm tuck and the chest aim pitch now happen inside the animation graph, in its last step (`BodyPoseJob`), instead of being written onto the bones after the animation. Same math, same settings; nothing should look different.
-- Measured (walk, run, armed run, aimed rifle fire at 30 / 60 / 144 fps), before → after: sprint lean 34.7 → 34.6-34.7°, run arms 38.5 → 38.5°, run speed and foot slide unchanged within run-to-run noise, rifle aim error 1.6 → 1.5-1.6°. The walk arm angle varies 0-4° between two runs of the same code, so it is too noisy to compare.
-- Cost of the new step: about 0.01 ms per frame while running or aiming.
-- New Play-mode check `RunningPoseTests`: sprint lean and running arm angle stay on their feel-spec targets at 30, 60 and 144 fps. All 23 Play-mode tests pass.
-
-## Proposed pose order (rest of step 6b)
-1. Clips are mixed (locomotion, unarmed attacks, Soldier gun poses).
-2. `BodyPoseJob`: running lean, running arms, chest aim pitch (done), then the gun hands with Humanoid IK goals: right hand aims the gun, left hand on the gun's support grip (next).
-3. After the graph: special-move poses and grounding (`BlockHumanoidRig`), punch contact. The weapon arm solve in `WeaponCombatController` is removed once step 2 covers it.
+- Aiming the gun and holding its support grip now happen inside the animation graph, in its last step (`BodyPoseJob`), after the running lean, arm tuck and chest aim pitch. `WeaponCombatController` keeps the recoil and grip state and says where the hands go (`GunHands`); it no longer moves the arm bones after the animation. Nothing should look different.
+- Humanoid IK was tried first and dropped: it reached its target exactly but erased the running lean and arm edits made in the same step ([decision 0004](decisions/0004-arm-solver-inside-the-graph.md), needs your approval). The existing arm solver moved into the step instead.
+- Measured before → after (armed walk, aimed and strafing rifle fire, pistol, rocket, run and armed run at 30 / 60 / 144 fps): aim error rifle 1.62 → 1.48-1.62°, pistol 0.62 → 0.62°, rocket 1.50 → 1.50°; support hand gap walking 0 → 0 cm; armed walk arm angle 5.7 → 5.7°; sprint lean 34.7°, run arms 38.5° and run foot slide unchanged.
+- New code paths checked once (no earlier numbers to compare): dual handguns aim within 0.62° (right gun; the left gun looked level with it in the captured frames), and the shotgun's pump stroke pulls the support hand 10 cm, as designed.
+- Cost: the gun arms add about 0.01 ms per frame inside the graph, replacing the same solve after it.
+- All Play-mode tests pass.
 
 ## Measured, not yet decided
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor (fix deferred by the owner).
 - Foot slide is still above the ankle targets for walk, run and strafe.
-
-## Later
-- The pixel button sheet in `docs/spec/UI/DebugMenu/` is a style reference for future main and pause menus.
+- Running with a gun still drops the support hand (about 160 cm from its grip); that is the armed sprint step.
 
 ## Next step
-Owner playtest: run, sprint and aim at the Movement Course (F6) and gun range (F5); nothing should look different. Then checkpoint 14: the gun hands move into the pose step with Humanoid IK.
+Owner playtest at the gun range (F5): equip a rifle, a pistol, dual handguns and a shotgun from F1, aim (right mouse) and fire; nothing should look different. Then the armed sprint: Sprint01 legs, Soldier WeaponHold upper body and the support hand on the gun while running.

@@ -5,7 +5,7 @@ The gun the player holds: equipping, aiming, firing (automatic, semi-automatic, 
 
 ## Files
 - Folder: `Assets/Game/Weapons/`
-- `WeaponCombatController` (on Player): input, ammo, reload, the shot, aim and support-hand arm pose, HUD built at runtime, pickups, debug equip and spawn, points.
+- `WeaponCombatController` (on Player): input, ammo, reload, the shot, aim, where the hands hold and aim the gun each frame (`GunHands`; the arms are moved by the animation's pose step), HUD built at runtime, pickups, debug equip and spawn, points.
 - `WeaponSettings`: one asset per gun in `Assets/Game/Weapons/Settings/` (48 assets; the 46 active ones are listed in the controller's Offers). Its Category field (pistols, SMGs, assault rifles, shotguns, rifles and snipers, machine guns, launchers) groups the debug menu.
 - `RocketProjectile` (launchers), `DroppedWeapon` (pickups on the ground).
 - `MysteryWeaponBox`: kept only because the controller still references it; no box is in the scene.

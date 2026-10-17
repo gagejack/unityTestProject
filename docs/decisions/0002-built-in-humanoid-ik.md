@@ -1,6 +1,6 @@
 # 0002: Built-in Humanoid IK instead of the Animation Rigging package
 
-**Status:** accepted (owner approved 2026-10-16)
+**Status:** accepted (owner approved 2026-10-16); the hand-goal part is replaced by [0004](0004-arm-solver-inside-the-graph.md) if approved.
 
 ## Context
 The support hand, aiming and the armed sprint need hand placement (IK). Today it is done by custom code that rotates arm bones after the animation has been evaluated (`WeaponCombatController` solves both arms, `MaleWalkRetarget` tucks the running arms and tilts the chest, `BlockHumanoidRig` runs it all again after grounding). Up to five pieces of code rotate the same arm bone each frame.

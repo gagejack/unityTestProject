@@ -50,7 +50,6 @@ namespace StarterGame
         private Attachment headAttachment;
         private Attachment chestAttachment;
         private CapsuleMovement movement;
-        private WeaponCombatController weapons;
         private MaleWalkRetarget fightingAnimation;
         private Vector3[] positions;
         private Quaternion[] rotations;
@@ -61,11 +60,12 @@ namespace StarterGame
         private CharacterController controller;
         private Renderer[] blockRenderers;
         public bool UsingDownloadedAnimation => initialized && isActiveAndEnabled;
+        // How far the body was moved up (negative: down) to meet the floor last frame.
+        public float GroundHeight { get; private set; }
 
         private void Awake()
         {
             movement = GetComponent<CapsuleMovement>();
-            weapons = GetComponent<WeaponCombatController>();
             fightingAnimation = GetComponent<MaleWalkRetarget>();
             positions = new Vector3[attachments.Length];
             rotations = new Quaternion[attachments.Length];
@@ -110,14 +110,6 @@ namespace StarterGame
                 fightingAnimation.ApplyPunchContact(Time.deltaTime);
                 CopyAttachments();
             }
-            if (weapons && weapons.HasWeapon)
-            {
-                bool special = movement && (movement.IsRolling || movement.IsDiving || movement.IsSliding || movement.IsCrouching);
-                // Grounding moves the skeleton. Aim and solve both arms from that
-                // final position, then copy the solved hands onto the visible blocks.
-                weapons.ApplyAnimatedWeaponPose(Time.deltaTime, !special);
-                CopyAttachments();
-            }
         }
 
         private void CopyAttachments()
@@ -146,6 +138,7 @@ namespace StarterGame
                     height = Mathf.Max(Mathf.Lerp(animatedPoseHeight, touch, snapWeight), touch);
                 }
             }
+            GroundHeight = height;
             Vector3 shift = Vector3.up * height;
             animator.transform.position += shift;
             foreach (var item in attachments) item.block.position += shift;
