@@ -144,7 +144,13 @@ namespace StarterGame
             return null;
         }
 
-        public bool HasWeapon => isActiveAndEnabled && heldWeapon != null;
+        /// <summary>A gun in the hands. A holstered gun is owned but not held: the player is unarmed.</summary>
+        public bool HasWeapon => OwnsWeapon && !(holster && holster.IsHolstered);
+        /// <summary>A gun is equipped, in the hands or holstered.</summary>
+        public bool OwnsWeapon => isActiveAndEnabled && heldWeapon != null;
+        internal GameObject HeldModel => heldWeapon;
+        internal GameObject OffhandModel => heldWeaponLeft;
+        private WeaponHolster holster;
         public bool IsAiming { get; private set; }
         public float AimWeight { get; private set; }
         public float CurrentSpreadDegrees => Mathf.Lerp(hipFireSpread, aimedSpread, AimWeight)
@@ -206,6 +212,7 @@ namespace StarterGame
             movement = GetComponent<CapsuleMovement>();
             characterAnimations = GetComponent<MaleWalkRetarget>();
             feedback = GetComponent<CombatFeedback>();
+            holster = GetComponent<WeaponHolster>();
             mysteryBoxes = FindObjectsByType<MysteryWeaponBox>();
             ApplySettings(offers[0]);
             ammoInMagazine = magazineSize;
@@ -218,7 +225,7 @@ namespace StarterGame
 
         private void RefillAmmo()
         {
-            if (!HasWeapon) return;
+            if (!OwnsWeapon) return;
             reloading = false;
             ammoInMagazine = CurrentMagazineSize;
             reserveAmmo = Mathf.Max(0, CurrentWeapon.reserve);
@@ -242,10 +249,11 @@ namespace StarterGame
                 {
                     var box = NearbyMysteryBox();
                     if (box) box.TryInteract(this);
-                    else if (nearbyPickup && !HasWeapon) nearbyPickup.TryCollect(this);
+                    else if (nearbyPickup && !OwnsWeapon) nearbyPickup.TryCollect(this);
                 }
                 if (Keyboard.current.rKey.wasPressedThisFrame) BeginReload();
-                if (Keyboard.current.qKey.wasPressedThisFrame) DropWeapon();
+                // Q drops only a gun in the hands (owner's choice); a holstered gun is drawn first.
+                if (Keyboard.current.qKey.wasPressedThisFrame && HasWeapon) DropWeapon();
             }
             if (gameplayInput && Mouse.current != null)
                 HandleFireInput(Mouse.current.leftButton.isPressed, Mouse.current.leftButton.wasPressedThisFrame);
@@ -464,7 +472,7 @@ namespace StarterGame
 
         private void BeginReload()
         {
-            if (!heldWeapon || reloading || ammoInMagazine >= CurrentMagazineSize || reserveAmmo <= 0) return;
+            if (!HasWeapon || reloading || ammoInMagazine >= CurrentMagazineSize || reserveAmmo <= 0) return;
             reloading = true;
             if (feedback) feedback.StopFiringSound();
             pendingShot = false;
@@ -532,7 +540,7 @@ namespace StarterGame
         {
             int slot = System.Array.IndexOf(offers, weapon);
             if (slot < 0 || !weapon || !weapon.model) return false;
-            if (HasWeapon) DropWeapon();
+            if (OwnsWeapon) DropWeapon();
             equippedOffer = slot;
             ApplySettings(weapon);
             ammoInMagazine = weapon.magazine;
@@ -632,7 +640,7 @@ namespace StarterGame
             pickup.Initialize(index, weapon, weapon.magazine, weapon.reserve);
             if (controller)
                 foreach (var collider in dropped.GetComponentsInChildren<Collider>()) Physics.IgnoreCollision(controller, collider);
-            status = "Spawned " + weapon.displayName + ". Press Q to free your hands, then F to pick it up.";
+            status = "Spawned " + weapon.displayName + ". Press Q to free your hands (draw a holstered gun first), then F to pick it up.";
             return true;
         }
 
@@ -641,7 +649,7 @@ namespace StarterGame
             if (Time.time < promptUntil) return;
             var box = NearbyMysteryBox();
             if (box) { promptText.text = box.PromptFor(this); return; }
-            if (nearbyPickup && !HasWeapon)
+            if (nearbyPickup && !OwnsWeapon)
             {
                 promptText.text = "F  TO PICK UP  " + nearbyPickup.DisplayName + "  •  " + nearbyPickup.Magazine + " / " + nearbyPickup.Reserve;
                 return;
@@ -743,7 +751,7 @@ namespace StarterGame
             if (Time.time < nextPickupScan) return;
             nextPickupScan = Time.time + 0.08f;
             nearbyPickup = null;
-            if (HasWeapon) return;
+            if (OwnsWeapon) return;
             float best = 2.2f;
             int count = Physics.OverlapSphereNonAlloc(transform.position, best, pickupHits, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
@@ -852,8 +860,32 @@ namespace StarterGame
             recoil = recoilTarget = recoilVelocity = gripWeight = 0f;
             leftRecoil = leftRecoilTarget = leftRecoilVelocity = 0f;
             nextShotLeft = pendingShotLeft = LastShotUsedLeftHand = false;
+            if (holster) holster.ShowInHand();
             if (feedback) feedback.Handling(CurrentWeapon.equipSounds, MuzzlePosition, CurrentWeapon.shotPitch);
             if (characterAnimations) characterAnimations.CancelFightingMotion();
+            RefreshHud();
+        }
+
+        // Called by WeaponHolster after the gun moves to the body or back to the hands.
+        internal void OnHolsterChanged(bool holstered)
+        {
+            if (feedback) feedback.StopFiringSound();
+            // A shot queued earlier this frame is refunded, as when a roll interrupts it.
+            if (pendingShot)
+            {
+                pendingShot = false;
+                ammoInMagazine = Mathf.Min(CurrentMagazineSize, ammoInMagazine + 1);
+                LastShotTime = shotTimeBeforePending;
+                nextShotTime = Time.time;
+            }
+            reloading = false;
+            IsAiming = false;
+            AimWeight = 0f;
+            turnShotUntil = float.NegativeInfinity;
+            recoil = recoilTarget = recoilVelocity = gripWeight = pointWeight = 0f;
+            leftRecoil = leftRecoilTarget = leftRecoilVelocity = 0f;
+            if (feedback) feedback.Handling(CurrentWeapon.equipSounds, MuzzlePosition, CurrentWeapon.shotPitch);
+            if (!holstered && characterAnimations) characterAnimations.CancelFightingMotion();
             RefreshHud();
         }
 
@@ -1079,11 +1111,12 @@ namespace StarterGame
             if (!pointsText) return;
             pointsText.text = "$" + points.ToString("N0");
             ammoText.text = ammoInMagazine + " / " + reserveAmmo;
-            weaponText.text = heldWeapon ? offers[equippedOffer].displayName : "UNARMED";
+            weaponText.text = !heldWeapon ? "UNARMED" : HasWeapon ? offers[equippedOffer].displayName
+                : offers[equippedOffer].displayName + "  (HOLSTERED, H TO DRAW)";
             if (!heldWeapon) ammoText.text = "";
             if (gunIconImage)
             {
-                gunIconImage.sprite = HasWeapon && CurrentWeapon ? CurrentWeapon.hudSprite : null;
+                gunIconImage.sprite = heldWeapon && CurrentWeapon ? CurrentWeapon.hudSprite : null;
                 gunIconImage.enabled = gunIconImage.sprite;
             }
         }

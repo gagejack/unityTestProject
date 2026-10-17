@@ -275,7 +275,8 @@ namespace StarterGame
             // Left click belongs to the equipped gun; empty hands use unarmed attacks.
             if ((movement && !movement.PlayerControlEnabled) || (weapons && weapons.HasWeapon)) return;
             var mouse = Mouse.current;
-            if (!Application.isFocused || mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
+            // No focus check, as in movement: the Input System already releases held buttons when the window loses focus.
+            if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
             if (Cursor.lockState != CursorLockMode.Locked && viewMenu &&
                 viewMenu.ContainsPointer(mouse.position.ReadValue())) return;
             if (UnityEngine.EventSystems.EventSystem.current != null &&

@@ -50,6 +50,9 @@ MonoBehaviour:
   supportHand: 1
   supportHandLocalPosition: {x: -0.020509683, y: 0.005, z: 0.15}
   supportHandLocalEuler: {x: 277.09747, y: 290.16168, z: 227.32083}
+  holsterOffset: {x: 0.05, y: 0.09, z: 0}
+  holsterEuler: {x: 0, y: 0, z: 0}
+  holsterOnBack: 0
   hipFireSpread: 3
   aimedSpread: 0.25
   bloomPerShot: 0.55

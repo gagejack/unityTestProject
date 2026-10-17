@@ -17,7 +17,8 @@ A third-person movement and combat prototype with a block-built character, 46 gu
 | Roll / dive | Caps Lock on the ground / Caps Lock in the air (hold S to dive backward) |
 | Attack (unarmed) or fire (armed) | Left mouse |
 | Aim | Right mouse |
-| Reload / drop gun / pick up | R / Q / F |
+| Reload / drop gun / pick up | R / Q / F (Q only drops a gun in your hands) |
+| Holster or draw the gun | H (right mouse also draws) |
 | Debug menu (equip guns, spawn mobs) | F1 |
 | Go to gun range / movement course / mob test spot / aim ring | F5 / F6 / F7 / F8 |
 | Reset targets and refill ammo | F9 |

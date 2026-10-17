@@ -59,6 +59,13 @@ namespace StarterGame
         public bool supportHand;
         public Vector3 supportHandLocalPosition;
         public Vector3 supportHandLocalEuler;
+        [Header("Holster")]
+        [Tooltip("Extra shift of this gun on its holster spot, in meters along the character: X right, Y up, Z forward. Zero uses the category's spot as it is.")]
+        public Vector3 holsterOffset;
+        [Tooltip("Extra rotation of this gun on its holster spot, in degrees around the gun's own axes (Z runs along the barrel, so Z 180 rolls it over).")]
+        public Vector3 holsterEuler;
+        [Tooltip("Ride on the back like a rifle even though this gun's category goes on the hip (for long guns such as SMGs with stocks).")]
+        public bool holsterOnBack;
         [Header("Accuracy")]
         [Range(0, 15)] public float hipFireSpread = 3f;
         [Range(0, 5)] public float aimedSpread = 0.25f;
