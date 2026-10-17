@@ -9,6 +9,7 @@
 - New code paths checked once (no earlier numbers to compare): dual handguns aim within 0.62° (right gun; the left gun looked level with it in the captured frames), and the shotgun's pump stroke pulls the support hand 10 cm, as designed.
 - Cost: the gun arms add about 0.01 ms per frame inside the graph, replacing the same solve after it.
 - All Play-mode tests pass.
+- New setting Player > Weapon Combat Controller > **Run Block After Shot** (default 0.27 s, the same delay as before): how long after a shot before you can sprint again. Measured sprinting with the rifle at 60 fps: sprint resumes 0.28 s after the shot at 0.27; at 0 the sprint never stops and speed dips to 75 % for about 0.3 s. The three shooting-slowdown timings now have tooltips.
 
 ## Measured, not yet decided
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor (fix deferred by the owner).

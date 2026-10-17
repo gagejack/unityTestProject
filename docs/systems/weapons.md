@@ -13,7 +13,7 @@ The gun the player holds: equipping, aiming, firing (automatic, semi-automatic, 
 
 ## How to tune by feel
 - On a WeaponSettings asset: fire rate and trigger mode (pace and rhythm), damage and pellets, spread and bloom (how much accuracy falls off when spraying), recoil (camera and gun kick), movement multiplier (how heavy the gun feels to carry), grip and support-hand offsets (how it sits in the hands), sounds and pitch.
-- Player > Weapon Combat Controller: **Aiming Move Speed Multiplier / Shooting Move Speed Multiplier** (how much aiming and firing slow you), **Aim Blend Time** (how quickly aim settles), **Support Hand Weight**.
+- Player > Weapon Combat Controller: **Aiming Move Speed Multiplier / Shooting Move Speed Multiplier** (how much aiming and firing slow you), **Aim Blend Time** (how quickly aim settles), **Support Hand Weight**; **Run Block After Shot** (how long after a shot before you can sprint again; 0 keeps you sprinting through the shot, slowed briefly by the shooting slowdown). Holding Shift + W resumes the sprint by itself when the block ends; a double-tap W sprint is cancelled by the block and needs another double-tap.
 
 ## How to test
 F5 goes to the Gun Range; F1 > Weapons equips any gun; F9 resets targets and refills ammo. Fire at 5, 15 and 30 m, crouch behind the low cover, strafe-fire on the strafe lane, track the moving targets, shoot the stationary mobs, and fire a launcher at the blast wall. Measured by the weapon sequences of the baseline harness.

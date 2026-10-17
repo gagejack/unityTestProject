@@ -26,9 +26,14 @@ namespace StarterGame
         [SerializeField, Range(0.1f, 1f)] private float aimingMoveSpeedMultiplier = 0.6f;
         [Tooltip("Additional movement multiplier while firing, combined with the equipped weapon's Movement Multiplier.")]
         [SerializeField, Range(0f, 1f)] private float shootingMoveSpeedMultiplier = 0.75f;
+        [Tooltip("Seconds after a shot that the full shooting slowdown holds before it starts to fade.")]
         [SerializeField, Min(0f)] private float shootingSlowdownHoldTime = 0.12f;
+        [Tooltip("Seconds for the shooting slowdown to fade back to normal speed once the hold ends.")]
         [SerializeField, Min(0.01f)] private float shootingRecoveryTime = 0.15f;
+        [Tooltip("Seconds to reach the full shooting slowdown when a shot is fired.")]
         [SerializeField, Min(0.01f)] private float combatSlowdownTime = 0.05f;
+        [Tooltip("Seconds after a shot before you can run again. 0 lets you run straight away; the shooting slowdown above still fades in and out.")]
+        [SerializeField, Min(0f)] private float runBlockAfterShot = 0.27f;
         [Header("Recoil and support hand")]
         [SerializeField, Range(0f, 1f)] private float weaponRecoilScale = 1f;
         [SerializeField, Range(0f, 1f)] private float supportHandWeight = 1f;
@@ -141,7 +146,6 @@ namespace StarterGame
         public float ReloadProgress => reloading ? Mathf.Clamp01((Time.time - reloadStartedAt) / Mathf.Max(0.01f, reloadDuration)) : 0f;
         public float ShootingMovementMultiplier => HasWeapon ? shootingSpeedWeight : 1f;
         public float EquippedMovementMultiplier => HasWeapon && CurrentWeapon ? Mathf.Clamp01(CurrentWeapon.movementMultiplier) : 1f;
-        public bool IsRecoveringFromShot => HasWeapon && Time.time - LastShotTime < shootingSlowdownHoldTime + shootingRecoveryTime;
         public float AimingMovementMultiplier => HasWeapon ? Mathf.Lerp(1f, aimingMoveSpeedMultiplier, AimWeight) : 1f;
 
         public float FireRate
@@ -234,7 +238,7 @@ namespace StarterGame
         // and aiming, reloading or firing stop running. Aiming makes the body face the aim.
         float IMovementModifier.SpeedMultiplier => EquippedMovementMultiplier * AimingMovementMultiplier * ShootingMovementMultiplier;
         bool IMovementModifier.EaseSpeedChange => false;
-        bool IMovementModifier.BlocksRunning => IsAiming || IsReloading || IsRecoveringFromShot || ShootingMovementMultiplier < 0.999f;
+        bool IMovementModifier.BlocksRunning => IsAiming || IsReloading || (HasWeapon && Time.time - LastShotTime < runBlockAfterShot);
         bool IMovementModifier.BlocksCommittedMoves => false;
         bool IMovementModifier.LimitsMomentum => false;
         bool IMovementModifier.TryGetFacing(out Vector3 planarForward)
