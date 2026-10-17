@@ -25,7 +25,7 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Walk foot slide | While a foot is planted, its travel as % of body travel (0 = foot stays put) | 24 / 27 / 28 % | ≤ 10 % |
 | Run foot slide | Same, running | 51 / 59 / 60 % | ≤ 15 % |
 | Strafe foot slide | Same, strafing right | 27 / 30 / 29 % | ≤ 10 % |
-| Walk arm angle (unarmed) | Upper arm angle out from the body, front view (degrees) | 16 / 16 / 16 | Set after the pose investigation |
+| Walk arm angle (unarmed) | Upper arm angle out from the body, front view (degrees) | 16 / 16 / 16 → **7.2** after the avatar rebuild | 5-9 (arms clear the chest block; proposed, confirm by playtest) |
 | Input to walk pose | Frames from key down to the walk blend starting | 0 / 0 / 0 | Keep 0 |
 
 ## Weapons (start pad GR-Firing, GR-Strafe, GR-Rocket)

@@ -1,15 +1,17 @@
 # Status
 
-**Checkpoint 8: walking down slopes and stairs fixed (movement).**
+**Checkpoint 9 (plan step 6a): avatar rebuilt; walking arms fixed.**
 
 ## Current state
-- Ground snapping in `CapsuleMovement`: when grounded and not jumping, diving or wall jumping, the character follows walkable ground up to Ground Snap Distance (0.35 m) below instead of falling. Bigger drops are still falls.
-- Before: running down the 20° slope, walking down the 40° slope and walking down the stairs spent 15-109 frames airborne (bounce plus floating pose). After: 0 airborne frames at 30/60/144 fps.
-- New start pads at the top of both slopes and the stairs (facing down), new baseline sequences M07-M10, and Play-mode checks for descending (all 20 Play-mode tests pass).
-- The F1 debug menu rebuild from the other session is committed separately (43960ec).
+- Player avatar rebuilt by Tools > Animation > Rebuild Player Avatar: root at the feet (human scale 0.92, was -0.04), so the clips' hip bob comes through (walk 2.0 cm, was 0.5); arm down range 76 degrees (Unity default 60).
+- Walking unarmed: arms 7.2 degrees out from the body (was 16), hanging beside the torso. Crouch, roll, dive and grounding still work; all 20 Play-mode tests pass.
+- Foot slide unchanged (walk about 26 %, run about 45-60 %). Cause measured: on this rig the walk clip's planted foot moves at 1.45 m/s and the run clip's at 3.13 m/s, while the character walks at 4.5 and runs at 6.75 m/s.
+
+## Decision needed
+How to remove foot slide: (A) calibrate to the clips (no slide, very fast legs), (B) jog clip for walking and sprint clip for running (no slide, natural cadence, looks like jogging), (C) keep the compromise, (D) slow the walk.
 
 ## Last feedback
 "Walking down slopes/stairs does not work, the character bounces and does a floating animation." Fixed here.
 
 ## Next step
-Plan step 6, first part: skeleton proportions and avatar root (walking arms, foot slide), with before/after captures.
+Apply the chosen foot-slide option, then step 6b: one pose order with built-in Humanoid IK (gun standing and aiming pose, running arms without the code tuck).

@@ -154,6 +154,14 @@ namespace StarterGame
         public Vector3 LeftHandPosition => BonePosition(HumanBodyBones.LeftHand);
         public Vector3 RightHandPosition => BonePosition(HumanBodyBones.RightHand);
 
+        // The rig root's resting position under the player (at the feet); grounding nudges it each frame.
+        private Vector3 rigRestLocalPosition;
+
+        private void Awake()
+        {
+            if (rigAnimator) rigRestLocalPosition = rigAnimator.transform.localPosition;
+        }
+
         private void OnEnable()
         {
             controller = GetComponent<CharacterController>();
@@ -385,7 +393,7 @@ namespace StarterGame
                 if (duration > 0 && playables[i].GetTime() >= duration)
                     playables[i].SetTime(playables[i].GetTime() % duration);
             }
-            rigAnimator.transform.localPosition = Vector3.zero;
+            rigAnimator.transform.localPosition = rigRestLocalPosition;
             UpdateSoldierLayers(dt);
             graph.Evaluate(dt);
             ApplyRunningArmPose(walk * runBlend);
