@@ -40,7 +40,7 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Shot to camera kick | Frames from the shot to the camera moving | 1 / 1 / 3 | 0 (kick on the shot frame) |
 | Gun aim error (aiming) | Angle between the barrel and the line from muzzle to the crosshair point (degrees) | AR 1.6, pistol 0.6, launcher 1.5 at every rate | ≤ 0.5 |
 | Support hand gap, walking with rifle | Distance from left hand to its grip point (cm) | 0 / 0 / 0 | Keep 0 |
-| Support hand gap, running with rifle | Same, running | 132 / n/a / 131 | ≤ 5 |
+| Support hand gap, running with rifle | Same, running | 132 / n/a / 131 → **0 / 0 / 0** with the sprint hold pose (rifle, shotgun and bazooka also 0) | ≤ 5 |
 | Speed while strafing and firing | m/s (rifle movement multiplier and fire slowdown) | 3.04 / n/a / 3.04 | Keep |
 
 ## Unarmed (start pad GR-Melee)

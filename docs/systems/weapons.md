@@ -12,7 +12,7 @@ The gun the player holds: equipping, aiming, firing (automatic, semi-automatic, 
 - Fitted gun prefabs: `Assets/Game/Weapons/Prefabs/`. Icons and materials: `Assets/Game/Weapons/Art/`. Gun sounds: `Assets/Game/Weapons/Audio/` plus `Assets/ThirdParty/FreeWeaponSFX_v1.1/`.
 
 ## How to tune by feel
-- On a WeaponSettings asset: fire rate and trigger mode (pace and rhythm), damage and pellets, spread and bloom (how much accuracy falls off when spraying), recoil (camera and gun kick), movement multiplier (how heavy the gun feels to carry), grip and support-hand offsets (how it sits in the hands), sounds and pitch.
+- On a WeaponSettings asset: fire rate and trigger mode (pace and rhythm), damage and pellets, spread and bloom (how much accuracy falls off when spraying), recoil (camera and gun kick), movement multiplier (how heavy the gun feels to carry), grip and support-hand offsets (how it sits in the hands), the Soldier clips including **Hold** (the arm pose while sprinting; empty for a one-handed carry), sounds and pitch.
 - Player > Weapon Combat Controller: **Aiming Move Speed Multiplier / Shooting Move Speed Multiplier** (how much aiming and firing slow you), **Aim Blend Time** (how quickly aim settles), **Support Hand Weight**; **Run Block After Shot** (how long after a shot before you can sprint again; 0 keeps you sprinting through the shot, slowed briefly by the shooting slowdown). Holding Shift + W resumes the sprint by itself when the block ends; a double-tap W sprint is cancelled by the block and needs another double-tap.
 
 ## How to test
@@ -22,6 +22,6 @@ F5 goes to the Gun Range; F1 > Weapons equips any gun; F9 resets targets and ref
 - The controller mixes many jobs in one file.
 - Each Soldier animation family takes its clips from the first gun of that family in Offers, so reordering Offers changes animations.
 - Fire rate depends on frame rate: automatic guns fire slower than their setting at some frame rates, and clicks during the cooldown are dropped (measured; [feel spec](../FEEL_SPEC.md#weapons)).
-- Aimed guns point slightly off the crosshair point, and the support hand leaves the gun while running (measured; [feel spec](../FEEL_SPEC.md#weapons)).
+- Aimed guns point slightly off the crosshair point (measured; [feel spec](../FEEL_SPEC.md#weapons)).
 - 21 pack guns share a material whose texture file was already missing in the original project.
 - There is no holster yet: an unequipped gun is not shown on the body.

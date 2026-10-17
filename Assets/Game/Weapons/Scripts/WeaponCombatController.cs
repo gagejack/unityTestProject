@@ -845,7 +845,10 @@ namespace StarterGame
                 return hands;
             }
             float support = CurrentWeapon.supportHand ? 1f : aim;
-            gripWeight = Mathf.MoveTowards(gripWeight, allowSupportHand && !IsReloading ? supportHandWeight * support * (1f - running) : 0f, dt / 0.1f);
+            // Running lets go of the gun unless a sprint hold pose keeps both hands on it.
+            float sprintHold = characterAnimations ? characterAnimations.SprintHoldWeight : 0f;
+            gripWeight = Mathf.MoveTowards(gripWeight, allowSupportHand && !IsReloading
+                ? supportHandWeight * support * Mathf.Clamp01(1f - running + sprintHold) : 0f, dt / 0.1f);
             if (gripWeight <= 0f || !allowSupportHand || !leftHand) return hands;
             Vector3 supportPoint = heldWeapon.transform.TransformPoint(CurrentWeapon.supportHandLocalPosition);
             if (CurrentWeapon.triggerMode == WeaponSettings.TriggerMode.PumpAction && !IsReloading)

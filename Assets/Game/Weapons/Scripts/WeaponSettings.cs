@@ -18,6 +18,8 @@ namespace StarterGame
             public AnimationClip reload;
             public AnimationClip precisionAim;
             public AnimationClip precisionShoot;
+            [Tooltip("Upper-body pose for sprinting with this gun; the legs keep the sprint and the support hand stays on the gun. Leave empty for a one-handed carry (arms swing with the sprint).")]
+            public AnimationClip hold;
         }
 
         public string displayName;

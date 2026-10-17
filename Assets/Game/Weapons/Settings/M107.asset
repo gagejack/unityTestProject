@@ -37,6 +37,7 @@ MonoBehaviour:
     reload: {fileID: -392741443452813142, guid: 13df193d70211f14592969dc962d1e70, type: 3}
     precisionAim: {fileID: 0}
     precisionShoot: {fileID: 0}
+    hold: {fileID: 7723596129218542051, guid: 0301d4277eca53047b213e202e620a16, type: 3}
   gripEuler: {x: 29.715996, y: 85.801834, z: 93.82328}
   aimedGripEuler: {x: 29.715996, y: 85.801834, z: 93.82328}
   dualWield: 0

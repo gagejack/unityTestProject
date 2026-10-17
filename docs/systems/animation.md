@@ -19,7 +19,7 @@ Makes the block character move: plays walk, run, strafe, idle and fall clips; bl
 - How far the arms hang from the body: the arm down range in `PlayerAvatarSetup` (a longer range brings the arms in). Run **Tools > Animation > Rebuild Player Avatar** after changing it.
 
 ## How to test
-Walk, run and strafe on the Movement Course (F6) lane and open area; crouch in the tunnel; equip a gun from F1 and run and aim. Foot slide and arm angles are measured by the baseline harness ([feel spec](../FEEL_SPEC.md#animation)); frame captures land in Logs/Baseline/latest/frames. Play-mode checks in `RunningPoseTests` (Window > General > Test Runner > PlayMode > Game.Animation.Tests) assert the sprint torso lean and running arm angle at 30, 60 and 144 fps.
+Walk, run and strafe on the Movement Course (F6) lane and open area; crouch in the tunnel; equip a gun from F1 and run and aim. Foot slide and arm angles are measured by the baseline harness ([feel spec](../FEEL_SPEC.md#animation)); frame captures land in Logs/Baseline/latest/frames. Play-mode checks in `RunningPoseTests` (Window > General > Test Runner > PlayMode > Game.Animation.Tests) assert the sprint torso lean and running arm angle, and that the support hand stays on an assault rifle while sprinting, at 30, 60 and 144 fps.
 
 ## Known limits (measured)
 - Normal movement looks like jogging and running looks like sprinting: the clips were picked to match the travel speeds (walk 4.5, run 6.75 m/s); the original walk clip's planted foot only moves at 1.45 m/s on this rig.
@@ -27,5 +27,5 @@ Walk, run and strafe on the Movement Course (F6) lane and open area; crouch in t
 - Running lean, the running-arm tuck, the chest aim pitch and the gun arms are code adjustments made inside the animation graph, in its last step (`BodyPoseJob`), so they are part of the pose that later code reads. The gun hands are placed first, with Humanoid IK, then the lean, tuck and aim pitch rotate the bones; the hand goals allow for those rotations ([decision 0004](../decisions/0004-humanoid-ik-for-gun-hands.md)).
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor and the other 3-4.5 cm: the one fixed height offset is set so the lowest point of a walking or running stride touches the floor, and the idle clip holds its feet higher than that (measured).
 - Running arms are pulled down toward the body by code (Running Arm Down Angle), not by the clip.
-- While running with a gun, the gun pose and support-hand grip are switched off, so the arms swing freely around the gun (support hand measured over a meter from its grip).
+- Sprinting with a two-handed gun plays that gun family's WeaponHold pose on the arms only (the legs and torso keep the sprint, so the running lean is the same armed or not) and keeps the support hand on the gun. Pistols and dual handguns have no hold pose: their arms swing with the sprint.
 - Several pieces of code still rotate the same arm bones after the graph in one frame (special poses, punch contact).

@@ -92,6 +92,12 @@ namespace StarterGame
         private AnimationLayerMixerPlayable weaponLayers;
         private AnimationMixerPlayable soldierMixer;
         private AnimationMixerPlayable soldierFullBodyMixer;
+        // One sprint hold pose per weapon family (empty for one-handed carries), layered on the arms while sprinting.
+        private AnimationMixerPlayable sprintHoldMixer;
+        private readonly bool[] familyHasHold = new bool[SoldierFamilies];
+        private AvatarMask sprintHoldMask;
+        // How much of the sprint hold pose is on the arms now (0-1); the support hand stays on the gun by this much.
+        public float SprintHoldWeight { get; private set; }
         private AnimationClipPlayable[] soldierPlayables;
         private AnimationClipPlayable[] soldierFullBodyPlayables;
         private const int SoldierActions = 5;
@@ -501,10 +507,22 @@ namespace StarterGame
             }
             // At rest use the Soldier's whole stance; during movement retain the run
             // footwork shared with the Soldier pack and layer the weapon over the torso.
-            weaponLayers = AnimationLayerMixerPlayable.Create(graph, 3);
+            weaponLayers = AnimationLayerMixerPlayable.Create(graph, 4);
             graph.Connect(mixer, 0, weaponLayers, 0);
             graph.Connect(soldierFullBodyMixer, 0, weaponLayers, 1);
             graph.Connect(soldierMixer, 0, weaponLayers, 2);
+            sprintHoldMixer = AnimationMixerPlayable.Create(graph, SoldierFamilies);
+            for (int family = 0; family < SoldierFamilies; family++)
+            {
+                AnimationClip hold = SoldierSet(family)?.hold;
+                familyHasHold[family] = hold && hold.isHumanMotion;
+                if (!familyHasHold[family]) continue;
+                var pose = AnimationClipPlayable.Create(graph, hold);
+                pose.SetApplyFootIK(false);
+                pose.SetSpeed(0d);
+                graph.Connect(pose, 0, sprintHoldMixer, family);
+            }
+            graph.Connect(sprintHoldMixer, 0, weaponLayers, 3);
             weaponLayers.SetInputWeight(0, 1f);
             soldierUpperBodyMask = new AvatarMask();
             for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
@@ -513,6 +531,14 @@ namespace StarterGame
                 AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.RightArm, AvatarMaskBodyPart.LeftFingers, AvatarMaskBodyPart.RightFingers })
                 soldierUpperBodyMask.SetHumanoidBodyPartActive(part, true);
             weaponLayers.SetLayerMaskFromAvatarMask(2, soldierUpperBodyMask);
+            // Arms only: the sprint keeps its torso, so the running lean works the same armed or not.
+            sprintHoldMask = new AvatarMask();
+            for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
+                sprintHoldMask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i, false);
+            foreach (AvatarMaskBodyPart part in new[] { AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.RightArm,
+                AvatarMaskBodyPart.LeftFingers, AvatarMaskBodyPart.RightFingers })
+                sprintHoldMask.SetHumanoidBodyPartActive(part, true);
+            weaponLayers.SetLayerMaskFromAvatarMask(3, sprintHoldMask);
             return true;
         }
 
@@ -546,6 +572,11 @@ namespace StarterGame
             float weaponPoseWeight = soldierWeight * (1f - runBlend);
             weaponLayers.SetInputWeight(1, weaponPoseWeight * (1f - poseWeight) * (1f - airWeight));
             weaponLayers.SetInputWeight(2, weaponPoseWeight);
+            // Sprinting with a two-handed gun: its hold pose replaces the swinging arms.
+            bool hold = armed && familyHasHold[family];
+            for (int f = 0; f < SoldierFamilies; f++) sprintHoldMixer.SetInputWeight(f, hold && f == family ? 1f : 0f);
+            SprintHoldWeight = hold ? soldierWeight * runBlend : 0f;
+            weaponLayers.SetInputWeight(3, SprintHoldWeight);
             CurrentSoldierAnimation = armed ? soldierPlayables[selected].GetAnimationClip().name : "";
         }
 
@@ -583,7 +614,8 @@ namespace StarterGame
             var job = bodyPose.GetJobData<BodyPoseJob>();
             job.body = transform.rotation;
             job.leanDegrees = runningLeanCorrection * runWeight;
-            job.armWeight = runWeight;
+            // The arm tuck is for swinging arms; a sprint hold pose keeps them on the gun instead.
+            job.armWeight = runWeight * (1f - SprintHoldWeight);
             job.armDownAngle = runningArmDownAngle;
             job.aimPitch = upperBodyAimPitch;
             // Grounding moves the body after the graph; last frame's shift is the expected one.
@@ -609,6 +641,8 @@ namespace StarterGame
             FightingWeight = 0f;
             if (graph.IsValid()) graph.Destroy();
             if (soldierUpperBodyMask) Destroy(soldierUpperBodyMask);
+            if (sprintHoldMask) Destroy(sprintHoldMask);
+            SprintHoldWeight = 0f;
             soldierWeight = 0f;
             CurrentSoldierAnimation = "";
         }
