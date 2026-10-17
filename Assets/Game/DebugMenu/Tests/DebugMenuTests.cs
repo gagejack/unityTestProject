@@ -112,12 +112,12 @@ namespace Game.DebugMenu.Tests
             var pixelRoot = ((UIDocument)menu.GetType().GetField("pixelMenuDocument", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(menu)).rootVisualElement;
             var rows = pixelRoot.Q("px-body").Query(className: "px-row").Where(r => r.name.StartsWith("px-weapon-")).ToList();
             Assert.Greater(rows.Count, 10);
-            var pistol = rows.First(r => r.Q<Label>(className: "px-weapon-name").text == "M1911 HANDGUN");
+            var pistol = rows.First(r => r.Q<Label>(className: "px-weapon-name").text == "M1911");
             Click(pistol.Q<Button>(className: "green"));
             yield return null;
             var weapons = Object.FindObjectsByType<MonoBehaviour>().Single(b => b.GetType().Name == "WeaponCombatController");
             var current = weapons.GetType().GetProperty("CurrentWeapon").GetValue(weapons);
-            Assert.AreEqual("M1911 HANDGUN", ((string)current.GetType().GetField("displayName").GetValue(current)).ToUpperInvariant());
+            Assert.AreEqual("M1911", ((string)current.GetType().GetField("displayName").GetValue(current)).ToUpperInvariant());
         }
 
         [UnityTest]

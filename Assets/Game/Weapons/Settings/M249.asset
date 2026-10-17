@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 5
   creator: Simon Mercuzot
   sourcePack: Low Poly Weapons VOL.1
-  displayName: M249 LMG
+  displayName: M249 SAW
   price: 3500
   magazine: 100
   reserve: 300

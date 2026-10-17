@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 0
   creator: Simon Mercuzot
   sourcePack: Low Poly Weapons VOL.1
-  displayName: DUAL M1911 HANDGUNS
+  displayName: M1911 (Dual)
   price: 1500
   magazine: 24
   reserve: 144
@@ -37,6 +37,7 @@ MonoBehaviour:
     reload: {fileID: -6760898655731824972, guid: ba841b7b1d0f1844aa15b7310f41088e, type: 3}
     precisionAim: {fileID: -4827907205579446440, guid: ab9abdfcc752b4245af01390e382c56c, type: 3}
     precisionShoot: {fileID: 1784725619941735392, guid: 6f22fe49b5728dd4290ff718a60e712f, type: 3}
+    hold: {fileID: 0}
   gripEuler: {x: 359.03522, y: 89.53111, z: 91.00867}
   aimedGripEuler: {x: 359.03522, y: 89.53111, z: 91.00867}
   dualWield: 1

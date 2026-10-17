@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 6
   creator: Kevin Iglesias
   sourcePack: Human Soldier Animations FREE
-  displayName: SOLDIER BAZOOKA
+  displayName: Generic Bazooka
   price: 4000
   magazine: 1
   reserve: 6

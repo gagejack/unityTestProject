@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 0
   creator: A Cup Of Polygons
   sourcePack: Low Poly Weapons
-  displayName: CLASSIC REVOLVER
+  displayName: Smith & Wesson Model 686 (Uncertain)
   price: 850
   magazine: 10
   reserve: 60
@@ -37,6 +37,7 @@ MonoBehaviour:
     reload: {fileID: 4981891606819842003, guid: bdb80e4d639605e42a7d10532126585d, type: 3}
     precisionAim: {fileID: 4072314899578035812, guid: a8978c393cae9044dbc5e8ec87c947b4, type: 3}
     precisionShoot: {fileID: -6735769038492794813, guid: 911184f12339f3b4fa101016c7a3223b, type: 3}
+    hold: {fileID: 0}
   gripEuler: {x: 355.30728, y: 89.91009, z: 91.64836}
   aimedGripEuler: {x: 351.00418, y: 83.551926, z: 92.42254}
   dualWield: 0

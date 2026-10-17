@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 2
   creator: Kevin Iglesias
   sourcePack: Human Soldier Animations FREE
-  displayName: SOLDIER ASSAULT RIFLE
+  displayName: Generic Assault Rifle
   price: 2300
   magazine: 30
   reserve: 180

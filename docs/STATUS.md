@@ -1,8 +1,9 @@
 # Status
 
-## F2 readout styling
-- Category, selector and live-value boxes now use the blue arrow-button palette. Press F2 and check the All Weapons category and the Mobs and Audio selectors.
-- Validation: the stylesheet imported successfully; Unity's resolved background, text color and corner radius match the arrows. Play-mode review is pending while the existing test run is active.
+## Weapon name checkpoint
+- Renamed all 46 active weapon entries using the earlier model research; uncertain visual matches are marked and the four Soldier models are generic. Both menus, the weapon HUD and pickup prompts read these names.
+- Validation: all 46 saved names match the mapping in both menus; all seven menu Play-mode checks pass. FNX-45 equip, HUD and pickup names were verified at the Gun Range; compilation succeeds and the Console has no errors. The docs check still reports the existing missing design-reference image.
+- Try F2 > Weapons or F1 > Weapons, equip a weapon, then drop it to check its pickup name.
 
 ## F2 button corner checkpoint
 - F2 buttons now have slightly rounded corners, with their highlight and bottom bands clipped to the frame (see [debug menu presentation](ARCHITECTURE.md#debug-menu-presentation)).
