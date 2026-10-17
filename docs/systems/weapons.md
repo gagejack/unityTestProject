@@ -12,7 +12,7 @@ The gun the player holds: equipping, aiming, firing (automatic, semi-automatic, 
 - Fitted gun prefabs: `Assets/Game/Weapons/Prefabs/`. Icons and materials: `Assets/Game/Weapons/Art/`. Gun sounds: `Assets/Game/Weapons/Audio/` plus `Assets/ThirdParty/FreeWeaponSFX_v1.1/`.
 
 ## Weapon names
-The menus, equipped-weapon HUD and pickup prompts use researched real-world model names. Lettered CASTLE BRAVO guns follow the publisher's [weapon reference spreadsheet](https://74abae92-d3c7-4671-ada0-b786f4d5dc28.filesusr.com/ugd/aa33f4_cd6e9d5452d042228a76e1fb04b80aee.xlsx). Visual identifications without publisher confirmation carry a Probable or Uncertain suffix. The four simplified Soldier models have generic names. Classic and creator suffixes distinguish different assets depicting the same weapon; the dual and scoped loadouts are named explicitly.
+The menus, equipped-weapon HUD and pickup prompts show only the gun name, so separate assets and loadouts can share a display name. Lettered CASTLE BRAVO guns follow the publisher's [weapon reference spreadsheet](https://74abae92-d3c7-4671-ada0-b786f4d5dc28.filesusr.com/ugd/aa33f4_cd6e9d5452d042228a76e1fb04b80aee.xlsx). The Classic minigun, pistol, revolver, rifle, scoped rifle, shotgun and grenade launcher remain visual identifications without publisher confirmation. The four simplified Soldier models use weapon-type names.
 
 ## How to tune by feel
 - Player > Weapon Combat Controller > **HUD Font** sets the points, ammo, weapon name and pickup prompt font. Main uses Doppio One from `Assets/Game/UI/Fonts/DoppioOne-Regular.ttf`.

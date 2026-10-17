@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 4
   creator: A Cup Of Polygons
   sourcePack: Low Poly Weapons
-  displayName: M1 Garand (Probable)
+  displayName: M1 Garand
   price: 2200
   magazine: 30
   reserve: 180

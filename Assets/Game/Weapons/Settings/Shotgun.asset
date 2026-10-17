@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 3
   creator: CASTLE BRAVO
   sourcePack: Low Poly ShotGun Weapon Pack 1
-  displayName: Benelli M4 (Castle Bravo)
+  displayName: Benelli M4
   price: 1800
   magazine: 8
   reserve: 40

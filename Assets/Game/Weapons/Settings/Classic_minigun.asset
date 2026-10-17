@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 5
   creator: A Cup Of Polygons
   sourcePack: Low Poly Weapons
-  displayName: M134 Minigun (Probable)
+  displayName: M134 Minigun
   price: 2200
   magazine: 150
   reserve: 900

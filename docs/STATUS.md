@@ -1,8 +1,8 @@
 # Status
 
 ## Weapon name checkpoint
-- Renamed all 46 active weapon entries using the earlier model research; uncertain visual matches are marked and the four Soldier models are generic. Both menus, the weapon HUD and pickup prompts read these names.
-- Validation: all 46 saved names match the mapping in both menus; all seven menu Play-mode checks pass. FNX-45 equip, HUD and pickup names were verified at the Gun Range; compilation succeeds and the Console has no errors. The docs check still reports the existing missing design-reference image.
+- All 46 active weapon entries now show only the gun name. Removed confidence, creator, Classic, dual/scoped and Generic labels; duplicate models and loadouts can share a name. Both menus, the weapon HUD and pickup prompts read these names.
+- Validation: all 46 saved labels are free of qualifiers; all seven menu Play-mode checks pass. The docs check still has the existing missing design-reference image.
 - Try F2 > Weapons or F1 > Weapons, equip a weapon, then drop it to check its pickup name.
 
 ## F2 button corner checkpoint
