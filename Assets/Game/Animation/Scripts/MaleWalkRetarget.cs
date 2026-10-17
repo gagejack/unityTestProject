@@ -99,8 +99,7 @@ namespace StarterGame
         private readonly float[] soldierWeights = new float[SoldierFamilies * SoldierActions];
         private AvatarMask soldierUpperBodyMask;
         private float soldierWeight;
-        private Transform aimChest;
-        private Transform leanSpine;
+        private AnimationScriptPlayable bodyPose;
         private float upperBodyAimPitch;
         public string AnimationMode => weapons && weapons.HasWeapon ? "Soldier" : "Unarmed";
         public float SoldierAnimationWeight => soldierWeight;
@@ -137,10 +136,6 @@ namespace StarterGame
         private bool SpecialMoveActive => movement &&
             (movement.IsRolling || movement.IsDiving || movement.IsSliding || movement.IsCrouching);
 
-        private Transform leftUpperArm;
-        private Transform leftLowerArm;
-        private Transform rightUpperArm;
-        private Transform rightLowerArm;
         private CharacterController controller;
         private CapsuleMovement movement;
         private PlayableGraph graph;
@@ -196,12 +191,6 @@ namespace StarterGame
             rigAnimator.applyRootMotion = false;
             rigAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             rigAnimator.Rebind();
-            leftUpperArm = rigAnimator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
-            leftLowerArm = rigAnimator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
-            rightUpperArm = rigAnimator.GetBoneTransform(HumanBodyBones.RightUpperArm);
-            rightLowerArm = rigAnimator.GetBoneTransform(HumanBodyBones.RightLowerArm);
-            aimChest = rigAnimator.GetBoneTransform(HumanBodyBones.Chest);
-            leanSpine = rigAnimator.GetBoneTransform(HumanBodyBones.Spine);
             graph = PlayableGraph.Create("Block Humanoid Animation");
             graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
             mixer = AnimationMixerPlayable.Create(graph, LocomotionInputs + fightingWeights.Length);
@@ -252,12 +241,26 @@ namespace StarterGame
                 graph.Connect(playables[input], 0, mixer, input);
             }
             var output = AnimationPlayableOutput.Create(graph, "Block Body", rigAnimator);
-            if (CreateSoldierLayers()) output.SetSourcePlayable(weaponLayers);
-            else output.SetSourcePlayable(mixer);
+            Playable pose = CreateSoldierLayers() ? weaponLayers : mixer;
+            // Every code adjustment to the clip pose happens in this one step inside the graph.
+            bodyPose = AnimationScriptPlayable.Create(graph, new BodyPoseJob
+            {
+                spine = Bind(HumanBodyBones.Spine),
+                chest = Bind(HumanBodyBones.Chest),
+                leftUpperArm = Bind(HumanBodyBones.LeftUpperArm),
+                leftLowerArm = Bind(HumanBodyBones.LeftLowerArm),
+                rightUpperArm = Bind(HumanBodyBones.RightUpperArm),
+                rightLowerArm = Bind(HumanBodyBones.RightLowerArm),
+            }, 1);
+            graph.Connect(pose, 0, bodyPose, 0);
+            bodyPose.SetInputWeight(0, 1f);
+            output.SetSourcePlayable(bodyPose);
             mixer.SetInputWeight(8, 1f);
             graph.Play();
             graph.Evaluate(0f);
         }
+
+        private TransformStreamHandle Bind(HumanBodyBones bone) => rigAnimator.BindStreamTransform(rigAnimator.GetBoneTransform(bone));
 
         private void Update()
         {
@@ -399,18 +402,8 @@ namespace StarterGame
             }
             rigAnimator.transform.localPosition = rigRestLocalPosition;
             UpdateSoldierLayers(dt);
+            UpdateBodyPose(walk * runBlend, dt);
             graph.Evaluate(dt);
-            ApplyRunningLean(walk * runBlend);
-            ApplyRunningArmPose(walk * runBlend);
-            if (aimChest && weapons && weapons.HasWeapon)
-            {
-                Vector3 aim = weapons.AimWorldDirection;
-                float pitch = Mathf.Atan2(-aim.y, new Vector2(aim.x, aim.z).magnitude) * Mathf.Rad2Deg;
-                float targetPitch = Mathf.Clamp(pitch, -90f, 45f) * weapons.AimWeight;
-                upperBodyAimPitch = Mathf.Lerp(upperBodyAimPitch, targetPitch, 1f - Mathf.Exp(-dt / 0.08f));
-                aimChest.rotation = Quaternion.AngleAxis(upperBodyAimPitch, transform.right) * aimChest.rotation;
-            }
-            else upperBodyAimPitch = 0f;
             if (!blockRig || !blockRig.UsingDownloadedAnimation) ApplyPunchContact(dt);
             // Block characters finish their weapon pose after grounding the body.
             if (weapons && (!blockRig || !blockRig.UsingDownloadedAnimation))
@@ -575,36 +568,25 @@ namespace StarterGame
             for (int i = 0; i < 8; i++)
                 directionWeights[i] = Mathf.Lerp(directionWeights[i], targetDirectionWeights[i], alpha);
         }
-        // Tilts the spine and chest back (half each, for a gentle curve) around the character's side axis.
-        private void ApplyRunningLean(float weight)
+        // Hands this frame's running lean, arm tuck and chest aim pitch to the pose step in the graph.
+        private void UpdateBodyPose(float runWeight, float dt)
         {
-            if (weight <= 0f || runningLeanCorrection <= 0f || (movement && (movement.IsCrouching || movement.IsRolling ||
-                movement.IsDiving || movement.IsSliding))) return;
-            var back = Quaternion.AngleAxis(-0.5f * runningLeanCorrection * weight, transform.right);
-            if (leanSpine) leanSpine.rotation = back * leanSpine.rotation;
-            if (aimChest) aimChest.rotation = back * aimChest.rotation;
-        }
-
-        private void ApplyRunningArmPose(float weight)
-        {
-            if (weight <= 0f || (movement && (movement.IsCrouching || movement.IsRolling ||
-                movement.IsDiving || movement.IsSliding))) return;
-            TuckRunningArm(leftUpperArm, leftLowerArm, -1f, weight);
-            TuckRunningArm(rightUpperArm, rightLowerArm, 1f, weight);
-        }
-
-        private void TuckRunningArm(Transform upper, Transform lower, float side, float weight)
-        {
-            if (!upper || !lower) return;
-            Vector3 current = lower.position - upper.position;
-            Vector3 local = transform.InverseTransformDirection(current);
-            float acrossBody = new Vector2(local.x, local.y).magnitude;
-            float angle = runningArmDownAngle * Mathf.Deg2Rad;
-            // Change only the front-view spread, retaining length and the clip's forward/back swing.
-            Vector3 target = new Vector3(side * Mathf.Cos(angle) * acrossBody,
-                -Mathf.Sin(angle) * acrossBody, local.z);
-            Quaternion corrected = Quaternion.FromToRotation(current, transform.TransformDirection(target)) * upper.rotation;
-            upper.rotation = Quaternion.Slerp(upper.rotation, corrected, weight);
+            if (SpecialMoveActive) runWeight = 0f;
+            if (weapons && weapons.HasWeapon)
+            {
+                Vector3 aim = weapons.AimWorldDirection;
+                float pitch = Mathf.Atan2(-aim.y, new Vector2(aim.x, aim.z).magnitude) * Mathf.Rad2Deg;
+                float targetPitch = Mathf.Clamp(pitch, -90f, 45f) * weapons.AimWeight;
+                upperBodyAimPitch = Mathf.Lerp(upperBodyAimPitch, targetPitch, 1f - Mathf.Exp(-dt / 0.08f));
+            }
+            else upperBodyAimPitch = 0f;
+            var job = bodyPose.GetJobData<BodyPoseJob>();
+            job.body = transform.rotation;
+            job.leanDegrees = runningLeanCorrection * runWeight;
+            job.armWeight = runWeight;
+            job.armDownAngle = runningArmDownAngle;
+            job.aimPitch = upperBodyAimPitch;
+            bodyPose.SetJobData(job);
         }
 
         // How an unarmed attack changes movement (see IMovementModifier): the swing slows travel (eased),

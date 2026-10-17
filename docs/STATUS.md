@@ -1,21 +1,24 @@
 # Status
 
-**Checkpoint 12 (plan step 6a): running pose settled by playtest.**
+**Checkpoint 13 (plan step 6b, part 1): one pose step inside the animation graph.**
 
 ## Current state
-- The owner's playtest values are now the defaults: Player > Male Walk Retarget > **Running Lean Correction** 23.3 and **Running Arm Down Angle** 51.5.
-- Measured on the run sequences only (unarmed and armed, 30 / 60 / 144 fps): sprint torso lean 35° (38° before), run arm angle 38.5°, run foot slide (ankle) 20 / 23 / 24 %, unchanged. Numbers and targets are in [docs/FEEL_SPEC.md](FEEL_SPEC.md#animation).
-- Foot slide keeps the ankle targets; the visible-contact measure stays as a diagnostic.
-- All Play-mode tests pass.
+- The running lean, the running-arm tuck and the chest aim pitch now happen inside the animation graph, in its last step (`BodyPoseJob`), instead of being written onto the bones after the animation. Same math, same settings; nothing should look different.
+- Measured (walk, run, armed run, aimed rifle fire at 30 / 60 / 144 fps), before → after: sprint lean 34.7 → 34.6-34.7°, run arms 38.5 → 38.5°, run speed and foot slide unchanged within run-to-run noise, rifle aim error 1.6 → 1.5-1.6°. The walk arm angle varies 0-4° between two runs of the same code, so it is too noisy to compare.
+- Cost of the new step: about 0.01 ms per frame while running or aiming.
+- New Play-mode check `RunningPoseTests`: sprint lean and running arm angle stay on their feel-spec targets at 30, 60 and 144 fps. All 23 Play-mode tests pass.
+
+## Proposed pose order (rest of step 6b)
+1. Clips are mixed (locomotion, unarmed attacks, Soldier gun poses).
+2. `BodyPoseJob`: running lean, running arms, chest aim pitch (done), then the gun hands with Humanoid IK goals: right hand aims the gun, left hand on the gun's support grip (next).
+3. After the graph: special-move poses and grounding (`BlockHumanoidRig`), punch contact. The weapon arm solve in `WeaponCombatController` is removed once step 2 covers it.
 
 ## Measured, not yet decided
-- Standing idle, the lower foot hovers 1.5-2.5 cm above the floor. Fix deferred by the owner; proposed fix is to snap the feet to the floor while standing still.
-- Walk arm angle reads 0-2° with the jog clip (target 5-9°).
+- Standing idle, the lower foot hovers 1.5-2.5 cm above the floor (fix deferred by the owner).
 - Foot slide is still above the ankle targets for walk, run and strafe.
-- A baseline run can be thrown off by mouse or keyboard input in the editor while it runs. Not proven; rerun any run with odd numbers.
 
 ## Later
-- The pixel button sheet in `docs/spec/UI/DebugMenu/` is a style reference for future game menus (main and pause), not for the F1 debug menu now.
+- The pixel button sheet in `docs/spec/UI/DebugMenu/` is a style reference for future main and pause menus.
 
 ## Next step
-Step 6b: one pose order with built-in Humanoid IK (gun standing and aiming pose, running arms without the code tuck); the running lean moves into that order.
+Owner playtest: run, sprint and aim at the Movement Course (F6) and gun range (F5); nothing should look different. Then checkpoint 14: the gun hands move into the pose step with Humanoid IK.
