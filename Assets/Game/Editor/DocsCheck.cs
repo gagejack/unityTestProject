@@ -39,7 +39,7 @@ namespace Game.Editor
             var typeNames = new HashSet<string>(TypeCache.GetTypesDerivedFrom<Object>().Select(t => t.Name));
             // Game interfaces and namespaces count as known names too.
             foreach (var type in System.AppDomain.CurrentDomain.GetAssemblies()
-                         .Where(a => a.GetName().Name.StartsWith("Game.") || a.GetName().Name == "Assembly-CSharp")
+                         .Where(a => a.GetName().Name.StartsWith("Game.") || a.GetName().Name.StartsWith("Assembly-CSharp"))
                          .SelectMany(a => a.GetTypes()))
             {
                 typeNames.Add(type.Name);
