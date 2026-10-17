@@ -12,8 +12,16 @@ namespace StarterGame
         private VisualElement toolkitRoot, toolkitShell;
         private Button[] navigation;
         private readonly System.Collections.Generic.Dictionary<int, Button> weaponRows = new();
-        private static readonly string[] TabColors = { "", "coral", "green", "purple", "amber", "" };
-        private static readonly string[] TabBadges = { "LOADOUT LAB", "ENCOUNTER LAB", "PLAYER SETTINGS", "FIND YOUR ANGLE", "SOUND CHECK", "QUICK REFERENCE" };
+        private static readonly (string section, (string key, string action)[] keys)[] ToolkitControls =
+        {
+            ("MOVEMENT", new[] { ("WASD", "Move"), ("Shift + W", "Sprint (or double-tap W)"), ("Space", "Jump / wall jump"),
+                ("Ctrl", "Crouch"), ("Caps Lock", "Roll on ground / dive in air"), ("Hold S", "Dive backward (in an air dive)") }),
+            ("COMBAT & PICKUPS", new[] { ("Left mouse", "Fire / unarmed attack"), ("Right mouse", "Aim"), ("R", "Reload"),
+                ("Q", "Drop weapon"), ("F", "Pick up / mystery box") }),
+            ("CAMERA & TEST AREAS", new[] { ("K", "Fly / park camera"), ("Free roam", "WASD + mouse, Space / Ctrl up / down, Shift boost"),
+                ("F5", "Gun range"), ("F6", "Movement course"), ("F7", "Mob test spot"), ("F9", "Reset targets + refill ammo"),
+                ("F1", "Toggle menu"), ("Esc", "Release cursor") }),
+        };
 
         private void InitializeToolkit()
         {
@@ -35,12 +43,13 @@ namespace StarterGame
             for (int i = 0; i < Tabs.Length; i++)
             {
                 int tab = i;
-                var button = Bevel(Tabs[i].ToUpperInvariant(), () => SelectToolkitTab(tab), TabColors[i]);
+                var button = Choice(Tabs[i].ToUpperInvariant(), () => SelectToolkitTab(tab));
                 button.name = "tab-" + Tabs[i].ToLowerInvariant();
                 button.AddToClassList("nav-button");
                 navigation[i] = button;
                 toolkitRoot.Q("navigation").Add(button);
             }
+            toolkitRoot.Q<TextField>("weapon-search").textEdition.placeholder = "Search weapons";
             toolkitRoot.Q<TextField>("weapon-search").RegisterValueChangedCallback(evt =>
             {
                 search = evt.newValue;
@@ -66,6 +75,7 @@ namespace StarterGame
             RebuildWeaponFilters();
             RefreshWeaponList();
             SelectToolkitTab(0);
+            InitializePixelMenu();
             SyncMenuVisibility();
         }
 
@@ -85,6 +95,22 @@ namespace StarterGame
             return button;
         }
 
+        // A neutral bevel that turns cyan when it carries the "selected" class (tabs, camera modes, arrows, switches).
+        private static Button Choice(string text, Action action)
+        {
+            var button = Bevel(text, action);
+            button.AddToClassList("choice");
+            return button;
+        }
+
+        private static Button SmallChoice(string text, Action action, string extraClass)
+        {
+            var button = Choice(text, action);
+            button.AddToClassList("small-bevel");
+            button.AddToClassList(extraClass);
+            return button;
+        }
+
         private void DrawPaperGrid(MeshGenerationContext context)
         {
             var painter = context.painter2D;
@@ -100,14 +126,16 @@ namespace StarterGame
 
         private void SyncMenuVisibility()
         {
+            SyncPixelVisibility();
             if (toolkitRoot == null) return;
-            toolkitRoot.style.display = IsOpen ? DisplayStyle.Flex : DisplayStyle.None;
-            if (!IsOpen) toolkitRoot.focusController?.focusedElement?.Blur();
+            bool open = isActiveAndEnabled && showMenu;
+            toolkitRoot.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!open) toolkitRoot.focusController?.focusedElement?.Blur();
         }
 
         private bool ToolkitContainsPointer(Vector2 screenPosition)
         {
-            if (!IsOpen || toolkitShell?.panel == null) return false;
+            if (!(isActiveAndEnabled && showMenu) || toolkitShell?.panel == null) return false;
             var panelPoint = RuntimePanelUtils.ScreenToPanel(toolkitShell.panel,
                 new Vector2(screenPosition.x, Screen.height - screenPosition.y));
             return toolkitShell.worldBound.Contains(panelPoint);
@@ -117,7 +145,6 @@ namespace StarterGame
         {
             for (int i = 0; i < navigation.Length; i++) navigation[i].EnableInClassList("selected", i == tab);
             toolkitRoot.Q<Label>("page-title").text = Tabs[tab].ToUpperInvariant();
-            toolkitRoot.Q<Label>("page-badge").text = TabBadges[tab];
             toolkitRoot.Q("weapons-page").style.display = tab == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             var utility = toolkitRoot.Q<ScrollView>("utility-page");
             utility.style.display = tab == 0 ? DisplayStyle.None : DisplayStyle.Flex;
@@ -202,7 +229,7 @@ namespace StarterGame
                 }
             }
             if (!weaponRows.ContainsKey(selectedWeapon)) selectedWeapon = first;
-            if (weaponRows.Count == 0) AddText(list, "No weapons match. Try another filter or clear your search.");
+            if (weaponRows.Count == 0) AddText(list, "No weapons match. Try another filter or clear your search.").style.marginLeft = 8;
             toolkitRoot.Q<Label>("weapon-count").text = weaponRows.Count + " WEAPONS";
             UpdateWeaponSelection();
             RefreshWeaponPreview();
@@ -230,71 +257,102 @@ namespace StarterGame
             toolkitRoot.Q<Label>("weapon-status").text = weaponStatus;
         }
 
-        private static Label AddText(VisualElement parent, string text, string style = "controls-text")
+        private static Label AddText(VisualElement parent, string text, string style = "hint")
         {
             var label = new Label(text); label.AddToClassList(style); parent.Add(label); return label;
         }
 
-        private static void AddToggle(VisualElement parent, string label, bool value, Action<bool> changed)
+        private static void AddSection(VisualElement page, string text)
         {
-            var toggle = new Toggle(label) { value = value };
-            toggle.RegisterValueChangedCallback(evt => changed(evt.newValue)); parent.Add(toggle);
+            AddText(page, text, "section-title").EnableInClassList("first", page.childCount == 1);
         }
 
-        private static void AddVolume(VisualElement parent, string label, float value, Action<float> changed)
+        // A row with a fixed-width label column, so the controls of every setting start on the same line.
+        private static VisualElement AddSetting(VisualElement page, string label)
         {
-            var slider = new Slider(label, 0, 1) { value = value, showInputField = false };
+            var row = new VisualElement(); row.AddToClassList("setting-row"); page.Add(row);
+            AddText(row, label, "setting-label");
+            return row;
+        }
+
+        // ‹ value ›. Returns the row so callers can add a button after it.
+        private static VisualElement AddStepper(VisualElement page, string label, Func<string> text, Action<int> step)
+        {
+            var row = AddSetting(page, label);
+            Label value = null;
+            row.Add(SmallChoice("◀", () => { step(-1); value.text = text(); }, "arrow"));
+            value = AddText(row, text(), "setting-value");
+            row.Add(SmallChoice("▶", () => { step(1); value.text = text(); }, "arrow"));
+            return row;
+        }
+
+        // ON (green) / OFF (neutral) button.
+        private static void AddSwitch(VisualElement page, string label, Func<bool> get, Action<bool> set)
+        {
+            Button button = null;
+            Action refresh = () => { button.text = get() ? "ON" : "OFF"; button.EnableInClassList("on", get()); };
+            button = SmallChoice("", () => { set(!get()); refresh(); }, "switch");
+            AddSetting(page, label).Add(button);
+            refresh();
+        }
+
+        private static void AddVolume(VisualElement page, string label, float value, Action<float> changed)
+        {
+            var row = AddSetting(page, label);
+            var slider = new Slider(0, 1) { value = value, showInputField = false };
             slider.AddToClassList("volume-slider");
-            slider.label = label + "  " + Mathf.RoundToInt(value * 100) + "%";
+            row.Add(slider);
+            var percent = AddText(row, Mathf.RoundToInt(value * 100) + "%", "volume-value");
             slider.RegisterValueChangedCallback(evt =>
             {
-                changed(evt.newValue); slider.label = label + "  " + Mathf.RoundToInt(evt.newValue * 100) + "%";
+                changed(evt.newValue); percent.text = Mathf.RoundToInt(evt.newValue * 100) + "%";
             });
-            parent.Add(slider);
         }
 
         private void BuildMobsPage(VisualElement page)
         {
             if (!mobSpawner || mobSpawner.Count == 0) { AddText(page, "No mobs configured."); return; }
-            var selected = AddText(page, mobSpawner.SelectedName, "section-title");
-            var controls = new VisualElement(); controls.AddToClassList("action-row"); page.Add(controls);
-            var spawn = Bevel("SPAWN " + mobSpawner.SelectedName.ToUpperInvariant(), () => { mobSpawner.SpawnSelected(); SelectToolkitTab(1); }, "coral");
-            Action<int> select = delta =>
-            {
-                mobSpawner.Select(mobSpawner.Selected + delta); selected.text = mobSpawner.SelectedName;
-                spawn.text = "SPAWN " + mobSpawner.SelectedName.ToUpperInvariant();
-            };
-            controls.Add(Bevel("‹ PREVIOUS", () => select(-1)));
-            controls.Add(Bevel("NEXT ›", () => select(1)));
-            page.Add(spawn);
-            page.Add(Bevel("CLEAR SPAWNED MOBS", () => { mobSpawner.ClearSpawned(); SelectToolkitTab(1); }, "amber"));
-            var alive = AddText(page, "Alive: " + mobSpawner.AliveCount, "section-title");
-            alive.schedule.Execute(() => alive.text = "Alive: " + mobSpawner.AliveCount).Every(500);
+            AddStepper(page, "Mob", () => mobSpawner.SelectedName, delta => mobSpawner.Select(mobSpawner.Selected + delta));
+            var alive = AddText(AddSetting(page, "Alive"), mobSpawner.AliveCount.ToString(), "setting-value");
+            alive.AddToClassList("alive");
+            alive.schedule.Execute(() => alive.text = mobSpawner.AliveCount.ToString()).Every(500);
+            var actions = AddSetting(page, "");
+            actions.AddToClassList("setting-actions");
+            actions.Add(Bevel("SPAWN", () => { mobSpawner.SpawnSelected(); SelectToolkitTab(1); }, "coral"));
+            actions.Add(Bevel("CLEAR ALL", () => { mobSpawner.ClearSpawned(); SelectToolkitTab(1); }, "amber"));
             AddText(page, mobSpawner.Status);
         }
 
         private void BuildPlayerPage(VisualElement page)
         {
-            AddText(page, "STAMINA", "section-title");
+            AddSection(page, "STAMINA");
             if (!playerStamina) { AddText(page, "Player stamina is not available."); return; }
-            AddToggle(page, "Infinite stamina", playerStamina.IsInfinite, value => playerStamina.SetInfinite(value));
-            AddText(page, "Turn this off to test stamina costs on the movement course.\n\nF6 takes you to the movement course.");
+            AddSwitch(page, "Infinite stamina", () => playerStamina.IsInfinite, value => playerStamina.SetInfinite(value));
+            AddText(page, "Turn this off to test stamina costs on the movement course (F6).");
         }
 
         private void BuildCameraPage(VisualElement page)
         {
-            AddText(page, "Current: " + CurrentMode, "section-title");
-            page.Add(Bevel("FIXED CAMERA", () => { SetMode(PlayerViewMode.FixedCamera); SelectToolkitTab(3); }, "purple"));
-            page.Add(Bevel("THIRD PERSON", () => { SetMode(PlayerViewMode.ThirdPerson); SelectToolkitTab(3); }, "purple"));
-            page.Add(Bevel("FREE ROAM", () => { SetMode(PlayerViewMode.FreeRoam); SelectToolkitTab(3); }, "purple"));
+            var row = AddSetting(page, "View");
+            foreach (var (mode, label) in new[] { (PlayerViewMode.FixedCamera, "FIXED"), (PlayerViewMode.ThirdPerson, "THIRD PERSON"), (PlayerViewMode.FreeRoam, "FREE ROAM") })
+            {
+                var button = Choice(label, () => { SetMode(mode); SelectToolkitTab(3); });
+                button.AddToClassList("segment");
+                button.EnableInClassList("selected", CurrentMode == mode);
+                row.Add(button);
+            }
             if (CurrentMode == PlayerViewMode.FreeRoam)
-                page.Add(Bevel(followCamera.IsFlying ? "PARK CAMERA" : "FLY CAMERA", () => { followCamera.ToggleFreeRoamControl(); SelectToolkitTab(3); }));
+            {
+                var fly = Bevel(followCamera.IsFlying ? "PARK" : "FLY", () => { followCamera.ToggleFreeRoamControl(); SelectToolkitTab(3); });
+                fly.AddToClassList("segment");
+                AddSetting(page, "Free camera").Add(fly);
+            }
             AddText(page, "Close the menu to use camera controls. K switches between flying and controlling the character.");
         }
 
         private void BuildAudioPage(VisualElement page)
         {
-            AddText(page, "VOLUME", "section-title");
+            AddSection(page, "VOLUME");
             AddVolume(page, "Master", AudioVolumeSettings.MasterVolume, value => AudioVolumeSettings.SetMasterVolume(value));
             AddVolume(page, "Weapons", AudioVolumeSettings.GunVolume, value => AudioVolumeSettings.SetGunVolume(value));
             if (!combatFeedback) return;
@@ -306,33 +364,34 @@ namespace StarterGame
         {
             int count = hitmarker ? combatFeedback.HitmarkerSoundCount : combatFeedback.PunchSoundCount;
             if (count == 0) return;
-            AddText(page, hitmarker ? "HITMARKER" : "PUNCH", "section-title");
-            AddToggle(page, "Play on contact", hitmarker ? combatFeedback.HitmarkerEnabled : combatFeedback.PunchEnabled,
+            AddSection(page, hitmarker ? "HITMARKER" : "PUNCH");
+            AddSwitch(page, "Play on contact", () => hitmarker ? combatFeedback.HitmarkerEnabled : combatFeedback.PunchEnabled,
                 value => { if (hitmarker) combatFeedback.SetHitmarkerEnabled(value); else combatFeedback.SetPunchEnabled(value); });
-            if (!hitmarker) AddToggle(page, "Randomize each hit", combatFeedback.PunchRandomized, value => combatFeedback.SetPunchRandomized(value));
+            if (!hitmarker) AddSwitch(page, "Randomize each hit", () => combatFeedback.PunchRandomized, value => combatFeedback.SetPunchRandomized(value));
             Func<int> current = () => hitmarker ? combatFeedback.SelectedHitmarker : combatFeedback.SelectedPunch;
-            var label = AddText(page, "Sound " + (current() + 1) + " / " + count, "muted");
-            Action<int> select = delta =>
-            {
-                if (hitmarker) combatFeedback.SelectHitmarker(current() + delta); else combatFeedback.SelectPunch(current() + delta);
-                label.text = "Sound " + (current() + 1) + " / " + count;
-            };
-            var row = new VisualElement(); row.AddToClassList("action-row"); page.Add(row);
-            row.Add(Bevel("‹ PREV", () => select(-1), "amber"));
-            row.Add(Bevel("PREVIEW", () => { if (hitmarker) combatFeedback.PreviewHitmarker(); else combatFeedback.PreviewPunch(); }, "amber"));
-            row.Add(Bevel("NEXT ›", () => select(1), "amber"));
+            var row = AddStepper(page, "Sound", () => (current() + 1) + " / " + count,
+                delta => { if (hitmarker) combatFeedback.SelectHitmarker(current() + delta); else combatFeedback.SelectPunch(current() + delta); });
+            var preview = Bevel("PREVIEW", () => { if (hitmarker) combatFeedback.PreviewHitmarker(); else combatFeedback.PreviewPunch(); }, "amber");
+            preview.AddToClassList("small-bevel");
+            preview.AddToClassList("compact-action");
+            row.Add(preview);
             AddVolume(page, "Volume", hitmarker ? combatFeedback.HitmarkerVolume : combatFeedback.PunchVolume,
                 value => { if (hitmarker) combatFeedback.SetHitmarkerVolume(value); else combatFeedback.SetPunchVolume(value); });
         }
 
-        private void BuildControlsPage(VisualElement page)
+        private static void BuildControlsPage(VisualElement page)
         {
-            AddText(page, "MOVEMENT", "section-title");
-            AddText(page, "WASD   Move\nShift + W / double-tap W   Sprint\nSpace   Jump / wall jump\nCtrl   Crouch\nCaps Lock   Roll on ground / dive in air\nHold S + air dive   Dive backward");
-            AddText(page, "COMBAT & PICKUPS", "section-title");
-            AddText(page, "Left mouse   Fire / unarmed attack\nRight mouse   Aim\nR   Reload     Q   Drop weapon\nF   Pick up / interact with mystery box");
-            AddText(page, "CAMERA & TEST AREAS", "section-title");
-            AddText(page, "K   Fly / park camera\nFree roam: WASD + mouse, Space / Ctrl up / down, Shift boost\nF5   Gun range     F6   Movement course\nF7   Mob test spot     F9   Reset targets + refill ammo\nF1   Toggle menu     Esc   Release cursor");
+            foreach (var (section, keys) in ToolkitControls)
+            {
+                AddSection(page, section);
+                var grid = new VisualElement(); grid.AddToClassList("key-grid"); page.Add(grid);
+                foreach (var (key, action) in keys)
+                {
+                    var pair = new VisualElement(); pair.AddToClassList("key-pair"); grid.Add(pair);
+                    AddText(pair, key, "keycap");
+                    AddText(pair, action, "key-action");
+                }
+            }
         }
     }
 }

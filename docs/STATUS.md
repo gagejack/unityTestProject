@@ -12,6 +12,9 @@
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor (fix deferred by the owner).
 - Foot slide is still above the ankle targets for walk, run and strafe.
 
+## Later
+- Pixel-style debug menu on F2, built from `docs/spec/UI/DebugMenu/DESIGN_SPEC.md`: all six pages work (weapon category and one row per weapon with Equip / Spawn, mobs, stamina, camera, volumes and feedback sounds, controls). Layout redesigned: tinted nav column with CLOSE at its foot, settings in a label column with aligned controls, weapon names before their buttons under a fixed category bar, grouped controls. It has no weapon search yet. The F1 menu got the same layout principles in its own style (sidebar with Resume at the foot, header and footer text removed, actions beside the weapon preview, setting rows). Next: owner playtest of both menus, then decide whether F2 replaces F1.
+
 ## Last feedback
 - Armed sprint: looks good (owner playtest).
 

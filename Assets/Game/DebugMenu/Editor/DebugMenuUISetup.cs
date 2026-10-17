@@ -45,10 +45,22 @@ public static class DebugMenuUISetup
         document.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Game/UI/GameUI.uxml");
         document.panelSettings = settings;
         serializedMenu.FindProperty("menuDocument").objectReferenceValue = document;
+        var pixelDocument = serializedMenu.FindProperty("pixelMenuDocument").objectReferenceValue as UIDocument;
+        if (!pixelDocument)
+        {
+            var go = new GameObject("Pixel Debug Menu UI");
+            Undo.RegisterCreatedObjectUndo(go, "Create pixel debug menu UI");
+            pixelDocument = Undo.AddComponent<UIDocument>(go);
+        }
+        Undo.RecordObject(pixelDocument, "Configure pixel debug menu document");
+        pixelDocument.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Game/UI/Prototype/PixelDebugMenu.uxml");
+        pixelDocument.panelSettings = settings;
+        serializedMenu.FindProperty("pixelMenuDocument").objectReferenceValue = pixelDocument;
         serializedMenu.ApplyModifiedProperties();
         EditorUtility.SetDirty(document);
+        EditorUtility.SetDirty(pixelDocument);
         EditorSceneManager.MarkSceneDirty(menu.gameObject.scene);
         AssetDatabase.SaveAssets();
-        Debug.Log("Debug menu UI is ready. Save the scene, then press Play and F1.");
+        Debug.Log("Debug menu UI is ready. Save the scene, then press Play and F1 (or F2 for the pixel menu).");
     }
 }

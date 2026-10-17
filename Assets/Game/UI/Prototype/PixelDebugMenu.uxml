@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F2 pixel-style debug menu (docs/spec/UI/DebugMenu/DESIGN_SPEC.md). Buttons are added by ViewModeDebugMenu.Pixel.cs. -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="PixelDebugMenu.uss" />
+    <ui:VisualElement name="px-overlay" class="px-overlay">
+        <ui:VisualElement name="px-shell" class="px-shell">
+            <ui:VisualElement class="px-sidebar">
+                <ui:VisualElement name="px-nav" class="px-nav" />
+                <ui:VisualElement name="px-close-slot" />
+            </ui:VisualElement>
+            <ui:VisualElement class="px-content">
+                <ui:VisualElement name="px-header" class="px-header" />
+                <ui:ScrollView name="px-body" class="px-body" horizontal-scroller-visibility="Hidden" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

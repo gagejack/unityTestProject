@@ -68,6 +68,59 @@ namespace Game.DebugMenu.Tests
         }
 
         [UnityTest]
+        public IEnumerator F2OpensPixelMenuInPlaceOfF1MenuAndCloseButtonCloses()
+        {
+            yield return LoadMenu();
+#if UNITY_EDITOR
+            UnityEditor.EditorWindow.GetWindow(System.Type.GetType("UnityEditor.GameView,UnityEditor")).Focus();
+            yield return null;
+#endif
+            var pixelRoot = ((UIDocument)menu.GetType().GetField("pixelMenuDocument", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(menu)).rootVisualElement;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F2));
+            yield return null;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            yield return null;
+            Assert.IsTrue(IsOpen);
+            Assert.IsFalse(PlayerControl.Enabled);
+            Assert.AreEqual(DisplayStyle.None, root.resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.Flex, pixelRoot.resolvedStyle.display);
+            var shell = pixelRoot.Q("px-shell");
+            Vector2 centre = shell.worldBound.center;
+            Vector2 screenCentre = new Vector2(centre.x / pixelRoot.worldBound.width * Screen.width,
+                Screen.height - centre.y / pixelRoot.worldBound.height * Screen.height);
+            Assert.IsTrue((bool)menu.GetType().GetMethod("ContainsPointer").Invoke(menu, new object[] { screenCentre }));
+            foreach (string tab in new[] { "weapons", "mobs", "player", "camera", "audio", "controls" })
+            {
+                Click(pixelRoot.Q<Button>("px-tab-" + tab));
+                yield return null;
+                Assert.Greater(pixelRoot.Q<ScrollView>("px-body").contentContainer.childCount, 0, tab);
+            }
+            Click(pixelRoot.Q<Button>("px-close"));
+            yield return null;
+            Assert.IsFalse(IsOpen);
+            Assert.IsTrue(PlayerControl.Enabled);
+            Assert.AreEqual(DisplayStyle.None, pixelRoot.resolvedStyle.display);
+        }
+
+        [UnityTest]
+        public IEnumerator F2WeaponRowEquipButtonEquipsThatWeapon()
+        {
+            yield return LoadMenu();
+            TestStartMarker.Find("GR-Firing").TeleportPlayer();
+            menu.GetType().GetMethod("SetPixelOpen").Invoke(menu, new object[] { true });
+            yield return null;
+            var pixelRoot = ((UIDocument)menu.GetType().GetField("pixelMenuDocument", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(menu)).rootVisualElement;
+            var rows = pixelRoot.Q("px-body").Query(className: "px-row").Where(r => r.name.StartsWith("px-weapon-")).ToList();
+            Assert.Greater(rows.Count, 10);
+            var pistol = rows.First(r => r.Q<Label>(className: "px-weapon-name").text == "M1911 HANDGUN");
+            Click(pistol.Q<Button>(className: "green"));
+            yield return null;
+            var weapons = Object.FindObjectsByType<MonoBehaviour>().Single(b => b.GetType().Name == "WeaponCombatController");
+            var current = weapons.GetType().GetProperty("CurrentWeapon").GetValue(weapons);
+            Assert.AreEqual("M1911 HANDGUN", ((string)current.GetType().GetField("displayName").GetValue(current)).ToUpperInvariant());
+        }
+
+        [UnityTest]
         public IEnumerator SearchFiltersCaseInsensitivelyAndEmptyResultsDisableActions()
         {
             yield return LoadMenu();

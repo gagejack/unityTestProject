@@ -8,63 +8,42 @@
     <Style src="DebugMenu.uss" />
     <ui:VisualElement name="debug-overlay" class="debug-overlay">
         <ui:VisualElement name="debug-shell" class="debug-shell">
-            <ui:VisualElement class="header">
-                <ui:VisualElement class="heading-group">
-                    <ui:Label text="THE PLAYGROUND / DEVELOPER TOOLS" class="eyebrow" />
-                    <ui:Label text="DEBUG MENU" class="title" />
-                    <ui:Label text="Try something. Break something. Keep playing." class="subtitle" />
-                </ui:VisualElement>
+            <ui:VisualElement class="sidebar">
+                <ui:Label text="DEBUG MENU" class="brand" />
+                <ui:VisualElement name="navigation" class="navigation" />
                 <ui:Button name="resume" text="RESUME  ›" class="bevel green resume" />
             </ui:VisualElement>
-            <ui:VisualElement class="workspace">
-                <ui:VisualElement class="sidebar">
-                    <ui:Label text="YOUR TOOLBOX" class="eyebrow" />
-                    <ui:VisualElement name="navigation" />
-                    <ui:VisualElement class="sidebar-note">
-                        <ui:Label text="LIVE SANDBOX" class="eyebrow" />
-                        <ui:Label text="The world keeps running while you tune." class="muted wrap" />
+            <ui:VisualElement class="content">
+                <ui:Label name="page-title" text="WEAPONS" class="page-title" />
+                <ui:VisualElement name="weapons-page" class="page">
+                    <ui:VisualElement class="search-row">
+                        <ui:TextField name="weapon-search" class="search" max-length="80" />
+                        <ui:Button name="clear-search" text="CLEAR" class="small-button" />
                     </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="content">
-                    <ui:VisualElement class="page-header">
-                        <ui:Label name="page-title" text="WEAPONS" class="page-title" />
-                        <ui:Label name="page-badge" text="LOADOUT LAB" class="badge" />
+                    <ui:VisualElement class="browse-row">
+                        <ui:Button name="browse-type" text="BY TYPE" class="small-button" />
+                        <ui:Button name="browse-pack" text="BY PACK" class="small-button" />
+                        <ui:Label name="weapon-count" class="count" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="weapons-page" class="page">
-                        <ui:VisualElement class="search-row">
-                            <ui:TextField name="weapon-search" label="SEARCH" class="search" max-length="80" />
-                            <ui:Button name="clear-search" text="CLEAR" class="small-button" />
+                    <ui:VisualElement class="catalogue">
+                        <ui:ScrollView name="weapon-filters" class="filters" horizontal-scroller-visibility="Hidden" />
+                        <ui:ScrollView name="weapon-list" class="weapon-list" horizontal-scroller-visibility="Hidden" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="weapon-preview">
+                        <ui:Image name="weapon-icon" class="weapon-icon" />
+                        <ui:VisualElement class="weapon-details">
+                            <ui:Label name="weapon-name" text="CHOOSE YOUR LOADOUT" class="weapon-name" />
+                            <ui:Label name="weapon-source" class="muted" />
+                            <ui:Label name="weapon-stats" class="stats" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="browse-row">
-                            <ui:Button name="browse-type" text="BY TYPE" class="small-button" />
-                            <ui:Button name="browse-pack" text="BY PACK" class="small-button" />
-                            <ui:Label name="weapon-count" class="count" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="catalogue">
-                            <ui:ScrollView name="weapon-filters" class="filters" horizontal-scroller-visibility="Hidden" />
-                            <ui:ScrollView name="weapon-list" class="weapon-list" horizontal-scroller-visibility="Hidden" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="weapon-preview">
-                            <ui:Image name="weapon-icon" class="weapon-icon" />
-                            <ui:VisualElement class="weapon-details">
-                                <ui:Label name="weapon-name" text="CHOOSE YOUR LOADOUT" class="weapon-name" />
-                                <ui:Label name="weapon-source" class="muted wrap" />
-                                <ui:Label name="weapon-stats" class="stats" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="action-row">
+                        <ui:VisualElement class="preview-actions">
                             <ui:Button name="equip-weapon" text="EQUIP WEAPON" class="bevel green" />
                             <ui:Button name="spawn-weapon" text="SPAWN PICKUP" class="bevel amber" />
                         </ui:VisualElement>
-                        <ui:Label name="weapon-status" class="status wrap" />
                     </ui:VisualElement>
-                    <ui:ScrollView name="utility-page" class="page utility-page" horizontal-scroller-visibility="Hidden" />
+                    <ui:Label name="weapon-status" class="status" />
                 </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:VisualElement class="footer">
-                <ui:Label text="F1" class="keycap" /><ui:Label text="TOGGLE MENU" class="footer-label" />
-                <ui:Label text="ESC" class="keycap" /><ui:Label text="RELEASE CURSOR" class="footer-label" />
-                <ui:Label text="CLICK OUTSIDE TO RESUME" class="footer-hint" />
+                <ui:ScrollView name="utility-page" class="page utility-page" horizontal-scroller-visibility="Hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

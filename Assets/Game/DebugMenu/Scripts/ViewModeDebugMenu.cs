@@ -34,7 +34,7 @@ namespace StarterGame
         private int selectedCategory, selectedWeapon = -1;
         private string search = "";
         private string weaponStatus = "Choose a weapon, then Equip or Spawn Pickup.";
-        public bool IsOpen => isActiveAndEnabled && showMenu;
+        public bool IsOpen => isActiveAndEnabled && (showMenu || pixelOpen);
         public PlayerViewMode CurrentMode { get; private set; }
 
         private void Start()
@@ -67,6 +67,7 @@ namespace StarterGame
         public void SetOpen(bool value)
         {
             showMenu = value;
+            pixelOpen = false;
             SyncMenuVisibility();
             if (followCamera) followCamera.SetMouseCaptured(!value);
         }
@@ -80,13 +81,14 @@ namespace StarterGame
         private void Update()
         {
             if (!Application.isFocused || Keyboard.current == null) return;
-            if (!showMenu && Keyboard.current.kKey.wasPressedThisFrame) ToggleFreeRoamControl();
+            if (!IsOpen && Keyboard.current.kKey.wasPressedThisFrame) ToggleFreeRoamControl();
             if (Keyboard.current.f1Key.wasPressedThisFrame) SetOpen(!showMenu);
+            if (Keyboard.current.f2Key.wasPressedThisFrame && pixelRoot != null) SetPixelOpen(!pixelOpen);
         }
 
         public bool ContainsPointer(Vector2 screenPosition)
         {
-            return ToolkitContainsPointer(screenPosition);
+            return ToolkitContainsPointer(screenPosition) || PixelContainsPointer(screenPosition);
         }
 
         private void BuildPackFilters()

@@ -1,13 +1,20 @@
-.debug-overlay { position: absolute; left: 0; right: 0; top: 0; bottom: 0; align-items: center; justify-content: center; background-color: rgba(20, 35, 49, 0.34); color: rgb(23, 39, 53); font-size: 15px; }
-.debug-shell { width: 1120px; height: 840px; max-width: 96%; max-height: 94%; padding: 26px 30px 18px; border-radius: 30px; border-width: 6px; border-color: white; background-color: rgb(250, 249, 244); overflow: hidden; }
-.header { flex-direction: row; align-items: center; padding-bottom: 22px; border-bottom-width: 2px; border-bottom-color: rgb(191, 207, 211); }
-.heading-group { flex-grow: 1; }
-.eyebrow { font-size: 11px; -unity-font-style: bold; letter-spacing: 2px; color: rgb(82, 113, 130); margin: 0 0 7px; }
-.title { font-size: 48px; -unity-font-style: bold; letter-spacing: -1px; margin: 0; }
-.subtitle { font-size: 15px; color: rgb(82, 113, 130); margin: 3px 0 0; }
+/* F1 debug menu. Layout: a tinted sidebar (name, tabs, RESUME at its foot) beside the content (page title, then the page).
+   Spacing steps: 10 between rows, 14 inside panels, 24-28 between groups and around the content.
+   Type: Barlow Condensed for titles, buttons, values and section headings; the default font for labels and hints.
+   Color: neutral by default; cyan marks what is selected, green / amber / coral mark actions. */
+.debug-overlay { position: absolute; left: 0; right: 0; top: 0; bottom: 0; align-items: center; justify-content: center; background-color: rgba(20, 35, 49, 0.5); color: rgb(23, 39, 53); font-size: 15px; }
+.debug-shell { flex-direction: row; width: 1120px; height: 800px; max-width: 94%; max-height: 92%; overflow: hidden; border-radius: 24px; border-width: 4px; border-color: white; background-color: rgb(250, 249, 244); }
+.sidebar { flex-shrink: 0; width: 216px; padding: 26px 20px 24px; background-color: rgb(236, 241, 239); border-right-width: 2px; border-right-color: rgb(208, 221, 223); }
+.brand { flex-shrink: 0; margin: 0 0 20px 4px; padding: 0; font-size: 26px; color: rgb(23, 39, 53); -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.navigation { flex-grow: 1; }
+.content { flex-grow: 1; flex-basis: 0; min-width: 0; padding: 22px 28px 20px; }
+.page-title { flex-shrink: 0; margin: 0 0 14px; padding: 0; font-size: 36px; color: rgb(23, 39, 53); -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.page { flex-grow: 1; min-height: 0; }
+
+/* Buttons. The bevel is the one strong shape; its thick bottom edge is the depth cue repeated by keycaps and panels. */
 Button { color: rgb(23, 39, 53); -unity-font-style: bold; }
 Button:focus { border-color: rgb(22, 111, 164); }
-.bevel { background-color: rgb(0, 194, 237); border-color: rgb(20, 37, 51); border-width: 3px; border-bottom-width: 7px; border-radius: 16px; height: 56px; margin: 0; padding: 5px 15px; font-size: 18px; -unity-text-align: middle-center; transition-property: translate, background-color; transition-duration: 0.09s; }
+.bevel { flex-shrink: 0; height: 52px; margin: 0; padding: 4px 16px; background-color: rgb(0, 194, 237); border-color: rgb(20, 37, 51); border-width: 3px; border-bottom-width: 7px; border-radius: 14px; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); font-size: 21px; -unity-text-align: middle-center; transition-property: translate, background-color; transition-duration: 0.09s; }
 .bevel:hover { background-color: rgb(91, 225, 255); translate: 0 -2px; }
 .bevel:active { translate: 0 2px; border-bottom-width: 3px; }
 .bevel:disabled { opacity: 0.4; }
@@ -18,83 +25,85 @@ Button:focus { border-color: rgb(22, 111, 164); }
 .amber:hover { background-color: rgb(255, 211, 99); }
 .coral { background-color: rgb(255, 94, 105); }
 .coral:hover { background-color: rgb(255, 142, 148); }
-.purple { background-color: rgb(184, 153, 247); }
-.purple:hover { background-color: rgb(210, 190, 255); }
-.resume { width: 176px; height: 62px; font-size: 20px; }
-.workspace { flex-direction: row; flex-grow: 1; min-height: 0; padding-top: 20px; padding-bottom: 14px; }
-.sidebar { width: 192px; padding-right: 20px; border-right-width: 2px; border-right-color: rgb(208, 221, 223); }
-.nav-button { width: 170px; height: 49px; margin-bottom: 10px; font-size: 16px; -unity-text-align: middle-left; padding-left: 14px; }
-.nav-button.selected { border-color: rgb(20, 37, 51); border-left-width: 9px; padding-left: 8px; }
-.sidebar-note { flex-grow: 1; justify-content: flex-end; padding-top: 10px; }
-.sidebar-note .muted { font-size: 12px; }
-.content { flex-grow: 1; flex-basis: 0; min-width: 0; padding-left: 22px; }
-.page-header { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.page-title { font-size: 28px; -unity-font-style: bold; margin: 0; }
-.badge { font-size: 10px; letter-spacing: 1px; -unity-font-style: bold; background-color: rgb(222, 236, 237); color: rgb(64, 101, 117); border-radius: 6px; padding: 6px 9px; }
-.page { flex-grow: 1; min-height: 0; }
-.search-row { flex-direction: row; height: 38px; margin-bottom: 10px; }
+
+/* Choices (tabs, camera modes, arrows, OFF switches): quiet until selected, then the full cyan bevel. */
+.bevel.choice { background-color: rgb(250, 251, 249); border-color: rgb(176, 196, 202); border-width: 2px; border-bottom-width: 5px; color: rgb(52, 89, 103); }
+.bevel.choice:hover { background-color: rgb(221, 245, 250); }
+.bevel.choice .button-shine { display: none; }
+.bevel.choice.selected { background-color: rgb(0, 194, 237); border-color: rgb(20, 37, 51); border-width: 3px; border-bottom-width: 7px; color: rgb(23, 39, 53); }
+.bevel.choice.selected:hover { background-color: rgb(91, 225, 255); }
+.bevel.choice.selected .button-shine, .bevel.choice.on .button-shine { display: flex; }
+.bevel.choice.on { background-color: rgb(121, 244, 51); border-color: rgb(20, 37, 51); color: rgb(23, 39, 53); }
+.bevel.choice.on:hover { background-color: rgb(163, 255, 100); }
+.nav-button { height: 48px; margin-bottom: 10px; padding-left: 16px; -unity-text-align: middle-left; font-size: 21px; }
+.resume { height: 56px; font-size: 22px; }
+.small-bevel { height: 42px; min-width: 42px; padding: 2px 14px; border-width: 2px; border-bottom-width: 5px; border-radius: 11px; font-size: 18px; }
+.small-bevel:active { border-bottom-width: 2px; }
+.small-bevel .button-shine { top: 2px; left: 6px; right: 6px; height: 4px; }
+/* A bevel has a child (its shine), so Unity does not size it to its text: every bevel in a row needs a set width. */
+.arrow { width: 42px; padding: 0 0 2px; font-size: 15px; }
+.switch { width: 76px; padding: 2px 0; }
+.segment { width: 150px; }
+.compact-action { width: 112px; }
+
+/* Weapons page: search, browse, list, then the selected weapon with its actions beside it. */
+.search-row { flex-direction: row; flex-shrink: 0; height: 42px; margin-bottom: 12px; }
 .search { flex-grow: 1; margin: 0 8px 0 0; }
-.search > .unity-text-field__label { min-width: 63px; width: 63px; -unity-font-style: bold; font-size: 12px; padding-top: 9px; }
-.search .unity-text-field__input { border-radius: 8px; border-width: 2px; border-color: rgb(179, 200, 208); background-color: white; padding: 5px 10px; color: rgb(23, 39, 53); }
+.search .unity-text-field__input { border-radius: 12px; border-width: 2px; border-color: rgb(176, 196, 202); background-color: white; padding: 6px 14px; font-size: 16px; color: rgb(23, 39, 53); }
 .search .unity-text-field__input:focus { border-color: rgb(0, 165, 218); }
-.small-button { background-color: rgb(231, 239, 238); border-width: 1px; border-color: rgb(184, 202, 208); border-radius: 7px; margin: 0 6px 0 0; padding: 5px 12px; font-size: 11px; }
-.small-button:hover { background-color: rgb(207, 234, 240); }
-.small-button.selected { background-color: rgb(25, 47, 63); color: white; }
-.browse-row { flex-direction: row; height: 29px; margin-bottom: 10px; align-items: stretch; }
-.count { flex-grow: 1; -unity-text-align: middle-right; color: rgb(82, 113, 130); font-size: 12px; }
-.catalogue { flex-direction: row; flex-grow: 1; min-height: 80px; margin-bottom: 12px; }
-.filters { width: 168px; margin-right: 10px; padding-right: 4px; }
-.filter-button { min-height: 32px; background-color: rgba(239, 242, 236, 0.8); border-width: 0; border-radius: 6px; margin: 0 2px 4px 0; padding: 7px 9px; white-space: normal; -unity-text-align: middle-left; font-size: 12px; }
-.filter-button:hover { background-color: rgb(217, 234, 235); }
-.filter-button.selected { background-color: rgb(25, 47, 63); color: white; }
-.pack-heading { font-size: 10px; -unity-font-style: bold; color: rgb(82, 113, 130); margin: 7px 0; white-space: normal; }
-.weapon-list { flex-grow: 1; flex-basis: 0; min-width: 0; background-color: rgba(255,255,255,0.75); border-width: 1px; border-color: rgb(204, 219, 222); border-radius: 10px; padding: 7px; }
-.weapon-row { flex-direction: row; align-items: center; height: 39px; flex-shrink: 0; margin: 0 2px 5px 0; border-width: 1px; border-color: rgb(213, 225, 226); border-bottom-width: 3px; border-radius: 7px; background-color: rgb(242, 246, 244); padding: 3px 10px; }
-.weapon-row:hover { background-color: rgb(221, 245, 250); }
-.weapon-row.selected { background-color: rgb(193, 239, 249); border-color: rgb(0, 153, 191); }
-.weapon-row-name { flex-grow: 1; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; font-size: 13px; -unity-text-align: middle-left; }
-.weapon-row-ammo { color: rgb(82, 113, 130); font-size: 10px; -unity-font-style: normal; margin-left: 8px; }
-.weapon-preview { flex-direction: row; min-height: 74px; align-items: center; padding: 8px 12px; border-radius: 10px; background-color: rgb(228, 237, 235); margin-bottom: 12px; }
-.weapon-icon { width: 92px; height: 52px; margin-right: 13px; padding: 7px; border-radius: 7px; background-color: rgb(49, 74, 88); }
-.weapon-details { flex-grow: 1; flex-basis: 0; }
-.weapon-name { font-size: 19px; -unity-font-style: bold; margin: 0 0 3px; }
-.muted { color: rgb(82, 113, 130); font-size: 12px; }
-.wrap { white-space: normal; }
-.stats { font-size: 11px; margin-top: 4px; color: rgb(52, 89, 103); }
-.action-row { flex-direction: row; }
-.action-row > Button { flex-grow: 1; flex-basis: 0; margin-right: 10px; }
-.action-row > #spawn-weapon { margin-right: 0; }
-.status { font-size: 11px; color: rgb(66, 103, 118); margin: 7px 0 0; min-height: 18px; }
-.footer { flex-direction: row; align-items: center; padding-top: 12px; border-top-width: 2px; border-top-color: rgb(191, 207, 211); }
-.keycap { font-size: 12px; -unity-font-style: bold; border-radius: 5px; border-width: 2px; border-color: rgb(55, 78, 94); padding: 3px 7px; background-color: white; }
-.footer-label { font-size: 10px; -unity-font-style: bold; margin-left: 7px; margin-right: 20px; }
-.footer-hint { flex-grow: 1; -unity-text-align: middle-right; font-size: 10px; color: rgb(82, 113, 130); }
-.utility-page { padding-right: 12px; }
-.section-title { font-size: 18px; -unity-font-style: bold; margin: 12px 0; }
-.utility-page .bevel { margin-bottom: 12px; max-width: 520px; }
-.utility-page Toggle { margin: 8px 0 14px; }
-.volume-slider { margin: 8px 0 18px; }
-.volume-slider .unity-base-slider__label { min-width: 130px; }
-.volume-slider .unity-base-slider__tracker { height: 7px; background-color: rgb(195, 214, 219); border-radius: 4px; }
-.volume-slider .unity-base-slider__dragger { background-color: rgb(0, 178, 218); border-color: rgb(23, 39, 53); border-width: 2px; width: 19px; height: 19px; border-radius: 10px; }
-.unity-scroller--vertical { width: 12px; }
+.small-button { margin: 0 8px 0 0; padding: 4px 16px; border-width: 2px; border-color: rgb(176, 196, 202); border-radius: 12px; background-color: rgb(250, 251, 249); color: rgb(52, 89, 103); font-size: 16px; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.small-button:hover { background-color: rgb(221, 245, 250); }
+.small-button.selected { background-color: rgb(0, 194, 237); border-color: rgb(20, 37, 51); color: rgb(23, 39, 53); }
+#clear-search { margin-right: 0; }
+.browse-row { flex-direction: row; flex-shrink: 0; height: 34px; margin-bottom: 12px; align-items: stretch; }
+.count { flex-grow: 1; -unity-text-align: middle-right; color: rgb(82, 113, 130); font-size: 14px; }
+.catalogue { flex-direction: row; flex-grow: 1; flex-basis: 0; min-height: 80px; margin-bottom: 14px; }
+.filters { width: 184px; margin-right: 12px; }
+.filter-button { min-height: 36px; margin: 0 0 4px; padding: 6px 12px; border-width: 0; border-radius: 10px; background-color: rgba(0, 0, 0, 0); white-space: normal; -unity-text-align: middle-left; font-size: 15px; color: rgb(52, 89, 103); }
+.filter-button:hover { background-color: rgb(221, 245, 250); }
+.filter-button.selected { background-color: rgb(193, 239, 249); color: rgb(23, 39, 53); }
+.pack-heading { margin: 12px 0 4px 12px; font-size: 14px; letter-spacing: 1px; color: rgb(82, 113, 130); white-space: normal; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.weapon-list { flex-grow: 1; flex-basis: 0; min-width: 0; padding: 6px; background-color: white; border-width: 2px; border-color: rgb(208, 221, 223); border-radius: 14px; }
+.weapon-row { flex-direction: row; flex-shrink: 0; align-items: center; height: 40px; margin: 0 0 2px; padding: 0 12px; border-width: 0; border-radius: 9px; background-color: rgba(0, 0, 0, 0); }
+.weapon-row:hover { background-color: rgb(236, 247, 249); }
+.weapon-row.selected { background-color: rgb(193, 239, 249); }
+.weapon-row-name { flex-grow: 1; flex-shrink: 1; margin: 0; padding: 0; overflow: hidden; text-overflow: ellipsis; font-size: 15px; -unity-text-align: middle-left; }
+.weapon-row-ammo { margin-left: 8px; color: rgb(82, 113, 130); font-size: 13px; -unity-font-style: normal; }
+.weapon-preview { flex-direction: row; flex-shrink: 0; align-items: center; min-height: 84px; padding: 12px 14px; border-radius: 16px; background-color: rgb(228, 237, 235); }
+.weapon-icon { width: 96px; height: 56px; margin-right: 14px; padding: 6px; border-radius: 10px; background-color: rgb(49, 74, 88); }
+.weapon-details { flex-grow: 1; flex-basis: 0; min-width: 0; }
+.weapon-name { margin: 0 0 2px; padding: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 26px; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.muted { color: rgb(82, 113, 130); font-size: 13px; }
+.stats { margin-top: 2px; font-size: 13px; color: rgb(52, 89, 103); }
+.preview-actions { flex-direction: row; flex-shrink: 0; margin-left: 4px; }
+.preview-actions > .bevel { width: 168px; margin-left: 10px; }
+.status { flex-shrink: 0; min-height: 20px; margin: 8px 4px 0; white-space: normal; font-size: 13px; color: rgb(82, 113, 130); }
+
+/* Other pages: section headings with a rule, then setting rows with a fixed label column so every control lines up. */
+.utility-page { flex-grow: 1; min-height: 0; }
+.section-title { margin: 26px 0 12px; padding: 0 0 6px; border-bottom-width: 2px; border-bottom-color: rgb(208, 221, 223); font-size: 20px; letter-spacing: 1px; color: rgb(52, 89, 103); -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.section-title.first { margin-top: 0; }
+.setting-row { flex-direction: row; align-items: center; min-height: 46px; margin-bottom: 10px; }
+.setting-row > .bevel { margin-right: 10px; }
+.setting-label { flex-shrink: 0; width: 170px; margin: 0 16px 0 0; padding: 0; white-space: normal; font-size: 16px; -unity-font-style: bold; color: rgb(52, 89, 103); }
+.setting-value { min-width: 150px; height: 42px; margin: 0 10px 0 0; padding: 0 12px; border-width: 2px; border-radius: 11px; border-color: rgb(208, 221, 223); background-color: white; -unity-text-align: middle-center; font-size: 20px; color: rgb(23, 39, 53); -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+/* Lines up with the value box of the stepper above it (arrow width + gap). */
+.setting-value.alive { margin-left: 52px; }
+.setting-actions { margin-top: 6px; }
+.setting-actions > .bevel { width: 150px; }
+.hint { margin: 8px 0 0; padding: 0; white-space: normal; font-size: 14px; color: rgb(82, 113, 130); }
+.volume-slider { flex-grow: 1; max-width: 360px; margin: 0 14px 0 0; }
+.volume-slider .unity-base-slider__tracker { height: 7px; background-color: rgb(195, 214, 219); border-width: 0; border-radius: 4px; }
+.volume-slider .unity-base-slider__dragger { width: 22px; height: 22px; background-color: rgb(0, 194, 237); border-color: rgb(20, 37, 51); border-width: 2px; border-radius: 11px; }
+.volume-value { min-width: 52px; margin: 0; padding: 0; font-size: 20px; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.key-grid { flex-direction: row; flex-wrap: wrap; }
+.key-pair { flex-direction: row; flex-basis: 46%; flex-grow: 1; align-items: center; margin: 0 16px 10px 0; }
+.keycap { min-width: 108px; height: 32px; margin: 0 12px 0 0; padding: 0 8px; border-width: 2px; border-bottom-width: 4px; border-radius: 8px; border-color: rgb(55, 78, 94); background-color: white; -unity-text-align: middle-center; font-size: 16px; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.key-action { flex-grow: 1; flex-shrink: 1; margin: 0; padding: 0; white-space: normal; font-size: 15px; }
+
+/* Scrollbars: slim and flat; no arrow buttons. The default slider leaves room for those buttons and is wider than the bar. */
+.unity-scroller--vertical { width: 12px; min-width: 12px; margin-left: 8px; border-width: 0; background-color: rgba(0, 0, 0, 0); }
 .unity-scroller__low-button, .unity-scroller__high-button { display: none; }
-.unity-scroller--vertical .unity-base-slider__dragger { background-color: rgb(137, 175, 187); border-width: 0; border-radius: 5px; }
-.controls-text { white-space: normal; font-size: 16px; margin: 0 0 20px; }
-.header { flex-shrink: 0; height: 110px; }
-.eyebrow { flex-shrink: 0; height: 18px; }
-.title { height: 60px; flex-shrink: 0; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); font-size: 54px; }
-.subtitle { height: 24px; flex-shrink: 0; }
-.bevel { flex-shrink: 0; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); font-size: 23px; }
-.nav-button { font-size: 22px; }
-.page-header { flex-shrink: 0; height: 38px; }
-.page-title { height: 36px; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); font-size: 32px; }
-.search-row, .browse-row, .weapon-preview { flex-shrink: 0; }
-.action-row { flex-shrink: 0; min-height: 56px; }
-.catalogue { flex-basis: 0; }
-.weapon-name { height: 27px; -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); font-size: 25px; }
-.weapon-details .muted { min-height: 17px; }
-.stats { min-height: 16px; }
-.status { flex-shrink: 0; min-height: 22px; }
-.footer { flex-shrink: 0; height: 42px; }
-.keycap { height: 28px; }
+.unity-scroller--vertical > .unity-scroller__slider { width: 12px; min-width: 12px; margin: 0; }
+.unity-scroller--vertical .unity-base-slider__tracker { left: 0; width: 12px; border-width: 0; border-radius: 6px; background-color: rgb(232, 238, 236); }
+.unity-scroller--vertical .unity-base-slider__dragger { left: 0; width: 12px; border-width: 0; border-radius: 6px; background-color: rgb(150, 182, 192); }

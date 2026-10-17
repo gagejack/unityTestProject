@@ -1,0 +1,87 @@
+/* F2 pixel-style debug menu (docs/spec/UI/DebugMenu/DESIGN_SPEC.md). USS-only approximation; the final version uses 9-slice sprites.
+   The whole menu scales with the screen through its PanelSettings (scale with screen size, 1440 x 900 reference).
+   Layout: a tinted nav column (tabs at the top, CLOSE at the bottom) beside a white content column.
+   Spacing steps: 8 inside a group, 16 between columns, 20 between groups, 24 around the content. Colors: #0A0505 outline and values,
+   #353B40 labels, #6E767D section headings, #E3E6E9 rules, #EEF1F3 nav tint. */
+.px-overlay { position: absolute; left: 0; right: 0; top: 0; bottom: 0; align-items: center; justify-content: center; background-color: rgba(10, 5, 5, 0.55); }
+/* The thick bottom border repeats the buttons' lip at panel scale. */
+.px-shell { flex-direction: row; width: 92%; max-width: 980px; height: 84%; max-height: 660px; overflow: hidden; background-color: #FFFFFF; border-width: 2px; border-bottom-width: 6px; border-radius: 4px; border-color: #0A0505; }
+.px-sidebar { flex-shrink: 0; width: 200px; padding: 24px 16px; background-color: #EEF1F3; border-right-width: 2px; border-color: #0A0505; }
+.px-nav { flex-grow: 1; }
+.px-content { flex-grow: 1; min-width: 0; padding: 24px 24px 24px 24px; }
+/* Holds controls that stay put while the body scrolls (the weapon category). Right padding plus the last button's
+   8 px margin matches the scrollbar, so the header ends where the list rows end. */
+.px-header { flex-direction: row; flex-shrink: 0; padding: 0 12px 16px 0; margin-bottom: 8px; border-bottom-width: 2px; border-color: #E3E6E9; }
+.px-body { flex-grow: 1; min-height: 0; }
+.px-row { flex-direction: row; align-items: center; margin-bottom: 8px; }
+.px-row > .px-btn, .px-row > .px-readout { margin-right: 8px; }
+.px-header > .px-row { flex-grow: 1; margin-bottom: 0; }
+
+/* Section headings label a group quietly: small, spaced, muted, with a rule. Space above separates groups. */
+.px-section { margin: 20px 0 10px; padding: 0 0 4px; border-bottom-width: 2px; border-color: #E3E6E9; font-size: 17px; letter-spacing: 2px; color: #5A6168; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.px-section.px-first { margin-top: 0; }
+/* Setting rows: a fixed label column, then the control, so every control starts on the same line. */
+.px-setting-label { width: 128px; flex-shrink: 0; margin: 0 16px 0 0; padding: 0; white-space: normal; color: #353B40; font-size: 18px; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); }
+
+/* Standard button: every button uses this padding around its label (the EQUIP / SPAWN sizing).
+   The label is a child element and wraps, so a long name makes the button taller. */
+.px-btn { width: auto; min-height: 38px; flex-shrink: 0; margin: 0; padding: 3px 20px 8px; justify-content: center; border-width: 2px; border-radius: 3px; border-color: #0A0505; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); -unity-font-style: bold; font-size: 20px; transition-duration: 0s; }
+.px-text { margin: 0; padding: 0; white-space: normal; -unity-text-align: middle-center; }
+/* Arrow buttons are square so steppers line up row to row. */
+.px-square { width: 52px; padding-left: 0; padding-right: 0; }
+.px-toggle { width: 96px; padding-left: 0; padding-right: 0; }
+/* Smaller buttons for long lists, so the item names stay the main thing to read. */
+.px-compact { min-height: 32px; min-width: 84px; padding: 2px 14px 7px; font-size: 16px; }
+.px-hi { position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.px-mid { position: absolute; bottom: 5px; left: 0; right: 0; height: 2px; }
+.px-lip { position: absolute; bottom: 0; left: 0; right: 0; height: 5px; border-bottom-width: 1px; }
+.px-btn:hover, .px-btn:active, .px-btn:focus, .px-btn:hover:active { border-color: #0A0505; }
+.px-btn:hover { translate: 0 -1px; }
+.px-btn:active { translate: 0 2px; }
+.px-btn:disabled { opacity: 0.4; }
+
+/* Side buttons: gray, larger text, full column width, 10 px apart. */
+.px-nav > .px-btn { font-size: 24px; margin-bottom: 10px; }
+
+.px-btn.green, .px-btn.green:hover, .px-btn.green:active, .px-btn.green:hover:active { background-color: #9AE760; color: #2B842E; text-shadow: 0 2px 0 #C8FF88; }
+.green .px-hi { background-color: #C9FA87; } .green .px-mid { background-color: #C8FF88; } .green .px-lip { background-color: #58C453; border-bottom-color: #469A48; }
+.px-btn.blue, .px-btn.blue:hover, .px-btn.blue:active, .px-btn.blue:hover:active { background-color: #02CCF8; color: #00619B; text-shadow: 0 2px 0 #24EBFF; }
+.blue .px-hi { background-color: #2AE3F0; } .blue .px-mid { background-color: #24EBFF; } .blue .px-lip { background-color: #0A97D8; border-bottom-color: #076FA4; }
+.px-btn.red, .px-btn.red:hover, .px-btn.red:active, .px-btn.red:hover:active { background-color: #F65660; color: #A81A24; text-shadow: 0 2px 0 #FF7B82; }
+.red .px-hi { background-color: #F17881; } .red .px-mid { background-color: #FF7B82; } .red .px-lip { background-color: #E5343F; border-bottom-color: #B42C3A; }
+.px-btn.orange, .px-btn.orange:hover, .px-btn.orange:active, .px-btn.orange:hover:active { background-color: #FEA319; color: #A43300; text-shadow: 0 2px 0 #FFC035; }
+.orange .px-hi { background-color: #FBC849; } .orange .px-mid { background-color: #FFC035; } .orange .px-lip { background-color: #EB7720; border-bottom-color: #B2522A; }
+.px-btn.gray, .px-btn.gray:hover, .px-btn.gray:active, .px-btn.gray:hover:active { background-color: #B9C0C6; color: #353B40; text-shadow: 0 2px 0 #DDE2E6; }
+.gray .px-hi { background-color: #D3D8DC; } .gray .px-mid { background-color: #DDE2E6; } .gray .px-lip { background-color: #8D959C; border-bottom-color: #6E767D; }
+
+/* Selected (current tab, camera mode): one look everywhere, pressed in, deep blue face, white label. */
+.px-btn.selected, .px-btn.selected:hover, .px-btn.selected:active, .px-btn.selected:hover:active { translate: 0 2px; background-color: #0A97D8; color: #FFFFFF; text-shadow: 0 2px 0 #076FA4; }
+.px-btn.selected .px-hi, .px-btn.selected .px-mid { display: none; }
+.px-btn.selected .px-lip { height: 2px; background-color: #076FA4; border-bottom-color: #076FA4; }
+
+/* Values: outlined, flat, not clickable. */
+.px-readout { width: 168px; min-height: 38px; margin: 0; padding: 0 8px; border-width: 2px; border-radius: 3px; border-color: #0A0505; background-color: #FFFFFF; color: #0A0505; -unity-text-align: middle-center; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#px-category { flex-grow: 1; }
+/* Lines up with the value box of the stepper above it. */
+#px-alive { margin-left: 60px; }
+/* Buttons that act on the settings above sit a step further away from them. */
+.px-row.px-actions { margin-top: 8px; }
+
+/* Weapon list: name first, actions on the right; a hairline between rows gives the list a steady beat. */
+.px-weapon { margin: 0; padding: 6px 0; border-bottom-width: 1px; border-color: #E3E6E9; }
+.px-weapon > .px-btn { margin-right: 0; margin-left: 8px; }
+.px-weapon-name { flex-grow: 1; flex-shrink: 1; margin: 0; padding: 0; white-space: normal; color: #0A0505; font-size: 20px; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); }
+
+/* Controls: two columns of keycaps; the thicker bottom edge echoes the button lip. */
+.px-grid { flex-direction: row; flex-wrap: wrap; }
+.px-control { flex-direction: row; flex-basis: 45%; flex-grow: 1; align-items: center; margin: 0 16px 8px 0; }
+.px-key { width: 96px; min-height: 32px; margin: 0 12px 0 0; font-size: 16px; background-color: #F3F5F6; border-bottom-width: 4px; }
+.px-control-action { flex-grow: 1; margin: 0; padding: 0; color: #353B40; font-size: 18px; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); }
+
+/* Scrollbar: slim, flat, in the menu's own colors; no arrow buttons. */
+.px-body .unity-scroller--vertical { width: 12px; min-width: 12px; margin-left: 8px; border-width: 0; background-color: rgba(0, 0, 0, 0); }
+.px-body .unity-scroller__low-button, .px-body .unity-scroller__high-button { display: none; }
+/* The default slider leaves room for the (hidden) arrow buttons and is wider than the bar. */
+.px-body .unity-scroller--vertical > .unity-scroller__slider { width: 12px; min-width: 12px; margin: 0; }
+.px-body .unity-scroller--vertical .unity-base-slider__tracker { left: 0; width: 12px; border-width: 0; border-radius: 6px; background-color: #EEF1F3; }
+.px-body .unity-scroller--vertical .unity-base-slider__dragger { left: 0; width: 12px; border-width: 2px; border-radius: 6px; border-color: #0A0505; background-color: #B9C0C6; }

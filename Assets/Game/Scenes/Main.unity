@@ -3862,6 +3862,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8be8ea1d12b6654384526cf4dd1cf8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterGame.ViewModeDebugMenu
+  pixelMenuDocument: {fileID: 1120584056}
   menuDocument: {fileID: 1288200372}
   player: {fileID: 1072327769}
   followCamera: {fileID: 330585548}
@@ -16374,6 +16375,61 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1116384126}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1120584055
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1120584057}
+  - component: {fileID: 1120584056}
+  m_Layer: 0
+  m_Name: Pixel Debug Menu UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1120584056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120584055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: 7dfb7766fd0d08f4f9d8b60f09daa667, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 92b0b83a2a5d97640b462691d7224db7, type: 3}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
+--- !u!4 &1120584057
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120584055}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1128209465
 GameObject:
   m_ObjectHideFlags: 0
@@ -31129,6 +31185,7 @@ MonoBehaviour:
   shootingSlowdownHoldTime: 0.12
   shootingRecoveryTime: 0.15
   combatSlowdownTime: 0.05
+  runBlockAfterShot: 0.1
   weaponRecoilScale: 1
   supportHandWeight: 1
   hipFireSpread: 3
@@ -32459,3 +32516,4 @@ SceneRoots:
   - {fileID: 23507648}
   - {fileID: 1472645045}
   - {fileID: 993996669}
+  - {fileID: 1120584057}
