@@ -1,0 +1,12 @@
+{
+    "name": "Game.DebugMenu.Tests",
+    "rootNamespace": "Game.DebugMenu.Tests",
+    "references": ["Game.Core", "Game.TestAreas", "Unity.InputSystem", "Unity.InputSystem.TestFramework", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "overrideReferences": true,
+    "precompiledReferences": ["nunit.framework.dll"],
+    "autoReferenced": false,
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "noEngineReferences": false
+}

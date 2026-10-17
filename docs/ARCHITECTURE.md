@@ -11,12 +11,23 @@
 | Weapons | `Assets/Game/Weapons/` | Equipped gun, ammo, reload, firing, weapon pose, pickups, weapon data | [weapons](systems/weapons.md) |
 | Combat | `Assets/Game/Combat/` | Hit queries, the damage receiver, shot and hit feedback, combat audio volume | [combat](systems/combat.md) |
 | Mobs | `Assets/Game/Mobs/` | The six block mobs: AI, attacks, animation playback, prefabs, test spawner. Own assembly, references Core only | [mobs](systems/mobs.md) |
-| Debug menu | `Assets/Game/DebugMenu/` | F1 menu (equip, spawn, stamina, camera, audio tabs) and the "menu is open" input gate | this page |
+| Debug menu | `Assets/Game/DebugMenu/`, `Assets/Game/UI/` | UI Toolkit F1 menu (equip, spawn, stamina, camera, audio, controls), shared styles and the "menu is open" input gate | this page |
 | World | `Assets/Game/World/` | Grid shader and level materials, NavMesh data | [test areas](TEST_AREAS.md) |
 | Test areas | `Assets/Game/TestAreas/` | Start markers, target reset, moving targets, damage numbers, shortcuts, and the area builder. Own assembly, references Core only | [test areas](TEST_AREAS.md) |
 | Diagnostics | `Assets/Game/Diagnostics/` | Baseline harness: action sequences, per-frame recorder, metrics. A measuring tool that reads the baseline components directly | [feel spec](FEEL_SPEC.md) |
 
 Third-party files used by these systems are in `Assets/ThirdParty/`. Render pipeline settings are in `Assets/Settings/`.
+
+## Debug menu presentation
+
+The F1 menu uses UI Toolkit. `ViewModeDebugMenu` still owns its input gate and the existing gameplay connections; its partial presentation file builds the catalogue and settings controls. This is a presentation change within the migrated baseline, not a system/assembly rebuild. Its update-order slot and the existing Core control-blocking contract are unchanged.
+
+- Layout: `Assets/Game/UI/GameUI.uxml`; shared styling: `Assets/Game/UI/DebugMenu.uss`. Open the layout in Window > UI Toolkit > UI Builder. The supplied UIExample image is the visual reference.
+- The scene's UIDocument uses `Assets/Game/UI/DebugMenuPanelSettings.asset`, which scales the menu to the Game view. Tools > Project > Set Up Debug Menu UI reconnects the document and controller if needed; save the scene afterwards.
+- Weapons supports case-insensitive search, type/creator/pack filters, a selection preview, Equip Weapon, and Spawn Pickup. Other tabs retain the existing mob, stamina, camera and sound actions. The world's simulation keeps running while the menu blocks player control and releases the cursor.
+- F1 toggles visibility even while search has focus. Resume and clicking outside the panel close it. Escape releases the cursor. Closing the menu clears text focus; disabling the controller also hides the UI.
+- Barlow Condensed ExtraBold is bundled with its OFL license in `Assets/Game/UI/Fonts/`. The cream grid and button highlights are native UI elements/drawing.
+- Play-mode interaction checks live in `Assets/Game/DebugMenu/Tests/`; the manual test route is in [test areas](TEST_AREAS.md#debug-menu).
 
 ## Dependencies today
 Apart from Core, Movement, Mobs, Test areas and the editor tools, the gameplay code is the migrated baseline: it compiles into the default assembly and systems still call each other directly (arrows read "calls or reads"):

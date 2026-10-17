@@ -1,17 +1,14 @@
 # Status
 
-**Checkpoint 6 (plan step 5): movement rebuild.**
+**Checkpoint 7: F1 debug menu presentation.**
 
 ## Current state
-- `CapsuleMovement` rewritten: each frame is a short sequence of named steps (longest method 51 lines, was 272). Every Inspector field has a tooltip.
-- Movement has its own assembly (Core only). Its links to other systems go through new Core contracts: `IMovementModifier` (guns, unarmed attacks), `IViewHeading` (camera), `IControlBlocker` and `PlayerControl` (debug menu, flying camera).
-- Frame-rate independent: jump apex 1.60 m and walk stop 0.18 m at 30/60/144 fps (were 1.46-1.57 m and 0.11-0.17 m). Speeds, settle times and armed or strafe values unchanged.
-- Play-mode checks `MovementFeelTests` (6) pass. The baseline jump metric was fixed (it measured from after the first frame's rise).
-- Known limit: dive distance varies by up to one frame of dive travel (12.1-12.5 m).
-- Lines: movement script 657 to 693 (tooltips, named steps, exact integration); Core contracts +71; tests +79.
+- The F1 menu now uses UI Toolkit, with the supplied UIExample-inspired cream grid panel, colorful beveled buttons and Barlow Condensed headings.
+- Weapons has search, type/creator/pack filters, a preview, Equip Weapon and Spawn Pickup. Mobs, Player, Camera, Audio and Controls retain their existing actions in the new layout.
+- Existing player-control gating, cursor capture and camera modes remain connected. The menu does not pause world simulation.
+- Validation: all 5 menu interaction tests and the 6 existing movement tests passed (the F1 check was rerun with Game view focus). Unity compiles without errors or warnings. Layout reviewed at 1280x720 and 1920x1080, plus all tabs.
+- Editor UI profiling captured 178 frames in Logs/DebugMenu/profile.json. These markers include editor rendering and are not an isolated menu/build benchmark. Screenshots and the pre-change unsaved scene backup are also in Logs/DebugMenu.
+- Layout/styles and setup instructions: [architecture](ARCHITECTURE.md#debug-menu-presentation). Playtest route: [test areas](TEST_AREAS.md#debug-menu).
 
-## Last feedback
-- FEEL_SPEC targets approved. Holster: H toggles; right-click draws; stays holstered until H or right-click. Sprinting does not holster; armed sprint animations needed.
-
-## Next step
-Plan step 6: animation and pose fixes (skeleton proportions and avatar root, one pose order with built-in Humanoid IK, armed sprint from Sprint01 legs and the WeaponHold upper body).
+## Next checkpoint
+Review the menu's visual style, scale and browsing in Play mode; refine from feedback. The earlier animation/pose work remains pending (plan step 6).
