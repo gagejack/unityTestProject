@@ -33,7 +33,7 @@ namespace StarterGame
         [Tooltip("Seconds to reach the full shooting slowdown when a shot is fired.")]
         [SerializeField, Min(0.01f)] private float combatSlowdownTime = 0.05f;
         [Tooltip("Seconds after a shot before you can run again. 0 lets you run straight away; the shooting slowdown above still fades in and out.")]
-        [SerializeField, Min(0f)] private float runBlockAfterShot = 0.27f;
+        [SerializeField, Min(0f)] private float runBlockAfterShot = 0.1f;
         [Header("Recoil and support hand")]
         [SerializeField, Range(0f, 1f)] private float weaponRecoilScale = 1f;
         [SerializeField, Range(0f, 1f)] private float supportHandWeight = 1f;
