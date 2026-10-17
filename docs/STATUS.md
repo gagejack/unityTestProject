@@ -1,23 +1,23 @@
 # Status
 
-**Checkpoint 10 (plan step 6a): foot slide reduced with the jog and sprint clips.**
+**Checkpoint 11 (plan step 6a): running lean slider.**
 
 ## Current state
-- Normal movement plays the Run01 jog clip, running plays the Sprint01 clip (Player > Male Walk Retarget; Reference Walk Speed 3.1, Reference Run Speed 4.8).
-- Foot slide on the original ankle measure, 30 / 60 / 144 fps: walk 15 / 16 / 17 % (was 24 / 27 / 28), run 21 / 23 / 25 % (was 51 / 59 / 60), strafe 15 / 17 / 18 % (was 27 / 30 / 29). Still above the ≤ 10 / 15 % targets. The new visible-contact measure is in the [feel spec](FEEL_SPEC.md#animation).
-- Body height (`BlockHumanoidRig`): clip poses use a fixed offset instead of pressing swinging feet onto the floor (the old cause of most visible skating); crouch, roll, dive and slide still snap to the floor; and on the ground no block may sink below the floor. That last rule fixes a foot sinking up to 8 cm into the floor for about 0.1 s when a roll or slide ends (measured).
-- Mob foot slide keeps its original ankle measure; all mob numbers are unchanged.
-- Running no longer stops when the Game view loses focus (`CapsuleMovement`); the Input System already releases keys then.
-- All 20 Play-mode tests pass; the full baseline runs through at 30, 60 and 144 fps. Movement, jump, dive, weapon and mob numbers are unchanged.
+- New setting Player > Male Walk Retarget > **Running Lean Correction** (0-30, default 15): tilts the spine and chest back while running, faded in with the run; legs and feet are unchanged.
+- Measured torso lean (hips to neck, 0 = upright, standing reads about 6): jog 22°, sprint clip 45° → 38° at the default, the same at 30, 60 and 144 fps. Side-view captures at 0, 15 and 30 are in `Logs/Baseline/lean_side/` (not committed).
+- The baseline now records torso lean (`BaselineRecorder`, `BaselineMetrics`).
+- Full baseline: every other number is unchanged from checkpoint 10. All 20 Play-mode tests pass.
+- Foot slide (ankle measure, 30 / 60 / 144 fps): walk 15 / 16 / 17 %, run 22 / 22 / 25 %, strafe 15 / 18 / 18 %; still above the targets.
 
 ## Measured, not yet decided
-- Walk arm angle reads 0-2° with the jog clip (target 5-9°, set so the arms clear the chest block). In the captured frames the arms look clear; check in Play mode.
-- Standing idle, the feet hover about 2 cm above the floor.
-- Running leans forward as much as the Sprint01 clip does.
+- Standing idle, the lower foot hovers 1.5-2.5 cm above the floor: one fixed height offset serves every clip and is set for the walking and running stride. Proposed fix: snap the feet to the floor while standing still (they are not moving, so this cannot cause skating).
+- Walk arm angle reads 0-2° with the jog clip (target 5-9°); the arms look clear of the chest in the captured frames.
+- A baseline run can be thrown off by mouse or keyboard input in the editor while it runs (one lean run started facing off the lane and ran off its edge). Not proven; rerun any run with odd numbers.
 
 ## Decision needed
-1. Foot slide targets: keep the ankle targets, or switch to the visible-contact measure (walk 19 %, run 31 %, strafe 50 % at 144 fps today)?
-2. Running posture: should running be more upright (see the next step)?
+1. Running lean: is 15 right? Try other values in Play mode.
+2. Foot slide targets: keep the ankle targets, or switch to the visible-contact measure?
+3. Fix the idle hover now?
 
 ## Next step
-Owner playtest of jogging and sprinting at the Movement Course (F6). Then step 6b: one pose order with built-in Humanoid IK (gun standing and aiming pose, running arms without the code tuck), which is also where a running-posture adjustment would go.
+Owner playtest of the running lean. Then step 6b: one pose order with built-in Humanoid IK (gun standing and aiming pose, running arms without the code tuck); the running lean moves into that order.

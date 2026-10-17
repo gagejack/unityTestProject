@@ -18,7 +18,7 @@ namespace Game.Diagnostics
         public Vector3 position, leftFoot, rightFoot, leftContact, rightContact, rightHandLocal, cameraPosition;
         public float yaw, cameraYaw, cameraPitch, fov;
         public bool grounded, running, crouching, rolling, diving, sliding, armed, shot, focused;
-        public float poseWeight, runPose, fightWeight, soldierWeight, aimWeight, armOutLeft, armOutRight;
+        public float poseWeight, runPose, fightWeight, soldierWeight, aimWeight, armOutLeft, armOutRight, torsoLean;
         public string fight, soldierAnim;
         public int ammo, damageCount;
         public float damage, supportGap, gunAimError;
@@ -109,6 +109,7 @@ namespace Game.Diagnostics
                 row.rightContact = LowestCorner(rightShin, rightShinMesh, row.rightFoot);
                 row.armOutLeft = ArmOut(t, HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, -1f);
                 row.armOutRight = ArmOut(t, HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, 1f);
+                row.torsoLean = TorsoLean(t);
             }
             var held = weapons.HasWeapon ? HeldWeaponField?.GetValue(weapons) as GameObject : null;
             if (held && rig)
@@ -184,12 +185,19 @@ namespace Game.Diagnostics
             return Mathf.Atan2(side * v.x, -v.y) * Mathf.Rad2Deg;
         }
 
+        // Side-view angle of the line from hips to neck away from vertical, in degrees (0 = upright, + = leaning forward).
+        float TorsoLean(Transform body)
+        {
+            var v = body.InverseTransformDirection(rig.GetBoneTransform(HumanBodyBones.Neck).position - rig.GetBoneTransform(HumanBodyBones.Hips).position);
+            return Mathf.Atan2(v.z, v.y) * Mathf.Rad2Deg;
+        }
+
         public static string ToCsv(List<FrameRow> rows)
         {
             var c = CultureInfo.InvariantCulture;
             var sb = new StringBuilder("frame,time,dt,step,input,focused,px,py,pz,yaw,grounded,running,crouching,rolling,diving,sliding," +
                 "poseWeight,runPose,fightWeight,fight,soldierWeight,soldierAnim,armed,aimWeight,ammo,shot,damage,damageCount," +
-                "lfx,lfy,lfz,rfx,rfy,rfz,lcx,lcy,lcz,rcx,rcy,rcz,rhx,rhy,rhz,armOutL,armOutR,supportGap,gunAimError,camX,camY,camZ,camYaw,camPitch,fov," +
+                "lfx,lfy,lfz,rfx,rfy,rfz,lcx,lcy,lcz,rcx,rcy,rcz,rhx,rhy,rhz,armOutL,armOutR,torsoLean,supportGap,gunAimError,camX,camY,camZ,camYaw,camPitch,fov," +
                 "mobX,mobY,mobZ,mobState,mobAttacks,mlfx,mlfy,mlfz,mrfx,mrfy,mrfz\n");
             string V(Vector3 v) => v.x.ToString("0.####", c) + "," + v.y.ToString("0.####", c) + "," + v.z.ToString("0.####", c);
             string F(float f) => f.ToString("0.#####", c);
@@ -202,7 +210,7 @@ namespace Game.Diagnostics
                   .Append(r.fight).Append(',').Append(F(r.soldierWeight)).Append(',').Append(r.soldierAnim).Append(',').Append(B(r.armed)).Append(',')
                   .Append(F(r.aimWeight)).Append(',').Append(r.ammo).Append(',').Append(B(r.shot)).Append(',').Append(F(r.damage)).Append(',').Append(r.damageCount).Append(',')
                   .Append(V(r.leftFoot)).Append(',').Append(V(r.rightFoot)).Append(',').Append(V(r.leftContact)).Append(',').Append(V(r.rightContact)).Append(',').Append(V(r.rightHandLocal)).Append(',')
-                  .Append(F(r.armOutLeft)).Append(',').Append(F(r.armOutRight)).Append(',').Append(F(r.supportGap)).Append(',').Append(F(r.gunAimError)).Append(',')
+                  .Append(F(r.armOutLeft)).Append(',').Append(F(r.armOutRight)).Append(',').Append(F(r.torsoLean)).Append(',').Append(F(r.supportGap)).Append(',').Append(F(r.gunAimError)).Append(',')
                   .Append(V(r.cameraPosition)).Append(',').Append(F(r.cameraYaw)).Append(',').Append(F(r.cameraPitch)).Append(',').Append(F(r.fov)).Append(',')
                   .Append(V(r.mobPosition)).Append(',').Append(r.mobState).Append(',').Append(r.mobAttacks).Append(',')
                   .Append(V(r.mobLeftFoot)).Append(',').Append(V(r.mobRightFoot)).Append('\n');

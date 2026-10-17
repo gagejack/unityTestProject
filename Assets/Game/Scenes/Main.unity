@@ -14858,6 +14858,7 @@ MonoBehaviour:
   - 3.8
   - 3.8
   runningArmDownAngle: 90
+  runningLeanCorrection: 15
   fightingClips:
   - {fileID: 7400000, guid: e0ad8083c895ff74ea01f55b82884971, type: 3}
   - {fileID: 7400000, guid: 2664f222f7b81d04999f8018fe475b2f, type: 3}

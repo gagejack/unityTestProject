@@ -45,6 +45,8 @@ namespace StarterGame
         [Header("Running arms")]
         [Tooltip("Upper-arm angle down from horizontal when viewed from the front. 90 puts the arms straight beside the torso. Forward/backward swing follows the run clip.")]
         [SerializeField, Range(0f, 90f)] private float runningArmDownAngle = 70f;
+        [Tooltip("Degrees to tilt the upper body back toward upright while running, on top of the run clip's own forward lean. 0 keeps the clip's posture. Fades in with the run; the legs are not changed.")]
+        [SerializeField, Range(0f, 30f)] private float runningLeanCorrection = 15f;
         [Header("Unarmed attacks — Fighting Motions Vol1")]
         [Tooltip("Left-click plays the next clip, or queues one follow-up during an attack.")]
         [SerializeField] private AnimationClip[] fightingClips = new AnimationClip[0];
@@ -98,6 +100,7 @@ namespace StarterGame
         private AvatarMask soldierUpperBodyMask;
         private float soldierWeight;
         private Transform aimChest;
+        private Transform leanSpine;
         private float upperBodyAimPitch;
         public string AnimationMode => weapons && weapons.HasWeapon ? "Soldier" : "Unarmed";
         public float SoldierAnimationWeight => soldierWeight;
@@ -198,6 +201,7 @@ namespace StarterGame
             rightUpperArm = rigAnimator.GetBoneTransform(HumanBodyBones.RightUpperArm);
             rightLowerArm = rigAnimator.GetBoneTransform(HumanBodyBones.RightLowerArm);
             aimChest = rigAnimator.GetBoneTransform(HumanBodyBones.Chest);
+            leanSpine = rigAnimator.GetBoneTransform(HumanBodyBones.Spine);
             graph = PlayableGraph.Create("Block Humanoid Animation");
             graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
             mixer = AnimationMixerPlayable.Create(graph, LocomotionInputs + fightingWeights.Length);
@@ -396,6 +400,7 @@ namespace StarterGame
             rigAnimator.transform.localPosition = rigRestLocalPosition;
             UpdateSoldierLayers(dt);
             graph.Evaluate(dt);
+            ApplyRunningLean(walk * runBlend);
             ApplyRunningArmPose(walk * runBlend);
             if (aimChest && weapons && weapons.HasWeapon)
             {
@@ -570,6 +575,16 @@ namespace StarterGame
             for (int i = 0; i < 8; i++)
                 directionWeights[i] = Mathf.Lerp(directionWeights[i], targetDirectionWeights[i], alpha);
         }
+        // Tilts the spine and chest back (half each, for a gentle curve) around the character's side axis.
+        private void ApplyRunningLean(float weight)
+        {
+            if (weight <= 0f || runningLeanCorrection <= 0f || (movement && (movement.IsCrouching || movement.IsRolling ||
+                movement.IsDiving || movement.IsSliding))) return;
+            var back = Quaternion.AngleAxis(-0.5f * runningLeanCorrection * weight, transform.right);
+            if (leanSpine) leanSpine.rotation = back * leanSpine.rotation;
+            if (aimChest) aimChest.rotation = back * aimChest.rotation;
+        }
+
         private void ApplyRunningArmPose(float weight)
         {
             if (weight <= 0f || (movement && (movement.IsCrouching || movement.IsRolling ||

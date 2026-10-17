@@ -75,6 +75,7 @@ namespace Game.Diagnostics
                     // The original ankle-bone measure, kept so results stay comparable with the first baseline.
                     m[label + "_ankle_slide_pct"] = FootSlide(rows, steady, r => r.leftFoot, r => r.rightFoot, r => r.position, false);
                     m[label + "_arm_out_deg"] = steady.Average(i => (rows[i].armOutLeft + rows[i].armOutRight) * 0.5f);
+                    m[label + "_torso_lean_deg"] = steady.Average(i => rows[i].torsoLean);
                     m[label + "_hand_jitter_mm"] = Jitter(rows, steady);
                     if (rows[steady[0]].armed)
                     {
