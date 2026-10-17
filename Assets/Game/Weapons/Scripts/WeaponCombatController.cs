@@ -18,6 +18,8 @@ namespace StarterGame
         [Header("HUD")]
         [Tooltip("Font used for points, ammo, weapon names and pickup prompts.")]
         [SerializeField] private Font hudFont;
+        [Tooltip("Transparent cash bag sprite shown beside the cash total.")]
+        [SerializeField] private Sprite cashBagSprite;
         // Kept serialized for scene migration; the equipped settings asset supplies these values.
         [SerializeField, HideInInspector] private float fireRate = 0.22f;
         [SerializeField, HideInInspector] private float range = 80f;
@@ -95,7 +97,7 @@ namespace StarterGame
         private Text ammoText;
         private Text weaponText;
         private Text promptText;
-        private RawImage gunIconImage;
+        private Image gunIconImage;
         private RectTransform[] crosshairParts = new RectTransform[4];
         private Image[] crosshairImages = new Image[4];
         private Image cursorDot;
@@ -908,24 +910,16 @@ namespace StarterGame
             CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
-            CreateHudText(canvas.transform, "PointsText", "$10,000", 25, new Vector2(1f, 0f), new Vector2(-34f, 115f), new Vector2(350f, 48f), TextAnchor.MiddleRight, out pointsText);
-            CreateHudText(canvas.transform, "AmmoText", "12 / 60", 23, new Vector2(1f, 0f), new Vector2(-34f, 62f), new Vector2(270f, 44f), TextAnchor.MiddleRight, out ammoText);
-            CreateHudText(canvas.transform, "WeaponText", "SIDEARM", 14, new Vector2(1f, 0f), new Vector2(-34f, 32f), new Vector2(270f, 28f), TextAnchor.MiddleRight, out weaponText);
+            CreateHudText(canvas.transform, "PointsText", "$10,000", 25, new Vector2(1f, 0f), new Vector2(-68f, 156f), new Vector2(350f, 40f), TextAnchor.MiddleRight, out pointsText);
+            CreateHudText(canvas.transform, "AmmoText", "12 / 60", 36, new Vector2(1f, 0f), new Vector2(-184f, 79f), new Vector2(420f, 56f), TextAnchor.MiddleRight, out ammoText);
+            CreateHudText(canvas.transform, "WeaponText", "SIDEARM", 22, new Vector2(1f, 0f), new Vector2(-34f, 32f), new Vector2(620f, 36f), TextAnchor.MiddleRight, out weaponText);
             CreateHudText(canvas.transform, "PromptText", "", 20, new Vector2(0.5f, 0f), new Vector2(0f, 125f), new Vector2(800f, 45f), TextAnchor.MiddleCenter, out promptText);
             EnsureCrosshair(canvas.transform);
             if (feedback) feedback.CreateHitMarker(canvas.transform);
-            GameObject icon = new GameObject("Gun Icon", typeof(RawImage));
-            icon.transform.SetParent(canvas.transform, false);
-            RectTransform rect = icon.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(1f, 0f);
-            rect.anchoredPosition = new Vector2(-302f, 57f);
-            rect.sizeDelta = new Vector2(62f, 42f);
-            RawImage raw = icon.GetComponent<RawImage>();
-            gunIconImage = raw;
-            raw.raycastTarget = false;
-            raw.texture = BuildGunIcon();
-            raw.color = Color.white;
+            gunIconImage = CreateHudIcon(canvas.transform, "Weapon Sprite", new Vector2(-34f, 64f), new Vector2(132f, 88f));
+            var cashIcon = CreateHudIcon(canvas.transform, "Cash Bag", new Vector2(-34f, 166f), new Vector2(25f, 25f));
+            cashIcon.sprite = cashBagSprite;
+            cashIcon.enabled = cashBagSprite;
         }
 
         private void CreateHudText(Transform parent, string name, string value, int size, Vector2 anchor,
@@ -947,22 +941,34 @@ namespace StarterGame
             output.text = value;
             output.horizontalOverflow = HorizontalWrapMode.Overflow;
             output.verticalOverflow = VerticalWrapMode.Overflow;
+            AddHudTextDepth(output);
         }
 
-        private static Texture2D BuildGunIcon()
+        private static void AddHudTextDepth(Graphic graphic)
         {
-            Texture2D texture = new Texture2D(64, 40, TextureFormat.RGBA32, false);
-            Color clear = new Color(0f, 0f, 0f, 0f);
-            Color white = Color.white;
-            Color[] pixels = new Color[64 * 40];
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = clear;
-            for (int y = 17; y <= 22; y++) for (int x = 8; x <= 54; x++) pixels[y * 64 + x] = white;
-            for (int y = 10; y <= 16; y++) for (int x = 25; x <= 42; x++) pixels[y * 64 + x] = white;
-            for (int y = 5; y <= 16; y++) for (int x = 19; x <= 24; x++) pixels[y * 64 + x] = white;
-            for (int y = 23; y <= 34; y++) for (int x = 31; x <= 37; x++) pixels[y * 64 + x] = white;
-            texture.SetPixels(pixels);
-            texture.Apply();
-            return texture;
+            var shadow = graphic.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            shadow.effectDistance = new Vector2(2f, -3f);
+            var outline = graphic.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.65f);
+            outline.effectDistance = new Vector2(0.8f, -0.8f);
+        }
+
+        private static Image CreateHudIcon(Transform parent, string name, Vector2 offset, Vector2 size)
+        {
+            var go = new GameObject(name, typeof(Image));
+            go.transform.SetParent(parent, false);
+            var image = go.GetComponent<Image>();
+            var rect = image.rectTransform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 0f);
+            rect.anchoredPosition = offset;
+            rect.sizeDelta = size;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.65f);
+            outline.effectDistance = new Vector2(1f, -1f);
+            return image;
         }
 
         private void UpdateCrosshair()
@@ -1025,14 +1031,14 @@ namespace StarterGame
         private void RefreshHud()
         {
             if (!pointsText) return;
-            pointsText.text = "POINTS  $" + points.ToString("N0");
-            ammoText.text = reloading ? "RELOADING..." : ammoInMagazine + " / " + reserveAmmo;
+            pointsText.text = "$" + points.ToString("N0");
+            ammoText.text = ammoInMagazine + " / " + reserveAmmo;
             weaponText.text = heldWeapon ? offers[equippedOffer].displayName : "UNARMED";
-            if (!heldWeapon) ammoText.text = "LEFT CLICK TO ATTACK";
+            if (!heldWeapon) ammoText.text = "";
             if (gunIconImage)
             {
-                gunIconImage.enabled = HasWeapon;
-                if (CurrentWeapon && CurrentWeapon.icon) gunIconImage.texture = CurrentWeapon.icon;
+                gunIconImage.sprite = HasWeapon && CurrentWeapon ? CurrentWeapon.hudSprite : null;
+                gunIconImage.enabled = gunIconImage.sprite;
             }
         }
 

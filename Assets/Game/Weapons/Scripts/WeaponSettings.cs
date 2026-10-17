@@ -42,6 +42,8 @@ namespace StarterGame
         [Range(0, 4)] public int animationFamily;
         public GameObject model;
         public Texture2D icon;
+        [Tooltip("Sprite-sheet icon shown beside the equipped weapon's ammo in the HUD. Variants may share a sprite.")]
+        public Sprite hudSprite;
         public Material wallOutlineMaterial;
         public SoldierClips animations = new SoldierClips();
         public Vector3 gripEuler;

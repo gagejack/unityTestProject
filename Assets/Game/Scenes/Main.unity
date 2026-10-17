@@ -21551,6 +21551,8 @@ GameObject:
   - component: {fileID: 1170607270}
   - component: {fileID: 1170607269}
   - component: {fileID: 1170607268}
+  - component: {fileID: 1170607272}
+  - component: {fileID: 1170607271}
   m_Layer: 0
   m_Name: Speed Text
   m_TagString: Untagged
@@ -21616,9 +21618,39 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -34, y: 168}
+  m_AnchoredPosition: {x: -34, y: 209}
   m_SizeDelta: {x: 350, y: 40}
   m_Pivot: {x: 1, y: 0}
+--- !u!114 &1170607271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170607267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.65}
+  m_EffectDistance: {x: 0.8, y: -0.8}
+  m_UseGraphicAlpha: 1
+--- !u!114 &1170607272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170607267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 2, y: -3}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1172503438
 GameObject:
   m_ObjectHideFlags: 0
@@ -36393,6 +36425,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ffdf4ae2175dba84eb41f68a6b360104, type: 2}
   startingPoints: 1000000
   hudFont: {fileID: 12800000, guid: 9bf7cd6a90d903b4abe3d6c59cbf2b63, type: 3}
+  cashBagSprite: {fileID: -2939636720725796486, guid: 1cc39856900fbc348afa31f5376bbce8, type: 3}
   fireRate: 0.22
   range: 80
   damage: 25

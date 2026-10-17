@@ -9,6 +9,8 @@ The gun the player holds: equipping, aiming, firing (automatic, semi-automatic, 
 - `WeaponSettings`: one asset per gun in `Assets/Game/Weapons/Settings/` (48 assets; the 46 active ones are listed in the controller's Offers). Its Category field (pistols, SMGs, assault rifles, shotguns, rifles and snipers, machine guns, launchers) groups the debug menu.
 - `RocketProjectile` (launchers), `DroppedWeapon` (pickups on the ground).
 - `MysteryWeaponBox`: kept only because the controller still references it; no box is in the scene.
+- The bottom-right HUD uses Doppio One with a fine dark outline and offset shadow. Cash is a dollar amount beside a transparent cash bag; the larger ammo count has the equipped weapon's sprite on its right, with the weapon name below. Unarmed hides ammo and the gun icon; reloading keeps the numeric ammo count. Pickup prompts retain the same text styling.
+- HUD art: `Assets/Game/UI/Icons/`. The supplied weapon sheet is sliced into named sprites with point filtering; every weapon settings asset has a HUD Sprite assignment. Duplicate models and simplified Soldier guns share the closest matching sprite. The original menu preview Icon stays independent. The cash bag's transparent copy preserves the supplied JPEG as its source.
 - Fitted gun prefabs: `Assets/Game/Weapons/Prefabs/`. Icons and materials: `Assets/Game/Weapons/Art/`. Gun sounds: `Assets/Game/Weapons/Audio/` plus `Assets/ThirdParty/FreeWeaponSFX_v1.1/`.
 
 ## Weapon names
@@ -16,6 +18,7 @@ The menus, equipped-weapon HUD and pickup prompts show only the gun name, so sep
 
 ## How to tune by feel
 - Player > Weapon Combat Controller > **HUD Font** sets the points, ammo, weapon name and pickup prompt font. Main uses Doppio One from `Assets/Game/UI/Fonts/DoppioOne-Regular.ttf`.
+- Player > Weapon Combat Controller > **Cash Bag Sprite** sets the cash symbol. Each weapon settings asset's **Hud Sprite** selects its ammo-row icon.
 - On a WeaponSettings asset: fire rate and trigger mode (pace and rhythm), damage and pellets, spread and bloom (how much accuracy falls off when spraying), recoil (camera and gun kick), movement multiplier (how heavy the gun feels to carry), grip and support-hand offsets (how it sits in the hands), the Soldier clips including **Hold** (the arm pose while sprinting; empty for a one-handed carry), sounds and pitch.
 - Player > Weapon Combat Controller: **Aiming Move Speed Multiplier / Shooting Move Speed Multiplier** (how much aiming and firing slow you), **Aim Blend Time** (how quickly aim settles), **Support Hand Weight**; **Run Block After Shot** (how long after a shot before you can sprint again; 0 keeps you sprinting through the shot, slowed briefly by the shooting slowdown). Holding Shift while moving resumes the sprint by itself when the block ends; a double-tap W sprint is cancelled by the block and needs another double-tap.
 

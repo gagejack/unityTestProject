@@ -30,6 +30,7 @@ MonoBehaviour:
   animationFamily: 1
   model: {fileID: 183413490949090007, guid: e9dd6a028e6af8b49ba88fa887de31fd, type: 3}
   icon: {fileID: 2800000, guid: b5c52d7bab8da0c4d93f42dcd25a8bd7, type: 3}
+  hudSprite: {fileID: 7849540170490404094, guid: f66eb24ad2eb819409544385f1d500d0, type: 3}
   wallOutlineMaterial: {fileID: 2100000, guid: cdd4b07830c73bf4ea83017664750f40, type: 2}
   animations:
     aim: {fileID: -57794709565900691, guid: 84781f800961561439ffe31c702436b5, type: 3}

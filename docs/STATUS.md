@@ -26,7 +26,7 @@
 ## To do
 - **Shooting while diving (owner request, 2026-10-17):** lightweight gun categories can fire during an air dive. Today every gun is blocked while rolling, diving or sliding (`WeaponCombatController` refuses and refunds the shot). To decide when it is built: which categories count as lightweight (proposed: Pistols & Duals and SMGs), whether the landing slide and rolls are included, and where the shot aims (the dive pose points the gun along the dive).
 - **Debug menu:** playtest the pixel-style F2 menu and the reworked F1 menu, then decide whether F2 replaces F1. F2 has no weapon search yet. Latest F2 change: slightly rounded button corners (press F2 and check the navigation, Equip / Spawn and arrow buttons). Built from `docs/spec/UI/DebugMenu/DESIGN_SPEC.md`.
-- **HUD font:** speed, points, ammo, weapon name and pickup prompt now use Doppio One (Player > Weapon Combat Controller > HUD Font; Speed HUD > Speed Text > Text > Font). Owner to check readability at the Gun Range (F5).
+- **HUD:** the cash total uses the cash bag symbol; larger ammo text has the matching weapon-sheet sprite to its right, with a larger weapon name below. Doppio One text has a thin dark outline and offset shadow; icons have a thin dark outline. Unarmed hides ammo and icon; reloads keep numeric ammo. All 46 selectable weapons switch to their assigned sprite; all 34 Play-mode checks pass. Owner to check readability at the Gun Range (F5), then try equipping, reloading and dropping a gun. Settings are documented in [weapons](systems/weapons.md).
 - The docs check reports the debug menu design spec's reference image (sampleUI.jpg) as missing; it was deleted with the debug menu work. Restore it from git or update the spec.
 
 ## Last feedback
