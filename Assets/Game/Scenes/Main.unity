@@ -14815,18 +14815,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterGame.MaleWalkRetarget
   rigAnimator: {fileID: 241035798}
   directionalClips:
-  - {fileID: 3094330708855449807, guid: c133e3c197c12e04a9dd23bd0966910f, type: 3}
-  - {fileID: 3094330708855449807, guid: dd9cde7e792f5f946b091935d7903296, type: 3}
-  - {fileID: 3094330708855449807, guid: 2cd37dc84c089ac4981cd6d36abd33eb, type: 3}
-  - {fileID: 3094330708855449807, guid: 55d43189338018e4c9e0c2ce1f608563, type: 3}
-  - {fileID: 3094330708855449807, guid: f1f1135ca9cfa8c47bf81718bb0d6873, type: 3}
-  - {fileID: 3094330708855449807, guid: 5dcc71b9770f2554e8fd3ea0d6c1e1f4, type: 3}
-  - {fileID: 3094330708855449807, guid: b702e254d5e77904da0429cfcbc77709, type: 3}
-  - {fileID: 3094330708855449807, guid: 3a4cf5e04ded562489d1c3b2da8c2d7a, type: 3}
-  idleClip: {fileID: -2576967968662016515, guid: 56fd86b76fc74d24d83522069f5deb9b, type: 3}
-  airborneClip: {fileID: 8908273484855622883, guid: 1455f282db7117d419994bb5c5f3acc2, type: 3}
-  referenceWalkSpeed: 2.1
-  runningDirectionalClips:
   - {fileID: 3094330708855449807, guid: 6deac83e30d8acd4cbb8c7d8a11545bd, type: 3}
   - {fileID: 3094330708855449807, guid: 152af2cd00aaae34e816ebb8deb4b68e, type: 3}
   - {fileID: 3094330708855449807, guid: 846fff649819bcf49b933d00ef6f703f, type: 3}
@@ -14835,7 +14823,19 @@ MonoBehaviour:
   - {fileID: 3094330708855449807, guid: 02fe127be7c987640bef36b78efaf2cf, type: 3}
   - {fileID: 3094330708855449807, guid: 9f9dbe8815370164d8a2214328af4f13, type: 3}
   - {fileID: 3094330708855449807, guid: 2d491dc6ab8cc5045919954fe2601203, type: 3}
-  referenceRunSpeed: 5.2
+  idleClip: {fileID: -2576967968662016515, guid: 56fd86b76fc74d24d83522069f5deb9b, type: 3}
+  airborneClip: {fileID: 8908273484855622883, guid: 1455f282db7117d419994bb5c5f3acc2, type: 3}
+  referenceWalkSpeed: 3.1
+  runningDirectionalClips:
+  - {fileID: 3094330708855449807, guid: cf78dc5ec3b949d47839771b740e655a, type: 3}
+  - {fileID: 3094330708855449807, guid: 776b87abc6fae6f4e82851696702435b, type: 3}
+  - {fileID: 3094330708855449807, guid: 067a556d54da4e94b8c6cfc96e97d680, type: 3}
+  - {fileID: 3094330708855449807, guid: ca7bf50d255ff5749a3a9ff602076af8, type: 3}
+  - {fileID: 3094330708855449807, guid: a8e6c7cf678a13541a726c2ae9ec00e3, type: 3}
+  - {fileID: 3094330708855449807, guid: 02fe127be7c987640bef36b78efaf2cf, type: 3}
+  - {fileID: 3094330708855449807, guid: f194a505473e7aa469db0682217fa7f8, type: 3}
+  - {fileID: 3094330708855449807, guid: f1c72df816110fc4394d0e781c72bc31, type: 3}
+  referenceRunSpeed: 4.8
   gaitBlendTime: 0.18
   blendTime: 0.12
   directionBlendTime: 0.16
@@ -15183,6 +15183,8 @@ MonoBehaviour:
   crouchStepAngle: 18
   crouchStrideLength: 1.15
   specialPoseBlendTime: 0.16
+  animatedPoseHeight: -0.014
+  snapLowestBlockToFloor: 0
 --- !u!114 &1072327778
 MonoBehaviour:
   m_ObjectHideFlags: 0

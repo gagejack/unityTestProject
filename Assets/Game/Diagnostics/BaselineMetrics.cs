@@ -71,7 +71,9 @@ namespace Game.Diagnostics
                 if (moving)
                 {
                     var steady = frames.Skip(frames.Count * 2 / 5).ToList();
-                    m[label + "_foot_slide_pct"] = FootSlide(rows, steady, r => r.leftFoot, r => r.rightFoot, r => r.position);
+                    m[label + "_foot_slide_pct"] = FootSlide(rows, steady, r => r.leftContact, r => r.rightContact, r => r.position, true);
+                    // The original ankle-bone measure, kept so results stay comparable with the first baseline.
+                    m[label + "_ankle_slide_pct"] = FootSlide(rows, steady, r => r.leftFoot, r => r.rightFoot, r => r.position, false);
                     m[label + "_arm_out_deg"] = steady.Average(i => (rows[i].armOutLeft + rows[i].armOutRight) * 0.5f);
                     m[label + "_hand_jitter_mm"] = Jitter(rows, steady);
                     if (rows[steady[0]].armed)
@@ -174,7 +176,7 @@ namespace Game.Diagnostics
             if (moving.Count > 10)
             {
                 m["chase_speed"] = moving.Average(i => { var d = rows[i].mobPosition - rows[i - 1].mobPosition; d.y = 0f; return d.magnitude / rows[i].dt; });
-                m["foot_slide_pct"] = FootSlide(rows, moving, r => r.mobLeftFoot, r => r.mobRightFoot, r => r.mobPosition);
+                m["foot_slide_pct"] = FootSlide(rows, moving, r => r.mobLeftFoot, r => r.mobRightFoot, r => r.mobPosition, false);
             }
         }
 
@@ -184,19 +186,26 @@ namespace Game.Diagnostics
             return -1;
         }
 
-        // Foot slide as a percentage of body travel while a foot is planted (within 3 cm of its lowest point):
-        // 0 = the planted foot stays put, 100 = it moves along with the body (skating).
+        // Foot slide as a percentage of body travel: while a foot is planted, how far it travels compared with the body.
+        // 0 = the foot stays planted, 100 = it skates along with the body.
+        // Player (visibleContact): the lowest corner of the lower-leg block, planted while within 2 cm of the lowest
+        // contact of either foot in the window, i.e. what a viewer sees touching the floor.
+        // Mobs: the ankle bone, planted while within 3 cm of that foot's own lowest point (the original measure; mob
+        // ankles sit at different heights, so a shared floor would miss one foot's contacts).
         static float FootSlide(List<FrameRow> rows, List<int> frames, System.Func<FrameRow, Vector3> left,
-            System.Func<FrameRow, Vector3> right, System.Func<FrameRow, Vector3> body)
+            System.Func<FrameRow, Vector3> right, System.Func<FrameRow, Vector3> body, bool visibleContact)
         {
+            float sharedFloor = float.MaxValue;
+            foreach (int i in frames) sharedFloor = Mathf.Min(sharedFloor, Mathf.Min(left(rows[i]).y, right(rows[i]).y));
             float footTravel = 0f, bodyTravel = 0f;
             foreach (var foot in new[] { left, right })
             {
-                float floor = frames.Min(i => foot(rows[i]).y);
+                float floor = visibleContact ? sharedFloor : frames.Min(i => foot(rows[i]).y);
+                float planted = visibleContact ? 0.02f : 0.03f;
                 for (int k = 1; k < frames.Count; k++)
                 {
                     int i = frames[k], prev = frames[k - 1];
-                    if (i != prev + 1 || foot(rows[i]).y - floor >= 0.03f || foot(rows[prev]).y - floor >= 0.03f) continue;
+                    if (i != prev + 1 || foot(rows[i]).y - floor > planted || foot(rows[prev]).y - floor > planted) continue;
                     var f = foot(rows[i]) - foot(rows[prev]); f.y = 0f;
                     var b = body(rows[i]) - body(rows[prev]); b.y = 0f;
                     footTravel += f.magnitude;

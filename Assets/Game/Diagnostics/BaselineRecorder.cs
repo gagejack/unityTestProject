@@ -15,7 +15,7 @@ namespace Game.Diagnostics
     {
         public int frame, step, input;
         public float time, dt;
-        public Vector3 position, leftFoot, rightFoot, rightHandLocal, cameraPosition;
+        public Vector3 position, leftFoot, rightFoot, leftContact, rightContact, rightHandLocal, cameraPosition;
         public float yaw, cameraYaw, cameraPitch, fov;
         public bool grounded, running, crouching, rolling, diving, sliding, armed, shot, focused;
         public float poseWeight, runPose, fightWeight, soldierWeight, aimWeight, armOutLeft, armOutRight;
@@ -47,6 +47,8 @@ namespace Game.Diagnostics
         WeaponCombatController weapons;
         Animator rig;
         Camera view;
+        Transform leftShin, rightShin;
+        Mesh leftShinMesh, rightShinMesh;
         float lastShotTime = float.NegativeInfinity;
         float frameDamage;
         int frameDamageCount;
@@ -58,6 +60,7 @@ namespace Game.Diagnostics
             weapons = player.GetComponent<WeaponCombatController>();
             rig = animation ? animation.RigAnimator : null;
             view = Camera.main;
+            FindShinBlocks(player);
         }
 
         private void OnEnable() => CombatEvents.Damaged += OnDamaged;
@@ -102,6 +105,8 @@ namespace Game.Diagnostics
                 row.leftFoot = rig.GetBoneTransform(HumanBodyBones.LeftFoot).position;
                 row.rightFoot = rig.GetBoneTransform(HumanBodyBones.RightFoot).position;
                 row.rightHandLocal = t.InverseTransformPoint(rig.GetBoneTransform(HumanBodyBones.RightHand).position);
+                row.leftContact = LowestCorner(leftShin, leftShinMesh, row.leftFoot);
+                row.rightContact = LowestCorner(rightShin, rightShinMesh, row.rightFoot);
                 row.armOutLeft = ArmOut(t, HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, -1f);
                 row.armOutRight = ArmOut(t, HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, 1f);
             }
@@ -130,6 +135,38 @@ namespace Game.Diagnostics
             return row;
         }
 
+        // The visible foot is the bottom of the lower-leg block. Find those blocks through BlockHumanoidRig's attachments.
+        void FindShinBlocks(GameObject player)
+        {
+            var blockRig = player.GetComponent("BlockHumanoidRig");
+            var field = blockRig ? blockRig.GetType().GetField("attachments", BindingFlags.NonPublic | BindingFlags.Instance) : null;
+            if (field == null || !rig) return;
+            var leftBone = rig.GetBoneTransform(HumanBodyBones.LeftLowerLeg);
+            var rightBone = rig.GetBoneTransform(HumanBodyBones.RightLowerLeg);
+            foreach (var item in (System.Array)field.GetValue(blockRig))
+            {
+                var type = item.GetType();
+                var block = type.GetField("block").GetValue(item) as Transform;
+                var bone = type.GetField("bone").GetValue(item) as Transform;
+                var mesh = block ? block.GetComponent<MeshFilter>()?.sharedMesh : null;
+                if (bone == leftBone) { leftShin = block; leftShinMesh = mesh; }
+                if (bone == rightBone) { rightShin = block; rightShinMesh = mesh; }
+            }
+        }
+
+        // Lowest corner of a block in the world: the point that touches and scrapes the floor.
+        static Vector3 LowestCorner(Transform block, Mesh mesh, Vector3 fallback)
+        {
+            if (!block || !mesh) return fallback;
+            var b = mesh.bounds; Vector3 lowest = fallback; float y = float.MaxValue;
+            for (int c = 0; c < 8; c++)
+            {
+                var corner = block.TransformPoint(b.center + Vector3.Scale(b.extents, new Vector3((c & 1) == 0 ? -1 : 1, (c & 2) == 0 ? -1 : 1, (c & 4) == 0 ? -1 : 1)));
+                if (corner.y < y) { y = corner.y; lowest = corner; }
+            }
+            return lowest;
+        }
+
         // What the crosshair is on: the nearest hit along the camera's aim, ignoring the player.
         Vector3 AimPoint(float range)
         {
@@ -152,7 +189,7 @@ namespace Game.Diagnostics
             var c = CultureInfo.InvariantCulture;
             var sb = new StringBuilder("frame,time,dt,step,input,focused,px,py,pz,yaw,grounded,running,crouching,rolling,diving,sliding," +
                 "poseWeight,runPose,fightWeight,fight,soldierWeight,soldierAnim,armed,aimWeight,ammo,shot,damage,damageCount," +
-                "lfx,lfy,lfz,rfx,rfy,rfz,rhx,rhy,rhz,armOutL,armOutR,supportGap,gunAimError,camX,camY,camZ,camYaw,camPitch,fov," +
+                "lfx,lfy,lfz,rfx,rfy,rfz,lcx,lcy,lcz,rcx,rcy,rcz,rhx,rhy,rhz,armOutL,armOutR,supportGap,gunAimError,camX,camY,camZ,camYaw,camPitch,fov," +
                 "mobX,mobY,mobZ,mobState,mobAttacks,mlfx,mlfy,mlfz,mrfx,mrfy,mrfz\n");
             string V(Vector3 v) => v.x.ToString("0.####", c) + "," + v.y.ToString("0.####", c) + "," + v.z.ToString("0.####", c);
             string F(float f) => f.ToString("0.#####", c);
@@ -164,7 +201,7 @@ namespace Game.Diagnostics
                   .Append(B(r.sliding)).Append(',').Append(F(r.poseWeight)).Append(',').Append(F(r.runPose)).Append(',').Append(F(r.fightWeight)).Append(',')
                   .Append(r.fight).Append(',').Append(F(r.soldierWeight)).Append(',').Append(r.soldierAnim).Append(',').Append(B(r.armed)).Append(',')
                   .Append(F(r.aimWeight)).Append(',').Append(r.ammo).Append(',').Append(B(r.shot)).Append(',').Append(F(r.damage)).Append(',').Append(r.damageCount).Append(',')
-                  .Append(V(r.leftFoot)).Append(',').Append(V(r.rightFoot)).Append(',').Append(V(r.rightHandLocal)).Append(',')
+                  .Append(V(r.leftFoot)).Append(',').Append(V(r.rightFoot)).Append(',').Append(V(r.leftContact)).Append(',').Append(V(r.rightContact)).Append(',').Append(V(r.rightHandLocal)).Append(',')
                   .Append(F(r.armOutLeft)).Append(',').Append(F(r.armOutRight)).Append(',').Append(F(r.supportGap)).Append(',').Append(F(r.gunAimError)).Append(',')
                   .Append(V(r.cameraPosition)).Append(',').Append(F(r.cameraYaw)).Append(',').Append(F(r.cameraPitch)).Append(',').Append(F(r.fov)).Append(',')
                   .Append(V(r.mobPosition)).Append(',').Append(r.mobState).Append(',').Append(r.mobAttacks).Append(',')

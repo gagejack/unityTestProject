@@ -302,7 +302,8 @@ namespace Game.Movement
 
         void UpdateRunInput(float now, bool forwardPressed, bool forwardHeld, bool runModifierHeld)
         {
-            bool blocked = !PlayerControlEnabled || !Application.isFocused || IsCrouching || IsRolling || IsDiving || IsSliding || runningBlocked;
+            // No focus check: the Input System already releases held keys when the window loses focus.
+            bool blocked = !PlayerControlEnabled || IsCrouching || IsRolling || IsDiving || IsSliding || runningBlocked;
             // Either Shift key can request running while W is held.
             holdRunRequested = !blocked && forwardHeld && runModifierHeld;
             if (blocked)

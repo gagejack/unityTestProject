@@ -30,6 +30,11 @@ namespace StarterGame
         [SerializeField, Min(0.1f)] private float crouchStrideLength = 1.15f;
         [Header("Pose transitions")]
         [SerializeField, Min(0.01f)] private float specialPoseBlendTime = 0.16f;
+        [Header("Grounding")]
+        [Tooltip("Meters to move clip-driven poses up (+) or down (-) so the soles meet the floor; the collision capsule hovers by its skin width.")]
+        [SerializeField] private float animatedPoseHeight = -0.014f;
+        [Tooltip("Always pull the body down until the lowest block touches the floor (the old behaviour). Off: only the code-built crouch, roll, dive and slide poses are snapped, so running feet can leave the ground and are not pressed onto it while swinging. Either way, on the ground the body is lifted if any block would go below the floor.")]
+        [SerializeField] private bool snapLowestBlockToFloor;
         private Vector3[] lastPosePositions;
         private Quaternion[] lastPoseRotations;
         private Vector3[] transitionPositions;
@@ -123,15 +128,25 @@ namespace StarterGame
             }
         }
 
+        // Clip-driven poses get a fixed height correction; code-built special poses (which have no animated hip
+        // height) are snapped so their lowest block touches the floor, blended in with the pose. On the ground no
+        // block may end up below the floor: half-blended poses (leaving a roll or slide) would otherwise sink into it.
         private void GroundBody()
         {
-            if (!controller.isGrounded) return;
-            float lowest = float.PositiveInfinity;
-            foreach (var renderer in blockRenderers)
-                if (renderer) lowest = Mathf.Min(lowest, renderer.bounds.min.y);
-            if (float.IsInfinity(lowest)) return;
-            float floor = controller.bounds.min.y - controller.skinWidth;
-            Vector3 shift = Vector3.up * (floor + 0.005f - lowest);
+            float snapWeight = snapLowestBlockToFloor ? 1f : specialBlend;
+            float height = animatedPoseHeight;
+            if (controller.isGrounded)
+            {
+                float lowest = float.PositiveInfinity;
+                foreach (var renderer in blockRenderers)
+                    if (renderer) lowest = Mathf.Min(lowest, renderer.bounds.min.y);
+                if (!float.IsInfinity(lowest))
+                {
+                    float touch = controller.bounds.min.y - controller.skinWidth + 0.005f - lowest;
+                    height = Mathf.Max(Mathf.Lerp(animatedPoseHeight, touch, snapWeight), touch);
+                }
+            }
+            Vector3 shift = Vector3.up * height;
             animator.transform.position += shift;
             foreach (var item in attachments) item.block.position += shift;
         }

@@ -22,10 +22,11 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 ## Animation (same sequences)
 | Metric | Definition | Baseline 30 / 60 / 144 | Target |
 |---|---|---|---|
-| Walk foot slide | While a foot is planted, its travel as % of body travel (0 = foot stays put) | 24 / 27 / 28 % | ≤ 10 % |
-| Run foot slide | Same, running | 51 / 59 / 60 % | ≤ 15 % |
-| Strafe foot slide | Same, strafing right | 27 / 30 / 29 % | ≤ 10 % |
-| Walk arm angle (unarmed) | Upper arm angle out from the body, front view (degrees) | 16 / 16 / 16 → **7.2** after the avatar rebuild | 5-9 (arms clear the chest block; proposed, confirm by playtest) |
+| Walk foot slide (ankle) | While a foot is planted, its ankle's travel as % of body travel (0 = foot stays put); the original measure | 24 / 27 / 28 % → **15 / 16 / 17 %** with the jog and sprint clips | ≤ 10 % |
+| Run foot slide (ankle) | Same, running | 51 / 59 / 60 % → **21 / 23 / 25 %** | ≤ 15 % |
+| Strafe foot slide (ankle) | Same, strafing right | 27 / 30 / 29 % → **15 / 17 / 18 %** | ≤ 10 % |
+| Walk / run / strafe foot slide (visible) | Same, measured at the lowest corner of each lower-leg block (what touches the floor on screen) | Walk 14 / 17 / 19 %, run 19 / 27 / 31 %, strafe right 52 / 51 / 50 % (first recorded with the jog and sprint clips) | Proposed to replace the ankle targets; to agree with the owner |
+| Walk arm angle (unarmed) | Upper arm angle out from the body, front view (degrees) | 16 / 16 / 16 → 7.2 after the avatar rebuild → **0 / 2 / 1** with the jog clip | 5-9 (arms clear the chest block; proposed, confirm by playtest) |
 | Input to walk pose | Frames from key down to the walk blend starting | 0 / 0 / 0 | Keep 0 |
 
 ## Weapons (start pad GR-Firing, GR-Strafe, GR-Rocket)
@@ -70,4 +71,5 @@ Target for mobs: foot slide ≤ 20 %. Over 100 % means the planted foot moves fa
 
 ## Notes on the measures
 - Hand jitter (in the raw logs) is a frame-to-frame second difference and shrinks with frame rate; compare it only at the same frame rate.
-- Foot contact is "within 3 cm of the foot's lowest point in the window", so very short contacts at 30 fps are partly missed.
+- Ankle foot slide: a foot counts as planted while its ankle is within 3 cm of that ankle's lowest point in the window, so very short contacts at 30 fps are partly missed. Mob foot slide uses this measure.
+- Visible foot slide: a foot counts as planted while the bottom corner of its lower-leg block is within 2 cm of the lowest contact of either foot. It rises with frame rate because finer frames catch the brief scrape as a foot lands and lifts; 144 fps is the closest to what is seen. Strafing reads high because the strafe clip's crossing foot reaches the floor while still moving sideways (the ankle measure does not see this).
