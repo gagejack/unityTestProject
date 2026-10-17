@@ -62,6 +62,8 @@
 
 /* Values: outlined, flat, not clickable. */
 .px-readout { width: 168px; min-height: 38px; margin: 0; padding: 0 8px; border-width: 2px; border-radius: 3px; border-color: #0A0505; background-color: #FFFFFF; color: #0A0505; -unity-text-align: middle-center; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Category, selector and live-value boxes share the adjacent arrow buttons' blue palette. */
+.px-row > .px-readout { border-radius: 6px; background-color: #02CCF8; color: #00619B; text-shadow: 0 2px 0 #24EBFF; }
 #px-category { flex-grow: 1; }
 /* Lines up with the value box of the stepper above it. */
 #px-alive { margin-left: 60px; }

@@ -1,5 +1,9 @@
 # Status
 
+## F2 readout styling
+- Category, selector and live-value boxes now use the blue arrow-button palette. Press F2 and check the All Weapons category and the Mobs and Audio selectors.
+- Validation: the stylesheet imported successfully; Unity's resolved background, text color and corner radius match the arrows. Play-mode review is pending while the existing test run is active.
+
 ## F2 button corner checkpoint
 - F2 buttons now have slightly rounded corners, with their highlight and bottom bands clipped to the frame (see [debug menu presentation](ARCHITECTURE.md#debug-menu-presentation)).
 - Validation: the stylesheet imported successfully. Play-mode review is pending while another Unity test run is active; the docs check still reports the existing missing reference image.
