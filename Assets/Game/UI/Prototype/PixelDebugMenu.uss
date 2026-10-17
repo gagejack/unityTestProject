@@ -24,8 +24,9 @@
 .px-setting-label { width: 128px; flex-shrink: 0; margin: 0 16px 0 0; padding: 0; white-space: normal; color: #353B40; font-size: 18px; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); }
 
 /* Standard button: every button uses this padding around its label (the EQUIP / SPAWN sizing).
-   The label is a child element and wraps, so a long name makes the button taller. */
-.px-btn { width: auto; min-height: 38px; flex-shrink: 0; margin: 0; padding: 3px 20px 8px; justify-content: center; border-width: 2px; border-radius: 3px; border-color: #0A0505; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); -unity-font-style: bold; font-size: 20px; transition-duration: 0s; }
+   The label is a child element and wraps, so a long name makes the button taller.
+   Clip the highlight and lip bands to the slightly rounded frame. */
+.px-btn { width: auto; min-height: 38px; flex-shrink: 0; margin: 0; padding: 3px 20px 8px; justify-content: center; border-width: 2px; border-radius: 6px; overflow: hidden; border-color: #0A0505; -unity-font-definition: url("../Fonts/BarlowCondensed-ExtraBold.ttf"); -unity-font-style: bold; font-size: 20px; transition-duration: 0s; }
 .px-text { margin: 0; padding: 0; white-space: normal; -unity-text-align: middle-center; }
 /* Arrow buttons are square so steppers line up row to row. */
 .px-square { width: 52px; padding-left: 0; padding-right: 0; }

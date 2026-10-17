@@ -1,5 +1,10 @@
 # Status
 
+## F2 button corner checkpoint
+- F2 buttons now have slightly rounded corners, with their highlight and bottom bands clipped to the frame (see [debug menu presentation](ARCHITECTURE.md#debug-menu-presentation)).
+- Validation: the stylesheet imported successfully. Play-mode review is pending while another Unity test run is active; the docs check still reports the existing missing reference image.
+- Next: press F2 and check the navigation, Equip / Spawn and arrow buttons.
+
 ## HUD font checkpoint
 - Main's speed, points, ammo, weapon name and pickup prompt text now use the bundled Doppio One font. Player > Weapon Combat Controller > HUD Font controls the runtime text; Speed HUD > Speed Text > Text > Font controls speed.
 - Validation: compilation succeeded; all 28 Play-mode tests passed; all five HUD text components use Doppio One in Play mode and the Console has no errors. No per-frame code changed.
