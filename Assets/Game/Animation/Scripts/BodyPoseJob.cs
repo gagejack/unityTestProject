@@ -34,9 +34,10 @@ namespace StarterGame
 
     /// <summary>
     /// The pose adjustments made inside the animation graph, after the clips are mixed and before the bones are
-    /// written, in this order: running lean, running-arm tuck, chest aim pitch, then the gun hands (right arm aims,
-    /// left arm holds the support grip or aims a second handgun). Values are set by <see cref="MaleWalkRetarget"/>
-    /// each frame before the graph is evaluated.
+    /// written. First the gun hands are placed with Humanoid IK (right hand aims, left hand holds the support grip or
+    /// aims a second handgun); then the running lean, running-arm tuck and chest aim pitch rotate the bones. The
+    /// hand goals are given in the pose before those rotations, so the hands end up on target after them.
+    /// Values are set by <see cref="MaleWalkRetarget"/> each frame before the graph is evaluated.
     /// </summary>
     public struct BodyPoseJob : IAnimationJob
     {
@@ -54,21 +55,21 @@ namespace StarterGame
         public void ProcessAnimation(AnimationStream stream)
         {
             Vector3 right = body * Vector3.right;
+            // Lean: spine and chest take half each, for a gentle curve. Aim pitch turns the chest on top.
+            Quaternion lean = Quaternion.AngleAxis(-0.5f * leanDegrees, right);
+            Quaternion pitch = Quaternion.AngleAxis(aimPitch, right);
+            if (gun.active && stream.isHumanStream) PlaceGunHands(stream, lean, pitch * lean);
             if (leanDegrees > 0f)
             {
-                // Spine and chest take half each, for a gentle curve.
-                var back = Quaternion.AngleAxis(-0.5f * leanDegrees, right);
-                spine.SetRotation(stream, back * spine.GetRotation(stream));
-                chest.SetRotation(stream, back * chest.GetRotation(stream));
+                spine.SetRotation(stream, lean * spine.GetRotation(stream));
+                chest.SetRotation(stream, lean * chest.GetRotation(stream));
             }
             if (armWeight > 0f)
             {
                 TuckArm(stream, leftUpperArm, leftLowerArm, -1f);
                 TuckArm(stream, rightUpperArm, rightLowerArm, 1f);
             }
-            if (aimPitch != 0f)
-                chest.SetRotation(stream, Quaternion.AngleAxis(aimPitch, right) * chest.GetRotation(stream));
-            if (gun.active) PoseGunHands(stream);
+            if (aimPitch != 0f) chest.SetRotation(stream, pitch * chest.GetRotation(stream));
         }
 
         // Changes only the front-view spread of the upper arm, keeping its length and the clip's forward/back swing.
@@ -84,48 +85,79 @@ namespace StarterGame
             upper.SetRotation(stream, Quaternion.Slerp(rotation, corrected, armWeight));
         }
 
-        private void PoseGunHands(AnimationStream stream)
+        // Works out where the hands must end up (after the lean and aim pitch), then gives Humanoid IK the matching
+        // goals in the pose before those rotations and solves both arms.
+        private void PlaceGunHands(AnimationStream stream, Quaternion spineTurn, Quaternion chestTurn)
         {
+            var human = stream.AsHuman();
+            // The spine and chest rotations move the arms rigidly: map points and rotations through them and back.
+            Vector3 spinePivot = spine.GetPosition(stream);
+            Vector3 chestPivot = spinePivot + spineTurn * (chest.GetPosition(stream) - spinePivot);
+            Quaternion turn = chestTurn * spineTurn;
+            Vector3 Forward(Vector3 p) => chestPivot + chestTurn * (spinePivot + spineTurn * (p - spinePivot) - chestPivot);
+            Vector3 Back(Vector3 p) => spinePivot + Quaternion.Inverse(spineTurn) * (chestPivot + Quaternion.Inverse(chestTurn) * (p - chestPivot) - spinePivot);
+
+            // IK goal rotations differ from the hand bones' rotations by a fixed offset; measure it on the clip pose.
+            Quaternion rightOffset = Quaternion.Inverse(human.GetGoalRotationFromPose(AvatarIKGoal.RightHand)) * rightHand.GetRotation(stream);
+            Quaternion leftOffset = Quaternion.Inverse(human.GetGoalRotationFromPose(AvatarIKGoal.LeftHand)) * leftHand.GetRotation(stream);
+            Vector3 rightPosition = Forward(rightHand.GetPosition(stream));
+            Quaternion rightRotation = turn * rightHand.GetRotation(stream);
+            Vector3 leftPosition = Forward(leftHand.GetPosition(stream));
+            Quaternion leftRotation = turn * leftHand.GetRotation(stream);
+            bool rightGoal = false, leftGoal = false;
+
             float aim = gun.aim;
             if (aim > 0f)
             {
                 // Raise the right hand by the aim offset and point the gun at the crosshair, then turn the hand
                 // until the barrel, measured from the muzzle, lines up with the crosshair point.
-                Vector3 target = rightHand.GetPosition(stream) + gun.aimHandOffset;
-                Quaternion gunRotation = SafeAimRotation((gun.aimPoint - target).normalized);
-                Quaternion handRotation = gunRotation * Quaternion.Inverse(gun.aimedGrip);
-                SolveArm(stream, rightUpperArm, rightLowerArm, rightHand, target,
-                    Quaternion.Slerp(rightHand.GetRotation(stream), handRotation, aim));
-                ConvergeOnAimPoint(stream, rightHand, gun.muzzle, gun.barrel, aim);
+                rightPosition += gun.aimHandOffset;
+                Quaternion animated = Quaternion.Slerp(rightRotation,
+                    SafeAimRotation((gun.aimPoint - rightPosition).normalized) * Quaternion.Inverse(gun.aimedGrip), aim);
+                rightRotation = Quaternion.Slerp(animated, ConvergeOnAimPoint(rightPosition, animated, gun.muzzle, gun.barrel), aim);
+                rightGoal = true;
             }
             if (gun.dual)
             {
-                if (aim <= 0f) return;
-                Vector3 target = leftHand.GetPosition(stream) + gun.leftAimHandOffset;
-                Quaternion rotation = SafeAimRotation((gun.aimPoint - target).normalized) * Quaternion.Inverse(gun.leftAimedGrip);
-                SolveArm(stream, leftUpperArm, leftLowerArm, leftHand, target, Quaternion.Slerp(leftHand.GetRotation(stream), rotation, aim));
-                Vector3 position = leftHand.GetPosition(stream);
-                Quaternion hand = leftHand.GetRotation(stream);
-                for (int i = 0; i < 2; i++)
-                    hand = Quaternion.Slerp(Quaternion.identity,
-                        Quaternion.FromToRotation(hand * gun.leftBarrel, gun.aimPoint - (position + hand * gun.leftMuzzle)), aim) * hand;
-                leftHand.SetRotation(stream, hand);
-                return;
+                if (aim > 0f)
+                {
+                    leftPosition += gun.leftAimHandOffset;
+                    Quaternion hand = Quaternion.Slerp(leftRotation,
+                        SafeAimRotation((gun.aimPoint - leftPosition).normalized) * Quaternion.Inverse(gun.leftAimedGrip), aim);
+                    for (int i = 0; i < 2; i++)
+                        hand = Quaternion.Slerp(Quaternion.identity,
+                            Quaternion.FromToRotation(hand * gun.leftBarrel, gun.aimPoint - (leftPosition + hand * gun.leftMuzzle)), aim) * hand;
+                    leftRotation = hand;
+                    leftGoal = true;
+                }
             }
-            if (gun.support <= 0f) return;
-            Vector3 handPosition = rightHand.GetPosition(stream);
-            Quaternion gripHand = rightHand.GetRotation(stream);
-            Vector3 supportTarget = Vector3.Lerp(leftHand.GetPosition(stream), handPosition + gripHand * gun.supportPoint, gun.support);
-            Quaternion supportRotation = Quaternion.Slerp(leftHand.GetRotation(stream), gripHand * gun.supportRotation, gun.support);
-            SolveArm(stream, leftUpperArm, leftLowerArm, leftHand, supportTarget, supportRotation);
+            else if (gun.support > 0f)
+            {
+                // The support grip is on the gun, which the right hand carries.
+                leftPosition = Vector3.Lerp(leftPosition, rightPosition + rightRotation * gun.supportPoint, gun.support);
+                leftRotation = Quaternion.Slerp(leftRotation, rightRotation * gun.supportRotation, gun.support);
+                leftGoal = true;
+            }
+            if (!rightGoal && !leftGoal) return;
+            // Both hands get a goal every time: one left unset keeps whatever goal it had in an earlier frame.
+            Quaternion untilt = Quaternion.Inverse(turn);
+            SetGoal(human, AvatarIKGoal.RightHand, Back(rightPosition), untilt * rightRotation * Quaternion.Inverse(rightOffset), rightGoal);
+            SetGoal(human, AvatarIKGoal.LeftHand, Back(leftPosition), untilt * leftRotation * Quaternion.Inverse(leftOffset), leftGoal);
+            human.SolveIK();
+        }
+
+        private static void SetGoal(AnimationHumanStream human, AvatarIKGoal goal, Vector3 position, Quaternion rotation, bool on)
+        {
+            human.SetGoalPosition(goal, position);
+            human.SetGoalRotation(goal, rotation);
+            human.SetGoalWeightPosition(goal, on ? 1f : 0f);
+            human.SetGoalWeightRotation(goal, on ? 1f : 0f);
         }
 
         // Converges at the crosshair's actual target, including the shoulder camera's horizontal offset and the
         // muzzle's offset above the grip.
-        private void ConvergeOnAimPoint(AnimationStream stream, TransformStreamHandle hand, Vector3 muzzle, Vector3 barrel, float weight)
+        private Quaternion ConvergeOnAimPoint(Vector3 position, Quaternion rotation, Vector3 muzzle, Vector3 barrel)
         {
-            Vector3 position = hand.GetPosition(stream);
-            Quaternion animated = hand.GetRotation(stream), rotation = animated;
             for (int i = 0; i < 8; i++)
             {
                 Vector3 direction = gun.aimPoint - (position + rotation * muzzle);
@@ -133,7 +165,7 @@ namespace StarterGame
                 if (Vector3.Angle(forward, direction) < 0.02f) break;
                 rotation = Quaternion.FromToRotation(forward, direction) * rotation;
             }
-            hand.SetRotation(stream, Quaternion.Slerp(animated, rotation, weight));
+            return rotation;
         }
 
         private Quaternion SafeAimRotation(Vector3 direction)
@@ -142,32 +174,6 @@ namespace StarterGame
             Vector3 up = Vector3.ProjectOnPlane(body * Vector3.up, direction);
             if (up.sqrMagnitude < 0.001f) up = Vector3.Cross(direction, body * Vector3.right);
             return Quaternion.LookRotation(direction, up);
-        }
-
-        // Two-bone arm solve: the hand reaches the target (or as close as the arm allows), the elbow stays on the
-        // side it already bends toward, and the hand takes the given rotation.
-        private void SolveArm(AnimationStream stream, TransformStreamHandle upper, TransformStreamHandle lower,
-            TransformStreamHandle hand, Vector3 target, Quaternion rotation)
-        {
-            Vector3 shoulder = upper.GetPosition(stream), elbowNow = lower.GetPosition(stream);
-            float a = Vector3.Distance(shoulder, elbowNow);
-            float b = Vector3.Distance(elbowNow, hand.GetPosition(stream));
-            if (a < 0.001f || b < 0.001f) return;
-            Vector3 toward = target - shoulder;
-            if (toward.sqrMagnitude < 0.000001f) return;
-            float length = Mathf.Clamp(toward.magnitude, Mathf.Abs(a - b) + 0.001f, a + b - 0.001f);
-            Vector3 axis = toward.normalized;
-            Vector3 pole = Vector3.ProjectOnPlane(elbowNow - shoulder, axis).normalized;
-            if (pole.sqrMagnitude < 0.01f) pole = Vector3.ProjectOnPlane(body * Vector3.down, axis).normalized;
-            if (pole.sqrMagnitude < 0.01f) pole = Vector3.ProjectOnPlane(body * Vector3.right, axis).normalized;
-            float along = (a * a - b * b + length * length) / (2f * length);
-            Vector3 elbow = shoulder + axis * along + pole * Mathf.Sqrt(Mathf.Max(0f, a * a - along * along));
-            upper.SetRotation(stream, Quaternion.FromToRotation(elbowNow - shoulder, elbow - shoulder) * upper.GetRotation(stream));
-            Vector3 reachable = shoulder + axis * length;
-            Vector3 lowerPosition = lower.GetPosition(stream);
-            lower.SetRotation(stream, Quaternion.FromToRotation(hand.GetPosition(stream) - lowerPosition, reachable - lowerPosition)
-                * lower.GetRotation(stream));
-            hand.SetRotation(stream, rotation);
         }
     }
 }

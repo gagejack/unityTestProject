@@ -66,7 +66,7 @@ The one list of what runs when. A lower number runs earlier within the same phas
 |---:|---|---|---|
 | -120 | `ViewModeDebugMenu` | Menu and view shortcuts | |
 | -100 | `FollowCamera` | Mouse look, free-roam flight | Place the camera (before the character pose is final) |
-| -50 | `MaleWalkRetarget` | Read the unarmed attack click | Evaluate the animation graph; its last step (`BodyPoseJob`) applies the running lean, run-arm tuck, chest aim pitch and gun arms (placed by `WeaponCombatController`) before the bones are written |
+| -50 | `MaleWalkRetarget` | Read the unarmed attack click | Evaluate the animation graph; its last step (`BodyPoseJob`) places the gun hands with Humanoid IK (targets from `WeaponCombatController`), then applies the running lean, run-arm tuck and chest aim pitch, before the bones are written |
 | -25 | `WeaponCombatController` | Aim, fire input (queues the shot), reload, pickups, HUD | |
 | 0 | `CapsuleMovement` and all scripts without an order | Move the character and set its facing; `TestAreaControls` shortcuts | `MobAttackDriver` animation choice, `StaminaBar`, `SpeedReadout`; `BaselineRunner` queues the next frame's test input |
 | 160 | `BlockHumanoidRig` | | Special-move poses, copy bones to blocks, ground the body, punch contact |
