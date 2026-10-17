@@ -5,10 +5,11 @@ using UnityEngine.InputSystem;
 namespace StarterGame
 {
     /// <summary>
-    /// Stows the equipped gun on the body and draws it again: H toggles, right mouse draws while holstered. A holstered
-    /// gun is still the equipped gun (it keeps its ammo) but the player is unarmed, so punches and kicks work. Where the
-    /// gun rides comes from its category: pistols and SMGs on the right hip (dual handguns on both hips), everything
-    /// else across the back, plus the gun's own Holster Offset, Holster Euler and Holster On Back on its WeaponSettings asset.
+    /// The holster: a second gun slot on the body. H swaps the gun in the hands with the holstered one (holsters it when
+    /// the holster is empty, draws when the hands are empty); right mouse with empty hands draws. The weapon controller
+    /// owns both guns and their ammo; this component reads the input and places the models. Where a holstered gun rides
+    /// comes from its category: pistols and SMGs on the right hip (dual handguns on both hips), everything else across
+    /// the back, plus the gun's own Holster Offset, Holster Euler and Holster On Back on its WeaponSettings asset.
     /// </summary>
     [RequireComponent(typeof(WeaponCombatController))]
     public sealed class WeaponHolster : MonoBehaviour
@@ -29,9 +30,6 @@ namespace StarterGame
         [Tooltip("Assault rifles, shotguns, rifles and snipers, machine guns and launchers: across the back, muzzle up over the right shoulder.")]
         [SerializeField] private Spot back = new Spot { bone = HumanBodyBones.Chest, position = new Vector3(-0.1f, -0.3f, -0.17f), euler = new Vector3(-60f, 90f, 0f) };
 
-        /// <summary>True while the equipped gun is on the body instead of in the hands.</summary>
-        public bool IsHolstered { get; private set; }
-
         WeaponCombatController weaponsCache;
         MaleWalkRetarget bodyCache;
         // Looked up on first use: the weapon controller places its first gun in its own Awake, which can run before ours.
@@ -40,54 +38,50 @@ namespace StarterGame
 
         void Update()
         {
-            if (!weapons.OwnsWeapon) { IsHolstered = false; return; }
             if (!PlayerControl.Enabled) return;
-            if (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame) SetHolstered(!IsHolstered);
-            else if (IsHolstered && Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame) SetHolstered(false);
+            if (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame) weapons.SwapWithHolster();
+            else if (!weapons.HasWeapon && weapons.HolsteredWeapon && Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
+                weapons.SwapWithHolster();
         }
 
-        /// <summary>Puts the equipped gun on the body (true) or in the hands (false).</summary>
-        public void SetHolstered(bool holstered)
+        /// <summary>Which spot a gun rides on when holstered.</summary>
+        public Spot SpotFor(WeaponSettings settings)
         {
-            if (!weapons.OwnsWeapon || holstered == IsHolstered) return;
-            IsHolstered = holstered;
-            Place();
-            weapons.OnHolsterChanged(holstered);
+            bool hipCategory = settings.category == WeaponSettings.WeaponCategory.Pistols || settings.category == WeaponSettings.WeaponCategory.SMGs;
+            return hipCategory && !settings.holsterOnBack ? hip : back;
         }
 
-        /// <summary>A newly equipped gun starts in the hands.</summary>
-        internal void ShowInHand()
-        {
-            IsHolstered = false;
-            Place();
-        }
-
-        // Parents the gun models to their holster bones or back to the hands. In the hands the weapon controller sets
-        // their grip every frame; on the body they ride the bone with the spot's fixed offset.
-        void Place()
+        /// <summary>Puts a gun's models (the second one is the left gun of a pair) in the hands; the controller sets their grip each frame.</summary>
+        internal void PlaceInHands(GameObject right, GameObject left)
         {
             var rig = body ? body.RigAnimator : null;
-            var settings = weapons.CurrentWeapon;
-            if (!rig || !settings) return;
-            Place(weapons.HeldModel, rig, settings, HumanBodyBones.RightHand, false);
-            Place(weapons.OffhandModel, rig, settings, HumanBodyBones.LeftHand, true);
+            if (!rig) return;
+            if (right) right.transform.SetParent(rig.GetBoneTransform(HumanBodyBones.RightHand), false);
+            if (left) left.transform.SetParent(rig.GetBoneTransform(HumanBodyBones.LeftHand), false);
         }
 
-        void Place(GameObject model, Animator rig, WeaponSettings settings, HumanBodyBones hand, bool mirrored)
+        /// <summary>Puts a gun's models on its holster spot, where they ride the bone with a fixed offset.</summary>
+        internal void PlaceOnBody(GameObject right, GameObject left, WeaponSettings settings)
+        {
+            var rig = body ? body.RigAnimator : null;
+            if (!rig || !settings) return;
+            PlaceOnBody(right, rig, settings, false);
+            PlaceOnBody(left, rig, settings, true);
+        }
+
+        void PlaceOnBody(GameObject model, Animator rig, WeaponSettings settings, bool mirrored)
         {
             if (!model) return;
-            bool hipCategory = settings.category == WeaponSettings.WeaponCategory.Pistols || settings.category == WeaponSettings.WeaponCategory.SMGs;
-            Spot spot = hipCategory && !settings.holsterOnBack ? hip : back;
-            Transform parent = rig.GetBoneTransform(IsHolstered ? spot.bone : hand);
+            Spot spot = SpotFor(settings);
+            Transform parent = rig.GetBoneTransform(spot.bone);
             if (!parent) return;
             model.transform.SetParent(parent, false);
-            if (!IsHolstered) return;
             // The rig's bones rest aligned with the character, so character axes are the bone's local axes.
             Vector3 position = spot.position + settings.holsterOffset;
             Quaternion rotation = Quaternion.Euler(spot.euler) * Quaternion.Euler(settings.holsterEuler);
             if (mirrored)
             {
-                // Mirror image across the body's middle: the left-hand gun of a pair goes on the left hip.
+                // Mirror image across the body's middle: the left gun of a pair goes on the left hip.
                 position.x = -position.x;
                 rotation = new Quaternion(rotation.x, -rotation.y, -rotation.z, rotation.w);
             }

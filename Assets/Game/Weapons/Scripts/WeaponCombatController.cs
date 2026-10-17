@@ -144,13 +144,19 @@ namespace StarterGame
             return null;
         }
 
-        /// <summary>A gun in the hands. A holstered gun is owned but not held: the player is unarmed.</summary>
-        public bool HasWeapon => OwnsWeapon && !(holster && holster.IsHolstered);
-        /// <summary>A gun is equipped, in the hands or holstered.</summary>
-        public bool OwnsWeapon => isActiveAndEnabled && heldWeapon != null;
+        /// <summary>A gun in the hands. With empty hands the player is unarmed, even with a gun holstered.</summary>
+        public bool HasWeapon => isActiveAndEnabled && heldWeapon != null;
+        /// <summary>The gun in the holster (the second slot, on the body), or null.</summary>
+        public WeaponSettings HolsteredWeapon => holsteredModel && holsteredOffer >= 0 && holsteredOffer < offers.Length ? offers[holsteredOffer] : null;
+        public int HolsteredMagazineAmmo => holsteredMagazine;
         internal GameObject HeldModel => heldWeapon;
         internal GameObject OffhandModel => heldWeaponLeft;
+        internal GameObject HolsteredModel => holsteredModel;
+        internal GameObject HolsteredOffhandModel => holsteredModelLeft;
         private WeaponHolster holster;
+        // The holstered gun keeps its own ammo while the hands carry another.
+        private int holsteredOffer = -1, holsteredMagazine, holsteredReserve;
+        private GameObject holsteredModel, holsteredModelLeft;
         public bool IsAiming { get; private set; }
         public float AimWeight { get; private set; }
         public float CurrentSpreadDegrees => Mathf.Lerp(hipFireSpread, aimedSpread, AimWeight)
@@ -225,10 +231,17 @@ namespace StarterGame
 
         private void RefillAmmo()
         {
-            if (!OwnsWeapon) return;
-            reloading = false;
-            ammoInMagazine = CurrentMagazineSize;
-            reserveAmmo = Mathf.Max(0, CurrentWeapon.reserve);
+            if (HolsteredWeapon)
+            {
+                holsteredMagazine = Mathf.Max(1, HolsteredWeapon.magazine);
+                holsteredReserve = Mathf.Max(0, HolsteredWeapon.reserve);
+            }
+            if (HasWeapon)
+            {
+                reloading = false;
+                ammoInMagazine = CurrentMagazineSize;
+                reserveAmmo = Mathf.Max(0, CurrentWeapon.reserve);
+            }
             RefreshHud();
         }
 
@@ -249,11 +262,11 @@ namespace StarterGame
                 {
                     var box = NearbyMysteryBox();
                     if (box) box.TryInteract(this);
-                    else if (nearbyPickup && !OwnsWeapon) nearbyPickup.TryCollect(this);
+                    else if (nearbyPickup && !HasWeapon) nearbyPickup.TryCollect(this);
                 }
                 if (Keyboard.current.rKey.wasPressedThisFrame) BeginReload();
-                // Q drops only a gun in the hands (owner's choice); a holstered gun is drawn first.
-                if (Keyboard.current.qKey.wasPressedThisFrame && HasWeapon) DropWeapon();
+                // Q drops only the gun in the hands (owner's choice); the holstered gun stays.
+                if (Keyboard.current.qKey.wasPressedThisFrame) DropWeapon();
             }
             if (gameplayInput && Mouse.current != null)
                 HandleFireInput(Mouse.current.leftButton.isPressed, Mouse.current.leftButton.wasPressedThisFrame);
@@ -540,7 +553,7 @@ namespace StarterGame
         {
             int slot = System.Array.IndexOf(offers, weapon);
             if (slot < 0 || !weapon || !weapon.model) return false;
-            if (OwnsWeapon) DropWeapon();
+            if (HasWeapon) DropWeapon();
             equippedOffer = slot;
             ApplySettings(weapon);
             ammoInMagazine = weapon.magazine;
@@ -640,7 +653,7 @@ namespace StarterGame
             pickup.Initialize(index, weapon, weapon.magazine, weapon.reserve);
             if (controller)
                 foreach (var collider in dropped.GetComponentsInChildren<Collider>()) Physics.IgnoreCollision(controller, collider);
-            status = "Spawned " + weapon.displayName + ". Press Q to free your hands (draw a holstered gun first), then F to pick it up.";
+            status = "Spawned " + weapon.displayName + ". Free your hands (Q drops, H holsters), then F to pick it up.";
             return true;
         }
 
@@ -649,7 +662,7 @@ namespace StarterGame
             if (Time.time < promptUntil) return;
             var box = NearbyMysteryBox();
             if (box) { promptText.text = box.PromptFor(this); return; }
-            if (nearbyPickup && !OwnsWeapon)
+            if (nearbyPickup && !HasWeapon)
             {
                 promptText.text = "F  TO PICK UP  " + nearbyPickup.DisplayName + "  •  " + nearbyPickup.Magazine + " / " + nearbyPickup.Reserve;
                 return;
@@ -751,7 +764,7 @@ namespace StarterGame
             if (Time.time < nextPickupScan) return;
             nextPickupScan = Time.time + 0.08f;
             nearbyPickup = null;
-            if (OwnsWeapon) return;
+            if (HasWeapon) return;
             float best = 2.2f;
             int count = Physics.OverlapSphereNonAlloc(transform.position, best, pickupHits, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
@@ -860,15 +873,18 @@ namespace StarterGame
             recoil = recoilTarget = recoilVelocity = gripWeight = 0f;
             leftRecoil = leftRecoilTarget = leftRecoilVelocity = 0f;
             nextShotLeft = pendingShotLeft = LastShotUsedLeftHand = false;
-            if (holster) holster.ShowInHand();
             if (feedback) feedback.Handling(CurrentWeapon.equipSounds, MuzzlePosition, CurrentWeapon.shotPitch);
             if (characterAnimations) characterAnimations.CancelFightingMotion();
             RefreshHud();
         }
 
-        // Called by WeaponHolster after the gun moves to the body or back to the hands.
-        internal void OnHolsterChanged(bool holstered)
+        /// <summary>
+        /// H: swaps the gun in the hands with the holstered one. With an empty holster this holsters the gun in hand;
+        /// with empty hands it draws. Each gun keeps its own ammo.
+        /// </summary>
+        public void SwapWithHolster()
         {
+            if (!isActiveAndEnabled || (!heldWeapon && !holsteredModel)) return;
             if (feedback) feedback.StopFiringSound();
             // A shot queued earlier this frame is refunded, as when a roll interrupts it.
             if (pendingShot)
@@ -878,14 +894,39 @@ namespace StarterGame
                 LastShotTime = shotTimeBeforePending;
                 nextShotTime = Time.time;
             }
+            WeaponSettings stowing = heldWeapon ? CurrentWeapon : null;
+            (int offer, int magazine, int reserve, GameObject model, GameObject left) drawing =
+                (holsteredOffer, holsteredMagazine, holsteredReserve, holsteredModel, holsteredModelLeft);
+            if (stowing)
+            {
+                (holsteredOffer, holsteredMagazine, holsteredReserve, holsteredModel, holsteredModelLeft) =
+                    (equippedOffer, ammoInMagazine, reserveAmmo, heldWeapon, heldWeaponLeft);
+                if (holster) holster.PlaceOnBody(heldWeapon, heldWeaponLeft, stowing);
+            }
+            else (holsteredOffer, holsteredModel, holsteredModelLeft) = (-1, null, null);
+            heldWeapon = drawing.model;
+            heldWeaponLeft = drawing.left;
+            if (heldWeapon)
+            {
+                equippedOffer = drawing.offer;
+                ApplySettings(offers[equippedOffer]);
+                ammoInMagazine = drawing.magazine;
+                reserveAmmo = drawing.reserve;
+                if (holster) holster.PlaceInHands(heldWeapon, heldWeaponLeft);
+            }
             reloading = false;
             IsAiming = false;
             AimWeight = 0f;
+            bloom = 0f;
+            shootingSpeedWeight = 1f;
             turnShotUntil = float.NegativeInfinity;
+            nextShotTime = Mathf.Max(nextShotTime, Time.time);
             recoil = recoilTarget = recoilVelocity = gripWeight = pointWeight = 0f;
             leftRecoil = leftRecoilTarget = leftRecoilVelocity = 0f;
-            if (feedback) feedback.Handling(CurrentWeapon.equipSounds, MuzzlePosition, CurrentWeapon.shotPitch);
-            if (!holstered && characterAnimations) characterAnimations.CancelFightingMotion();
+            nextShotLeft = pendingShotLeft = LastShotUsedLeftHand = false;
+            var sounded = heldWeapon ? CurrentWeapon : stowing;
+            if (feedback && sounded) feedback.Handling(sounded.equipSounds, transform.position + Vector3.up, sounded.shotPitch);
+            if (heldWeapon && characterAnimations) characterAnimations.CancelFightingMotion();
             RefreshHud();
         }
 
@@ -1111,8 +1152,8 @@ namespace StarterGame
             if (!pointsText) return;
             pointsText.text = "$" + points.ToString("N0");
             ammoText.text = ammoInMagazine + " / " + reserveAmmo;
-            weaponText.text = !heldWeapon ? "UNARMED" : HasWeapon ? offers[equippedOffer].displayName
-                : offers[equippedOffer].displayName + "  (HOLSTERED, H TO DRAW)";
+            weaponText.text = (heldWeapon ? offers[equippedOffer].displayName : "UNARMED")
+                + (HolsteredWeapon ? "   |   H: " + HolsteredWeapon.displayName : "");
             if (!heldWeapon) ammoText.text = "";
             if (gunIconImage)
             {

@@ -186,7 +186,8 @@ namespace Game.Movement.Tests
                     right = false;
                     bool fired = (float)weapons.GetType().GetProperty("LastShotTime").GetValue(weapons) > before;
                     Assert.IsTrue(hits.Any(h => h.transform.IsChildOf(target)), $"The aimed shot missed the {angle}° ring target " +
-                        $"(fired {fired}, aim point {heading.AimPoint}, facing {player.eulerAngles.y:F1}°, hit {string.Join(", ", hits.Select(h => h.name))})");
+                        $"(fired {fired}, aim point {heading.AimPoint}, facing {player.eulerAngles.y:F1}°, following cursor {heading.FacesAimPoint}, " +
+                        $"window focused {Application.isFocused}, hit {string.Join(", ", hits.Select(h => h.name))})");
                     hits.Clear();
                 }
             }

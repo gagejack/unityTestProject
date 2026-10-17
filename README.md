@@ -5,7 +5,7 @@ A third-person movement and combat prototype with a block-built character, 46 gu
 ## Open and play
 1. Open Unity Hub, choose **Add > Add project from disk**, and pick this folder. Use Unity **6000.6.5f1**.
 2. Open the scene `Assets/Game/Scenes/Main.unity` (Project window > Assets > Game > Scenes > Main).
-3. Press **Play**. The debug menu (F1) opens at the start; click in the Game view to take mouse control.
+3. Press **Play** and click in the Game view to take mouse control. Press F1 to open the debug menu.
 
 ## Controls
 | Action | Input |
@@ -18,8 +18,8 @@ A third-person movement and combat prototype with a block-built character, 46 gu
 | Attack (unarmed) or fire (armed) | Left mouse |
 | Aim | Right mouse |
 | Reload / drop gun / pick up | R / Q / F (Q only drops a gun in your hands) |
-| Holster or draw the gun | H (right mouse also draws) |
-| Debug menu (equip guns, spawn mobs) | F1 |
+| Holster, draw, or swap with the holstered gun (carry two) | H (right mouse also draws) |
+| Debug menu (equip guns, spawn mobs) | F1 (F2: the deprecated old menu) |
 | Go to gun range / movement course / mob test spot / aim ring | F5 / F6 / F7 / F8 |
 | Reset targets and refill ammo | F9 |
 | Free camera | K |

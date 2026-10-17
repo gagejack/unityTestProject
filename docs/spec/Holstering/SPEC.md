@@ -12,11 +12,10 @@
 | Does the gun ever holster by itself? | No, only on the key. The armed sprint (checkpoint 16) stays. |
 | Draw and holster motion | The Kevin Iglesias Sheathe / Unsheathe clips (back and hip), brought over from the original project, with Humanoid IK putting the hand exactly on the holster ([decision 0002](../../decisions/0002-built-in-humanoid-ik.md)). |
 | Q while holstered | Does nothing: Q only drops a gun in hand. Draw first, then Q. |
-
-Consequence: F only picks up a gun when you have none, in hand or holstered. To swap guns: draw, Q, F.
+| Two guns (owner change, 2026-10-17) | The holster is a second slot: with a gun holstered the hands can carry another, and H swaps them. H holsters when the holster is empty and draws when the hands are empty. Each gun keeps its own ammo. F picks up whenever the hands are empty. |
 
 ## What the player experiences
-- Holstered, the character is unarmed: unarmed walk and run, punches and kicks, no crosshair (the fixed view shows its small dot). The gun keeps its magazine and reserve ammo, and the HUD still shows it.
+- With empty hands the character is unarmed: unarmed walk and run, punches and kicks, no crosshair (the fixed view shows its small dot). A holstered gun keeps its magazine and reserve ammo; the HUD names it after the gun in hand ("H: <gun>").
 - Holstering cancels a reload in progress and stops aiming. A shot queued on the same frame is not lost.
 - Placement: the gun's grip sits on a holster spot that moves with the body.
   - Pistols and SMGs: right hip, muzzle down along the thigh. Dual handguns: both hips, mirror images.
@@ -28,7 +27,7 @@ Consequence: F only picks up a gun when you have none, in hand or holstered. To 
 2. **Draw and holster motion:** the sheathe clips on the arms, the hand reaching the holster by IK, the gun changing hands at the moment of contact. Checks: draw and holster times, the hand within a few centimetres of the grip at the change, the same result at 30, 60 and 144 fps.
 
 ## How it fits the architecture
-- **Weapons** owns it: a holstered gun is still the equipped gun. `WeaponHolster` (on the Player, in `Assets/Game/Weapons/`) owns the holster state, the H and right-mouse input and the placement; `WeaponCombatController` treats a holstered gun as owned but not in hand (its Has Weapon is false), so animation, unarmed attacks and the HUD crosshair follow without changes.
+- **Weapons** owns it. `WeaponCombatController` owns both slots (the gun in hand and the holstered gun, each with its ammo) and the swap; `WeaponHolster` (on the Player, in `Assets/Game/Weapons/`) reads H and right mouse and places the models. Everything that asks whether the hands hold a gun (animation, unarmed attacks, the crosshair) works unchanged.
 - Placement parents the gun to a Humanoid bone (Hips or Chest). The rig's bones rest aligned with the character, so spots are written in plain character axes.
 - Update order: `WeaponHolster` runs in the default slot (0), after the weapon controller; a change shows from the next frame.
 

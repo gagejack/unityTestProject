@@ -12,9 +12,10 @@ using UnityEngine.TestTools;
 namespace Game.Weapons.Tests
 {
     /// <summary>
-    /// Play-mode checks for holstering (docs/spec/Holstering/SPEC.md, checkpoint 1): every gun goes to its category's
-    /// spot on the body, a holstered gun leaves the player unarmed but keeps its ammo, right mouse draws, and Q leaves a
-    /// holstered gun alone. Weapons live in the default assembly, so they are reached by name, as the other tests do.
+    /// Play-mode checks for holstering (docs/spec/Holstering/SPEC.md): every gun goes to its category's spot on the body,
+    /// empty hands are unarmed, H swaps the gun in hand with the holstered one (each keeps its ammo), right mouse draws,
+    /// and Q drops only the gun in hand. Weapons live in the default assembly, so they are reached by name, as the other
+    /// tests do.
     /// </summary>
     public sealed class HolsterTests : InputTestFixture
     {
@@ -40,18 +41,51 @@ namespace Game.Weapons.Tests
                 string category = Field(settings, "category").ToString();
                 bool hip = (category == "Pistols" || category == "SMGs") && !(bool)Field(settings, "holsterOnBack");
                 Transform bone = rig.GetBoneTransform(hip ? HumanBodyBones.Hips : HumanBodyBones.Chest);
-                var model = Model("HeldModel");
+                var model = Model("HolsteredModel");
+                Assert.IsNotNull(model, $"{settings.name}: H should holster the gun in hand");
                 Assert.IsFalse(Get<bool>(weapons, "HasWeapon"), $"{settings.name}: a holstered gun should leave the hands empty");
                 Assert.AreEqual(bone, model.transform.parent, $"{settings.name}: {category} should ride on the {(hip ? "hip" : "back")}");
                 Assert.That(model.GetComponentsInChildren<Renderer>().Min(r => r.bounds.min.y) - feet, Is.GreaterThan(0.2f),
                     $"{settings.name}: the holstered gun hangs too low (meters above the feet)");
                 if ((bool)Field(settings, "dualWield"))
                 {
-                    var left = Model("OffhandModel");
+                    var left = Model("HolsteredOffhandModel");
                     Assert.AreEqual(bone, left.transform.parent, $"{settings.name}: the second gun should ride on the hip too");
                     Assert.That(left.transform.localPosition.x, Is.LessThan(0f), $"{settings.name}: the second gun belongs on the left hip");
                 }
+                yield return Tap(Key.H); // draw it again, so the next equip replaces it instead of keeping two guns
             }
+        }
+
+        // Owner change: with a gun holstered the hands can carry another, and H swaps the two.
+        [UnityTest]
+        public IEnumerator HSwapsTheGunInHandWithTheHolsteredOne()
+        {
+            yield return StartAtGunRange();
+            yield return Equip("AssaultRifle");
+            var rifle = Offers().Single(o => o && o.name == "AssaultRifle");
+            int rifleAmmo = Get<int>(weapons, "MagazineAmmo");
+            yield return Tap(Key.H);
+            yield return Equip("Sidearm");
+            var pistol = Offers().Single(o => o && o.name == "Sidearm");
+            int pistolAmmo = Get<int>(weapons, "MagazineAmmo");
+            Assert.AreEqual(rifle, Get<Object>(weapons, "HolsteredWeapon"), "Equipping into empty hands should keep the holstered rifle");
+
+            yield return Tap(Key.H);
+            Assert.AreEqual(rifle, Get<Object>(weapons, "CurrentWeapon"), "H should draw the rifle");
+            Assert.AreEqual(pistol, Get<Object>(weapons, "HolsteredWeapon"), "H should holster the pistol");
+            Assert.AreEqual(rifleAmmo, Get<int>(weapons, "MagazineAmmo"), "The rifle keeps its own magazine");
+            Assert.AreEqual(rig.GetBoneTransform(HumanBodyBones.Hips), Model("HolsteredModel").transform.parent, "The holstered pistol rides on the hip");
+            Assert.AreEqual(rig.GetBoneTransform(HumanBodyBones.RightHand), Model("HeldModel").transform.parent, "The rifle is in the right hand");
+
+            yield return Tap(Key.H);
+            Assert.AreEqual(pistol, Get<Object>(weapons, "CurrentWeapon"), "H again swaps back to the pistol");
+            Assert.AreEqual(pistolAmmo, Get<int>(weapons, "MagazineAmmo"), "The pistol keeps its own magazine");
+
+            // Q drops only the gun in the hands; the holstered rifle stays.
+            yield return Tap(Key.Q);
+            Assert.IsFalse(Get<bool>(weapons, "HasWeapon"), "Q should drop the pistol in hand");
+            Assert.AreEqual(rifle, Get<Object>(weapons, "HolsteredWeapon"), "Q should leave the holstered rifle");
         }
 
         [UnityTest]
@@ -61,7 +95,7 @@ namespace Game.Weapons.Tests
             yield return Equip("AssaultRifle");
             int ammo = Get<int>(weapons, "MagazineAmmo");
             yield return Tap(Key.H);
-            Assert.IsTrue(Get<bool>(weapons, "OwnsWeapon") && !Get<bool>(weapons, "HasWeapon"), "H should holster the gun");
+            Assert.IsTrue(Get<Object>(weapons, "HolsteredWeapon") && !Get<bool>(weapons, "HasWeapon"), "H should holster the gun");
 
             // Left click while holstered is an unarmed attack.
             var body = player.GetComponents<MonoBehaviour>().Single(b => b.GetType().Name == "MaleWalkRetarget");
@@ -71,7 +105,7 @@ namespace Game.Weapons.Tests
 
             // Q leaves a holstered gun alone (owner's choice).
             yield return Tap(Key.Q);
-            Assert.IsTrue(Get<bool>(weapons, "OwnsWeapon"), "Q should not drop a holstered gun");
+            Assert.IsTrue(Get<Object>(weapons, "HolsteredWeapon"), "Q should not drop a holstered gun");
 
             // Right mouse draws straight into aim.
             SetMouse(MouseButton.Right, true);
