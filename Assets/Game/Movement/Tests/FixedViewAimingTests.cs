@@ -140,16 +140,154 @@ namespace Game.Movement.Tests
             }
         }
 
-        IEnumerator Hold(Vector3 world)
+        // FEEL_SPEC > Fixed view aiming: "Fixed-view aim error" ≤ 0.5°, hip fire and aimed.
+        const float AimError = 0.5f;
+
+        [UnityTest]
+        public IEnumerator TheBarrelPointsAtTheAimPoint([Values("AssaultRifle", "Sidearm", "DualHandguns")] string gun)
         {
-            for (int i = 0; i < 5; i++)
+            yield return StartOnRing(60);
+            yield return Equip(gun);
+            Vector3 aim = Floor(player.position + new Vector3(4f, 0f, 3f));
+            yield return Hold(aim, 60);
+            float hip = BarrelErrors(gun).Max();
+            right = true;
+            yield return Hold(aim, 30);
+            float aimed = BarrelErrors(gun).Max();
+            right = false;
+            Assert.That(hip, Is.LessThanOrEqualTo(AimError), $"{gun} hip-fire barrel error (degrees)");
+            Assert.That(aimed, Is.LessThanOrEqualTo(AimError), $"{gun} aimed barrel error (degrees)");
+        }
+
+        // Spec check: facing and shooting each ring target in turn, including those behind the player, hits it.
+        [UnityTest]
+        public IEnumerator AimedShotsHitEveryRingTarget()
+        {
+            yield return StartOnRing(60);
+            yield return Equip("AssaultRifle");
+            var hits = new System.Collections.Generic.List<GameObject>();
+            void OnDamaged(DamageReport report) { if (report.Target) hits.Add(report.Target); }
+            CombatEvents.Damaged += OnDamaged;
+            try
+            {
+                // Clockwise from the front, then straight across to the target behind.
+                foreach (float angle in new[] { 0f, 45f, 90f, 135f, 225f, 270f, 315f, 180f })
+                {
+                    var target = GameObject.Find($"Ring target {angle}°").transform;
+                    var body = target.Find("Body").GetComponent<Collider>().bounds.center;
+                    right = true;
+                    yield return Hold(body, 30);
+                    var weapons = WeaponController();
+                    float before = (float)weapons.GetType().GetProperty("LastShotTime").GetValue(weapons);
+                    left = true;
+                    yield return Hold(body, 1);
+                    left = false;
+                    yield return Hold(body, 12);
+                    right = false;
+                    bool fired = (float)weapons.GetType().GetProperty("LastShotTime").GetValue(weapons) > before;
+                    Assert.IsTrue(hits.Any(h => h.transform.IsChildOf(target)), $"The aimed shot missed the {angle}° ring target " +
+                        $"(fired {fired}, aim point {heading.AimPoint}, facing {player.eulerAngles.y:F1}°, hit {string.Join(", ", hits.Select(h => h.name))})");
+                    hits.Clear();
+                }
+            }
+            finally { CombatEvents.Damaged -= OnDamaged; }
+        }
+
+        // Owner decision (spec): sprinting faces the cursor within 100° of the run; further round it faces the run,
+        // and a click turns back to the cursor before firing.
+        [UnityTest]
+        public IEnumerator SprintingAwayFacesTheRunAndAClickTurnsBeforeFiring()
+        {
+            yield return StartOnRing(60);
+            yield return Equip("AssaultRifle");
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            var movement = player.GetComponent<CapsuleMovement>();
+            var weapons = WeaponController();
+
+            // Sprinting right with the cursor up the screen (90° from the run): keep facing the cursor.
+            yield return Sprint(keyboard, Key.D, 40);
+            // The cursor point trails a sprinting player slightly (the aim point uses last frame's camera).
+            Assert.That(Mathf.Abs(Mathf.DeltaAngle(player.eulerAngles.y, 0f)), Is.LessThan(5f), "Sprinting right should face the cursor up the screen");
+
+            // Sprinting down with the cursor up the screen (180°): face the run.
+            TestStartMarker.Find("GR-Ring").TeleportPlayer();
+            yield return Sprint(keyboard, Key.S, 40);
+            Assert.IsTrue(movement.IsRunning && movement.SprintFacesTravel, "Sprinting away from the cursor should face the run");
+            Assert.That(Mathf.Abs(Mathf.DeltaAngle(player.eulerAngles.y, 180f)), Is.LessThan(5f), "Sprinting down should face down the screen");
+
+            // Click once: the sprint stops, the body turns, and the shot waits until the gun is within 45° of the cursor.
+            float clickedAt = Time.time, lastShot = (float)weapons.GetType().GetProperty("LastShotTime").GetValue(weapons);
+            float gapAtShot = -1f;
+            left = true;
+            for (int i = 0; i < 30 && gapAtShot < 0f; i++)
+            {
+                PointAt(Floor(player.position + Vector3.forward * 4f));
+                yield return null;
+                left = false;
+                if ((float)weapons.GetType().GetProperty("LastShotTime").GetValue(weapons) > lastShot)
+                    gapAtShot = (float)weapons.GetType().GetProperty("FacingGapToCursor").GetValue(weapons);
+            }
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            InputSystem.Update();
+            Assert.That(gapAtShot, Is.InRange(0f, 45f), "The shot should fire once the gun is within 45° of the cursor");
+            Assert.That(Time.time - clickedAt, Is.LessThan(0.25f), "The turn before the shot should take under a quarter second");
+        }
+
+        IEnumerator Sprint(Keyboard keyboard, Key key, int frames)
+        {
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(key, Key.LeftShift));
+            InputSystem.Update();
+            for (int i = 0; i < frames; i++)
+            {
+                PointAt(Floor(player.position + Vector3.forward * 4f));
+                yield return null;
+            }
+        }
+
+        // Angle between each held barrel and the line from its muzzle to the cursor's aim point (degrees).
+        System.Collections.Generic.IEnumerable<float> BarrelErrors(string gun)
+        {
+            var settings = WeaponController().GetType().GetProperty("CurrentWeapon").GetValue(WeaponController());
+            var muzzle = (Vector3)settings.GetType().GetField("muzzleLocalPosition").GetValue(settings);
+            var rig = player.GetComponentsInChildren<Animator>().First(a => a.isHuman);
+            foreach (var hand in new[] { HumanBodyBones.RightHand, HumanBodyBones.LeftHand })
+                foreach (Transform held in rig.GetBoneTransform(hand))
+                    if (held.name.EndsWith("(equipped)") || held.name.EndsWith("(left hand)"))
+                        yield return Vector3.Angle(held.forward, heading.AimPoint - held.TransformPoint(muzzle));
+        }
+
+        // Weapons is in another assembly; equip by asset name, as the other tests do.
+        MonoBehaviour WeaponController() => player.GetComponents<MonoBehaviour>().Single(b => b.GetType().Name == "WeaponCombatController");
+
+        IEnumerator Equip(string gun)
+        {
+            var weapons = WeaponController();
+            var offers = ((IEnumerable)weapons.GetType().GetProperty("WeaponOffers").GetValue(weapons)).Cast<Object>().ToList();
+            int index = offers.FindIndex(o => o && o.name == gun);
+            Assert.IsTrue((bool)weapons.GetType().GetMethod("EquipFromDebug").Invoke(weapons, new object[] { index }), $"Could not equip {gun}.");
+            yield return null; // a gun held before is destroyed at the end of the equip frame
+        }
+
+        IEnumerator Hold(Vector3 world, int frames = 5)
+        {
+            for (int i = 0; i < frames; i++)
             {
                 PointAt(world);
                 yield return null;
             }
         }
 
-        void PointAt(Vector3 world) => Set(mouse.position, (Vector2)view.WorldToScreenPoint(world));
+        bool left, right;
+
+        // Sets the whole mouse state at once (position and buttons): releasing single controls on test devices does
+        // not always take effect.
+        void PointAt(Vector3 world)
+        {
+            var state = new MouseState { position = (Vector2)view.WorldToScreenPoint(world) }
+                .WithButton(MouseButton.Left, left).WithButton(MouseButton.Right, right);
+            InputSystem.QueueStateEvent(mouse, state);
+            InputSystem.Update();
+        }
 
         Vector3 Floor(Vector3 point) => new Vector3(point.x, feet, point.z);
 

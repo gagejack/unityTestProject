@@ -72,12 +72,12 @@ Re-measured after the mob AI moved to `MobBrain`: every value above is identical
 Target for mobs: foot slide ≤ 20 %. Over 100 % means the planted foot moves faster than the body: the clip's stride does not match the chase speed.
 
 ## Fixed view aiming (proposed)
-From the [fixed view aiming spec](spec/FixedViewAiming/SPEC.md); checkpoint 1 (facing) is built. Targets are proposed and confirmed by playtest. Start pad: GR-Ring (F8). Checked by `FixedViewAimingTests`.
+From the [fixed view aiming spec](spec/FixedViewAiming/SPEC.md); checkpoints 1 (facing) and 2 (shooting, sprint facing) are built. Targets are proposed and confirmed by playtest. Start pad: GR-Ring (F8). Checked by `FixedViewAimingTests`.
 
 | Metric | Definition | Baseline 30 / 60 / 144 | Target |
 |---|---|---|---|
 | Turn to cursor | Seconds for the body to turn 180° toward the cursor | Within ±1 frame of 0.25 at all three (Play-mode check) | 0.25 ±1 frame at all frame rates |
-| Fixed-view aim error | Angle between the barrel and the line from muzzle to the aim point, facing settled (degrees) | Not built (shots currently follow the camera's downward view) | ≤ 0.5 |
+| Fixed-view aim error | Angle between the barrel and the line from muzzle to the aim point, facing settled (degrees) | 60 fps, standing: rifle and pistol 0.00 hip and aimed; dual handguns 0.09 hip, 0.00 aimed (Play-mode check) | ≤ 0.5 |
 | Shift sprint directions | Screen directions (of 8) in which Shift + movement sprints, travelling that way | 8 of 8 at 60 (Play-mode check) | 8 of 8 |
 | Dead-zone stability | Facing change while the cursor moves inside the dead zone (degrees) | 0 at 60 (Play-mode check) | 0 |
 | Look-ahead | Largest camera shift toward the cursor (m) | Not built | ≤ 3 |

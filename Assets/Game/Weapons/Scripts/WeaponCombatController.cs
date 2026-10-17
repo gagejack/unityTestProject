@@ -39,6 +39,11 @@ namespace StarterGame
         [SerializeField, Min(0.01f)] private float combatSlowdownTime = 0.05f;
         [Tooltip("Seconds after a shot before you can run again. 0 lets you run straight away; the shooting slowdown above still fades in and out.")]
         [SerializeField, Min(0f)] private float runBlockAfterShot = 0.1f;
+        [Tooltip("Fixed view: a click while sprinting away from the cursor stops the sprint, turns the body, and fires once the gun points within this many degrees of the cursor.")]
+        [SerializeField, Range(0f, 180f)] private float fireTurnLimit = 45f;
+        // Longest a click waits for that turn (a 180° turn takes 0.25 s at the default turn speed).
+        private const float TurnShotWindow = 0.5f;
+        private float turnShotUntil = float.NegativeInfinity;
         [Header("Recoil and support hand")]
         [SerializeField, Range(0f, 1f)] private float weaponRecoilScale = 1f;
         [SerializeField, Range(0f, 1f)] private float supportHandWeight = 1f;
@@ -117,6 +122,7 @@ namespace StarterGame
         private float recoilVelocity;
         private float recoilHoldUntil;
         private float gripWeight;
+        private float pointWeight;
         private readonly Collider[] pickupHits = new Collider[24];
         private DroppedWeapon nearbyPickup;
         private float nextPickupScan;
@@ -143,9 +149,31 @@ namespace StarterGame
         public float AimWeight { get; private set; }
         public float CurrentSpreadDegrees => Mathf.Lerp(hipFireSpread, aimedSpread, AimWeight)
             + bloom * Mathf.Lerp(1f, aimedBloomMultiplier, AimWeight);
-        public Vector3 AimWorldDirection => cameraView && cameraView.ThirdPerson ? cameraView.AimDirection : aimCamera ? aimCamera.transform.forward : transform.forward;
+        public Vector3 AimWorldDirection => cameraView && cameraView.ThirdPerson ? cameraView.AimDirection
+            : CursorAiming ? (GunAimPoint - MuzzlePosition).normalized
+            : aimCamera ? aimCamera.transform.forward : transform.forward;
         public Vector3 AimPlanarForward => cameraView && cameraView.ThirdPerson
             ? cameraView.PlanarForward : Vector3.ProjectOnPlane(AimWorldDirection, Vector3.up).normalized;
+        /// <summary>Fixed view: the gun aims at the mouse cursor's aim point instead of along the camera.</summary>
+        public bool CursorAiming => cameraView && cameraView.FixedView;
+        /// <summary>
+        /// Fixed view: where the gun aims. Along the body's facing, at the cursor aim point's distance and height, so the
+        /// gun turns with the body and points exactly at the aim point once the body faces it.
+        /// </summary>
+        public Vector3 GunAimPoint
+        {
+            get
+            {
+                Vector3 aim = cameraView ? cameraView.AimPoint : transform.position + transform.forward * 10f;
+                float distance = Mathf.Max(1f, Vector3.ProjectOnPlane(aim - transform.position, Vector3.up).magnitude);
+                Vector3 point = transform.position + Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized * distance;
+                point.y = aim.y;
+                return point;
+            }
+        }
+        /// <summary>Degrees between the body's facing and the direction to the cursor's aim point (fixed view).</summary>
+        public float FacingGapToCursor => cameraView ? Vector3.Angle(Vector3.ProjectOnPlane(transform.forward, Vector3.up),
+            Vector3.ProjectOnPlane(cameraView.AimPoint - transform.position, Vector3.up)) : 0f;
         public int SoldierAnimationFamily => CurrentWeapon ? CurrentWeapon.animationFamily : 0;
         public bool IsReloading => HasWeapon && reloading;
         public float LastShotTime { get; private set; } = float.NegativeInfinity;
@@ -201,12 +229,13 @@ namespace StarterGame
         {
             bool overMenu = Cursor.lockState != CursorLockMode.Locked && viewMenu && Mouse.current != null && viewMenu.ContainsPointer(Mouse.current.position.ReadValue());
             bool controlsEnabled = (!movement || movement.PlayerControlEnabled) && (!viewMenu || !viewMenu.IsOpen);
-            SetAiming(controlsEnabled && Application.isFocused && !overMenu && Mouse.current != null && Mouse.current.rightButton.isPressed);
+            // No focus check, as in movement: the Input System already releases held buttons when the window loses focus.
+            SetAiming(controlsEnabled && !overMenu && Mouse.current != null && Mouse.current.rightButton.isPressed);
             AimWeight = Mathf.MoveTowards(AimWeight, IsAiming ? 1f : 0f, Time.deltaTime / Mathf.Max(0.01f, aimBlendTime));
             bloom = Mathf.MoveTowards(bloom, 0f, bloomRecoveryPerSecond * Time.deltaTime);
             UpdateShootingSlowdown(Time.deltaTime);
             ScanPickups();
-            bool gameplayInput = controlsEnabled && Application.isFocused && !overMenu;
+            bool gameplayInput = controlsEnabled && !overMenu;
             if (gameplayInput && Keyboard.current != null)
             {
                 if (Keyboard.current.fKey.wasPressedThisFrame)
@@ -244,7 +273,8 @@ namespace StarterGame
         // and aiming, reloading or firing stop running. Aiming makes the body face the aim.
         float IMovementModifier.SpeedMultiplier => EquippedMovementMultiplier * AimingMovementMultiplier * ShootingMovementMultiplier;
         bool IMovementModifier.EaseSpeedChange => false;
-        bool IMovementModifier.BlocksRunning => IsAiming || IsReloading || (HasWeapon && Time.time - LastShotTime < runBlockAfterShot);
+        bool IMovementModifier.BlocksRunning => IsAiming || IsReloading || (HasWeapon && Time.time - LastShotTime < runBlockAfterShot)
+            || Time.time < turnShotUntil;
         bool IMovementModifier.BlocksCommittedMoves => false;
         bool IMovementModifier.LimitsMomentum => false;
         bool IMovementModifier.TryGetFacing(out Vector3 planarForward)
@@ -310,7 +340,17 @@ namespace StarterGame
         {
             if (!held && feedback) feedback.StopFiringSound();
             if (!HasWeapon) return;
-            if (CurrentWeapon.triggerMode == WeaponSettings.TriggerMode.Automatic ? held : pressed) TryFire();
+            bool trigger = CurrentWeapon.triggerMode == WeaponSettings.TriggerMode.Automatic ? held : pressed;
+            // Fixed view: sprinting away from the cursor, a click first stops the sprint (BlocksRunning) so the body
+            // turns back to the cursor, and the shot fires once the gun points close enough to it.
+            if (trigger && CursorAiming && movement && movement.SprintFacesTravel) turnShotUntil = Time.time + TurnShotWindow;
+            if (Time.time < turnShotUntil)
+            {
+                if (FacingGapToCursor > fireTurnLimit) return;
+                turnShotUntil = float.NegativeInfinity;
+                trigger = true;
+            }
+            if (trigger) TryFire();
         }
 
         private void UpdatePumpSounds()
@@ -343,15 +383,11 @@ namespace StarterGame
                 RefreshHud();
                 return;
             }
-            Vector3 cameraOrigin = aimCamera ? aimCamera.transform.position : transform.position + Vector3.up;
-            Vector3 direction = SpreadDirection(AimWorldDirection);
-            Vector3 target = cameraOrigin + direction * range;
-            if (CombatPhysics.Cast(cameraOrigin, direction, range, transform, out var cameraHit)) target = cameraHit.point;
             LastShotUsedLeftHand = IsDualWielding && pendingShotLeft;
             nextShotLeft = IsDualWielding && !LastShotUsedLeftHand;
             Vector3 muzzle = LastShotUsedLeftHand ? OffhandMuzzlePosition : MuzzlePosition;
-            Vector3 toTarget = target - muzzle;
-            Vector3 shotDirection = toTarget.sqrMagnitude > 0.001f ? toTarget.normalized : direction;
+            Vector3 toTarget = ShotTarget(muzzle) - muzzle;
+            Vector3 shotDirection = toTarget.sqrMagnitude > 0.001f ? toTarget.normalized : AimWorldDirection;
             var body = GetComponent<CharacterController>();
             Vector3 safetyOrigin = body ? body.bounds.center : transform.position + Vector3.up * 0.7f;
             bool blocked = CombatPhysics.MuzzleObstruction(safetyOrigin, muzzle, transform, out var hit);
@@ -384,11 +420,7 @@ namespace StarterGame
                     ApplyPelletHit(muzzle, end, didHit, hit);
                     for (int pellet = 1; pellet < Mathf.Clamp(CurrentWeapon.pelletCount, 1, 16); pellet++)
                     {
-                        Vector3 pelletDirection = SpreadDirection(AimWorldDirection);
-                        Vector3 pelletTarget = cameraOrigin + pelletDirection * range;
-                        if (CombatPhysics.Cast(cameraOrigin, pelletDirection, range, transform, out var pelletCameraHit))
-                            pelletTarget = pelletCameraHit.point;
-                        Vector3 path = pelletTarget - muzzle;
+                        Vector3 path = ShotTarget(muzzle) - muzzle;
                         RaycastHit pelletHit = hit;
                         bool pelletDidHit = blocked || CombatPhysics.Cast(muzzle, path.normalized,
                             Mathf.Min(path.magnitude + 0.03f, range), transform, out pelletHit);
@@ -397,6 +429,16 @@ namespace StarterGame
                 }
             }
             bloom = Mathf.Min(maximumBloom, bloom + bloomPerShot);
+        }
+
+        // Where one bullet or pellet heads, with spread. Third person: the point the crosshair's camera ray touches.
+        // Fixed view: along the gun's aim line from the muzzle (toward GunAimPoint and beyond).
+        private Vector3 ShotTarget(Vector3 muzzle)
+        {
+            if (CursorAiming) return muzzle + SpreadDirection((GunAimPoint - muzzle).normalized) * range;
+            Vector3 origin = aimCamera ? aimCamera.transform.position : transform.position + Vector3.up;
+            Vector3 direction = SpreadDirection(AimWorldDirection);
+            return CombatPhysics.Cast(origin, direction, range, transform, out var hit) ? hit.point : origin + direction * range;
         }
 
         private void ApplyPelletHit(Vector3 muzzle, Vector3 end, bool didHit, RaycastHit hit)
@@ -835,7 +877,10 @@ namespace StarterGame
             Quaternion grip = Quaternion.Slerp(Quaternion.Euler(CurrentWeapon.gripEuler), Quaternion.Euler(CurrentWeapon.aimedGripEuler), aim);
             hands.active = true;
             hands.aim = aim;
-            hands.aimPoint = (aim > 0f ? AimTargetPoint() : Vector3.zero) - groundShift;
+            // Fixed view: between aimed shots the wrist still turns the barrel onto the aim line (not while running or reloading).
+            pointWeight = Mathf.MoveTowards(pointWeight, CursorAiming && allowSupportHand && !IsReloading ? 1f : 0f, dt / 0.1f);
+            hands.point = pointWeight * (1f - running);
+            hands.aimPoint = (aim > 0f || hands.point > 0f ? AimTargetPoint() : Vector3.zero) - groundShift;
             hands.aimHandOffset = transform.TransformDirection(CurrentWeapon.aimHandOffset) * aim;
             hands.aimedGrip = Quaternion.Euler(CurrentWeapon.aimedGripEuler);
             // The gun is a child of the hand bone, so its points in the hand's frame do not depend on the hand's pose.
@@ -885,6 +930,7 @@ namespace StarterGame
 
         private Vector3 AimTargetPoint()
         {
+            if (CursorAiming) return GunAimPoint;
             Vector3 origin = aimCamera ? aimCamera.transform.position : transform.position + Vector3.up;
             Vector3 direction = AimWorldDirection;
             return CombatPhysics.Cast(origin, direction, range, transform, out var hit)

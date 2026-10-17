@@ -44,6 +44,9 @@ namespace StarterGame
         [Tooltip("Steepest surface, in degrees from flat, still treated as floor for Floor Aim Height. Steeper surfaces, mobs and targets are aimed at exactly where the cursor touches them.")]
         [SerializeField, Range(0f, 89f)] private float floorMaxSlope = 45f;
         private const float CursorRayRange = 200f;
+        // Over a mob or target, aim this far past the touched surface along the cursor ray. The gun sees the target from a
+        // different angle than the camera, so a line to a point exactly on an edge could graze past it.
+        private const float TargetAimDepth = 0.2f;
         private readonly RaycastHit[] cursorHits = new RaycastHit[16];
         private CharacterController body;
         private bool hasPointer;
@@ -276,8 +279,8 @@ namespace StarterGame
             if (nearest >= 0)
             {
                 RaycastHit hit = cursorHits[nearest];
-                bool floor = Vector3.Angle(hit.normal, Vector3.up) <= floorMaxSlope && hit.collider.GetComponentInParent<IDamageable>() == null;
-                return floor ? hit.point + Vector3.up * floorAimHeight : hit.point;
+                if (hit.collider.GetComponentInParent<IDamageable>() != null) return hit.point + ray.direction * TargetAimDepth;
+                return Vector3.Angle(hit.normal, Vector3.up) <= floorMaxSlope ? hit.point + Vector3.up * floorAimHeight : hit.point;
             }
             return RayAtHeight(ray, chestHeight, out Vector3 level) ? level : AimPoint;
         }

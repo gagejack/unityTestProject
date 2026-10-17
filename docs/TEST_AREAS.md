@@ -33,7 +33,7 @@ Any gun can be equipped from F1 > Weapons. Shortcuts are handled by `TestAreaCon
 | Stationary mobs (Dwarf, Zombie, Giant) | GR-Firing | Hits on real characters; their AI and navigation are switched off |
 | Melee dummy | GR-Melee | Punches and kicks at reach distance |
 | Rocket blast wall with posts at 1, 2, 3, 4 and 6 m | GR-Rocket | Blast radius and falloff (fire at the wall from 24 m) |
-| Aim ring: 8 targets 8 m from the pad at 45° steps; the 45° and 270° targets stand on 1.5 m boxes | GR-Ring | Fixed view aiming: turning toward the cursor in every direction, the dead zone, aim height over floor and box tops. Switch to the fixed view in F1 > Camera first |
+| Aim ring: 8 targets 5 m from the pad at 45° steps (farther, the one behind would be below the fixed view's screen edge); the 45° and 270° targets stand on 1.5 m boxes | GR-Ring | Fixed view aiming: turning toward the cursor in every direction, the dead zone, aim height over floor and box tops. Switch to the fixed view in F1 > Camera first |
 
 Every target shows its remaining hit points above it, and each hit shows a floating damage number (red with "KO" on a kill), from `HealthReadout` and `DamagePopups`. Targets, posts and stationary mobs are children of a `ResettableGroup`, which is what F9 restores (the aim ring's boxes are not, as they cannot be destroyed).
 

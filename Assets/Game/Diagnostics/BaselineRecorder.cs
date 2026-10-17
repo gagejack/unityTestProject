@@ -168,9 +168,10 @@ namespace Game.Diagnostics
             return lowest;
         }
 
-        // What the crosshair is on: the nearest hit along the camera's aim, ignoring the player.
+        // What the crosshair is on: the nearest hit along the camera's aim, ignoring the player (fixed view: the gun's aim point).
         Vector3 AimPoint(float range)
         {
+            if (weapons.CursorAiming) return weapons.GunAimPoint;
             Vector3 origin = view.transform.position, direction = weapons.AimWorldDirection;
             float best = range;
             foreach (var hit in Physics.RaycastAll(origin, direction, range, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))

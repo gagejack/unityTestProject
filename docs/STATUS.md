@@ -5,19 +5,26 @@
 - Validation: all 46 saved labels are free of qualifiers; all seven menu Play-mode checks pass.
 - Try F2 > Weapons or F1 > Weapons, equip a weapon, then drop it to check its pickup name.
 
-**Checkpoint 17 (fixed view aiming, step 1 of 3): aim point, cursor and facing.**
+**Checkpoint 18 (fixed view aiming, step 2 of 3): shooting and sprint facing.**
 
 ## Current state
+- **Shooting (fixed view):** the gun aims along the body's facing at the cursor aim point's distance and height; shots leave the muzzle along that line with the gun's normal spread, so they land at the cursor once the body faces it and spray across a turn. Between aimed shots the wrist turns the barrel onto the aim line (hip pose kept; checked in a close-up). Right mouse is the same precise aim as in third person without the zoom. Barrel error 0.00° for a rifle and pistol, 0.09° worst for dual handguns (target ≤ 0.5°).
+- **Sprint facing (owner agreed):** sprinting keeps facing the cursor within 100° of the run (Player > Capsule Movement > Sprint Facing Limit); further round it faces the run, and turns back once the cursor is 20° inside the limit. A click while facing the run stops the sprint, turns, and fires once the gun is within 45° of the cursor (Weapon Combat Controller > Fire Turn Limit), about 0.2 s.
+- Over a mob or target the aim point is now 0.2 m inside it along the cursor ray: aiming exactly at a corner the camera saw made the gun's shot graze past (found by the ring test).
+- The aim ring is now 5 m across instead of 8 m: at 8 m the target behind the pad is below the bottom of the screen. The ring label moved behind the far target so it no longer covers the near ones.
+- The gun no longer ignores the mouse while the Unity window is in the background; like movement, it relies on the Input System releasing buttons on focus loss. (That check made the shooting tests depend on which window was in front.)
+- New Play-mode checks: barrel aim (3 guns, hip and aimed), aimed shots hitting all 8 ring targets including the one behind, and the sprint facing rule with turn-then-fire. All 39 Play-mode checks pass.
+
+## Checkpoint 17 (fixed view aiming, step 1): aim point, cursor and facing
 - In the fixed view the body turns toward the mouse cursor at **Cursor Turn Speed** (Player > Capsule Movement, 720°/s), armed or not. WASD stays screen-relative and the legs use the existing strafe and backpedal clips. Rolls, dives and slides still face their travel direction.
 - The camera works out the aim point under the cursor (Main Camera > Follow Camera > Fixed view aiming): chest height (1.2 m) above plain floor, box tops and ledges; the exact point on mobs, targets and walls. Inside the 0.75 m dead zone, or with the cursor off the screen, the facing holds still. Movement reads it through `IViewHeading` in Core.
 - The system pointer is hidden in the fixed view; the crosshair is drawn at the mouse (a small dot when unarmed). Escape or an open menu brings the pointer back and the character stops following it; clicking the Game view takes it again.
-- New test station: the aim ring on the Gun Range (F8, pad GR-Ring), 8 targets at 8 m in 45° steps, two on 1.5 m boxes.
+- New test station: the aim ring on the Gun Range (F8, pad GR-Ring), 8 targets in 45° steps, two on 1.5 m boxes.
 - **Owner change:** Shift now sprints in any direction, in every view (the spec's 45° screen-up cone is dropped). Double-tap W still sprints forward only. Measured with the body facing up the screen: full sprint speed (6.75 m/s) in all 8 directions; upper body leans 31-35° forward running forward, 21-33° forward sideways, and 21-24° back running backward (the run clips' own posture plus the forward-run lean correction).
-- New Play-mode checks (`FixedViewAimingTests`): 180° turn time at 30, 60 and 144 fps, dead-zone stability, the floor rule (floor, box top, target) and Shift sprint in all 8 directions. All 34 Play-mode checks pass. The cursor ray costs about 1 µs a frame with no allocations.
+- New Play-mode checks (`FixedViewAimingTests`): 180° turn time at 30, 60 and 144 fps, dead-zone stability, the floor rule (floor, box top, target) and Shift sprint in all 8 directions. The cursor ray costs about 1 µs a frame with no allocations.
 
-## Not yet built (next checkpoints)
-- Shots in the fixed view still follow the camera's downward view, not the aim point (checkpoint 2: shooting).
-- While sprinting the body always faces the cursor; the spec's "face the travel direction when the cursor is more than 90° away" rule is waiting for the owner to confirm it still fits now that sprint works in every direction (checkpoint 3, with the look-ahead).
+## Not yet built (next checkpoint)
+- Camera look-ahead toward the cursor (checkpoint 3). Until then anything more than about 7 m behind the character is below the screen and cannot be aimed at.
 
 ## Measured, not yet decided
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor (fix deferred by the owner).
@@ -30,7 +37,7 @@
 - **F2 design spec:** rewritten from the current layout, stylesheet, controller and saved panel settings. It documents all six pages, button states, scaling and verification; the obsolete image reference and unbuilt sprite-button plan have been removed.
 
 ## Last feedback
-- "The player should be able to use shift to sprint in any direction, not just W" (built in this checkpoint).
+- Agreed the sprint facing rule (face the cursor within 100° of the run, else face the run; a click turns back before firing). Shift sprinting in any direction was built at checkpoint 17.
 
 ## Next step
-Owner playtest of fixed view facing at the aim ring (F1 > Camera > Fixed, then F8). Then checkpoint 2 of the [fixed view aiming spec](spec/FixedViewAiming/SPEC.md): the gun aims along the facing at the aim point, shots leave the muzzle along the barrel, precise aim without zoom.
+Owner playtest of fixed view shooting and sprint facing at the aim ring (F1 > Camera > Fixed, then F8). Then checkpoint 3 of the [fixed view aiming spec](spec/FixedViewAiming/SPEC.md): the camera look-ahead toward the cursor.

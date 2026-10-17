@@ -13,6 +13,8 @@ namespace StarterGame
         public bool active;
         // 0-1: how far the right hand is raised to aim (0 while running, reloading or in a special move).
         public float aim;
+        // 0-1: how far the hands turn the barrels onto the aim point without raising them (fixed view hip fire).
+        public float point;
         // The crosshair's world point, moved by the expected grounding shift so it lines up after grounding.
         public Vector3 aimPoint;
         // World offset added to the animated right-hand position when aiming (already scaled by aim).
@@ -107,26 +109,28 @@ namespace StarterGame
             bool rightGoal = false, leftGoal = false;
 
             float aim = gun.aim;
-            if (aim > 0f)
+            // Raising the gun (aim) always points it too; pointing alone only turns the hand where the clip holds it.
+            float point = Mathf.Max(aim, gun.point);
+            if (point > 0f)
             {
                 // Raise the right hand by the aim offset and point the gun at the crosshair, then turn the hand
                 // until the barrel, measured from the muzzle, lines up with the crosshair point.
                 rightPosition += gun.aimHandOffset;
                 Quaternion animated = Quaternion.Slerp(rightRotation,
                     SafeAimRotation((gun.aimPoint - rightPosition).normalized) * Quaternion.Inverse(gun.aimedGrip), aim);
-                rightRotation = Quaternion.Slerp(animated, ConvergeOnAimPoint(rightPosition, animated, gun.muzzle, gun.barrel), aim);
+                rightRotation = Quaternion.Slerp(animated, ConvergeOnAimPoint(rightPosition, animated, gun.muzzle, gun.barrel), point);
                 rightGoal = true;
             }
             if (gun.dual)
             {
-                if (aim > 0f)
+                if (point > 0f)
                 {
                     leftPosition += gun.leftAimHandOffset;
                     Quaternion hand = Quaternion.Slerp(leftRotation,
                         SafeAimRotation((gun.aimPoint - leftPosition).normalized) * Quaternion.Inverse(gun.leftAimedGrip), aim);
                     for (int i = 0; i < 2; i++)
                         hand = Quaternion.Slerp(Quaternion.identity,
-                            Quaternion.FromToRotation(hand * gun.leftBarrel, gun.aimPoint - (leftPosition + hand * gun.leftMuzzle)), aim) * hand;
+                            Quaternion.FromToRotation(hand * gun.leftBarrel, gun.aimPoint - (leftPosition + hand * gun.leftMuzzle)), point) * hand;
                     leftRotation = hand;
                     leftGoal = true;
                 }

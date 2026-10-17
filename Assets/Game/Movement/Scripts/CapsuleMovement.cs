@@ -28,6 +28,8 @@ namespace Game.Movement
         [SerializeField, Min(0f)] private float aimTurnSpeed = 720f;
         [Tooltip("Degrees per second the body turns toward the mouse cursor in fixed view, armed or not. 720 turns 180° in 0.25 s.")]
         [SerializeField, Min(0f)] private float cursorTurnSpeed = 720f;
+        [Tooltip("Fixed view: while sprinting, the body faces the cursor only while it is within this many degrees of the running direction. Further round it faces the run, until the cursor comes back 20° inside this limit.")]
+        [SerializeField, Range(20f, 180f)] private float sprintFacingLimit = 100f;
         [Tooltip("Height of an ordinary jump in meters, the same at every frame rate.")]
         [SerializeField, Min(0f)] private float jumpHeight = 1.6f;
         [Tooltip("Downward acceleration in meters per second squared (negative). Stronger gravity feels less floaty.")]
@@ -100,6 +102,8 @@ namespace Game.Movement
         public bool IsRollingBackward => IsRolling && Vector3.Dot(rollDirection, transform.forward) < 0f;
         public bool IsDivingBackward => (IsDiving || IsSliding) && Vector3.Dot(rollDirection, transform.forward) < 0f;
         public float RollProgress => IsRolling ? Mathf.Clamp01(rollElapsed / activeRollDuration) : 0f;
+        /// <summary>Fixed view: sprinting with the cursor too far behind, so the body faces the run instead of the cursor.</summary>
+        public bool SprintFacesTravel { get; private set; }
 
         /// <summary>Third-person facing: the body faces the view heading. Fixed view faces the cursor's aim point; parked views turn toward travel.</summary>
         public bool FaceCameraDirection { get; set; } = true;
@@ -345,14 +349,18 @@ namespace Game.Movement
         void UpdateFacing(Vector3 forward, Vector3 direction, float dt)
         {
             bool directView = FaceCameraDirection && view != null && view.FacesViewHeading;
+            bool wasSprintingAway = SprintFacesTravel;
+            SprintFacesTravel = false;
             if (view != null && view.FacesAimPoint)
             {
-                // Fixed view: the cursor sets the facing, including while aiming. Turning about the vertical axis
-                // keeps a 180° turn upright.
+                // Fixed view: the cursor sets the facing, including while aiming, unless a sprint runs away from it.
+                // Turning about the vertical axis keeps a 180° turn upright.
                 Vector3 toAim = Vector3.ProjectOnPlane(view.AimPoint - transform.position, Vector3.up);
-                if (toAim.sqrMagnitude > 0.0001f)
+                SprintFacesTravel = SprintsAwayFrom(toAim, direction, wasSprintingAway);
+                Vector3 face = SprintFacesTravel ? direction : toAim;
+                if (face.sqrMagnitude > 0.0001f)
                     transform.rotation = Quaternion.Euler(0f, Mathf.MoveTowardsAngle(transform.eulerAngles.y,
-                        Quaternion.LookRotation(toAim).eulerAngles.y, cursorTurnSpeed * dt), 0f);
+                        Quaternion.LookRotation(face).eulerAngles.y, cursorTurnSpeed * dt), 0f);
             }
             else if (TryGetModifierFacing(out Vector3 aimForward))
             {
@@ -363,6 +371,14 @@ namespace Game.Movement
             else if (FaceCameraDirection) transform.rotation = Quaternion.LookRotation(forward);
             else if (direction.sqrMagnitude > 0.001f)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), turnSpeed * dt);
+        }
+
+        // Sprinting with the cursor beyond the Sprint Facing Limit from the run. Once facing the run, the cursor must come
+        // 20° back inside the limit before the body turns to it again, so a cursor near the limit does not flicker.
+        bool SprintsAwayFrom(Vector3 toAim, Vector3 direction, bool wasSprintingAway)
+        {
+            if (!IsRunning || runningBlocked || direction.sqrMagnitude < 0.001f || toAim.sqrMagnitude < 0.0001f) return false;
+            return Vector3.Angle(direction, toAim) > (wasSprintingAway ? sprintFacingLimit - 20f : sprintFacingLimit);
         }
 
         void SteerDashMomentum(Vector3 direction, float dt)
@@ -724,6 +740,7 @@ namespace Game.Movement
             controller.height = standingHeight;
             controller.center = standingCenter;
             IsCrouching = false;
+            SprintFacesTravel = false;
             verticalSpeed = 0f;
             IsRolling = IsDiving = IsSliding = false;
             SlideSpeed = 0f;

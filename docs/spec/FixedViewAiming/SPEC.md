@@ -1,6 +1,6 @@
 # Fixed view: 360° mouse aiming and screen-up sprint
 
-**Status:** agreed with the owner on 2026-10-17 (questions and answers below). Not built yet. It comes before holstering in the plan ([status](../../STATUS.md)).
+**Status:** agreed with the owner on 2026-10-17 (questions and answers below). Checkpoints 1 and 2 are built; the camera look-ahead (checkpoint 3) is not. It comes before holstering in the plan ([status](../../STATUS.md)).
 
 **Request (owner):** "For the fixed view camera, the character can shoot in any direction and turns smoothly toward where the mouse is: a 360° aiming system. The user can only sprint up, up-left and up-right in fixed view."
 
@@ -17,7 +17,7 @@ Third-person view, its controls and its tuning do not change. Everything below a
 | How does the turn feel? | Fast but smooth, at a set turn speed. |
 | Firing before the turn finishes? | Allowed. The shot leaves where the gun points at that moment, not where the cursor is. |
 | Which sprint directions are allowed? | Any direction with Shift, in every view (owner changed this on 2026-10-17; it replaces the earlier 45° screen-up cone). Double-tap W still sprints forward only. |
-| Facing while sprinting | Faces the cursor while the cursor is within 90° of the sprint direction; otherwise faces the way it runs. (Agreed with the cone; to confirm now that sprinting works in every direction.) |
+| Facing while sprinting | Faces the cursor while it is ahead or beside (within the Sprint Facing Limit, 100°, of the sprint direction); beyond that faces the way it runs, switching back only below 80° so it does not flicker. A click while facing away drops to a walk, turns toward the cursor, and fires once the gun is within 45° of it (owner agreed 2026-10-17). |
 | Walking speed by direction | The same in every direction (no backpedal slowdown). |
 | Right mouse | Precise aim as in third person (gun raised, tighter spread, slower walk, no sprint), but no camera zoom. |
 | Cursor | The system pointer is hidden; the game's crosshair is drawn at the mouse position. |
@@ -36,7 +36,7 @@ Third-person view, its controls and its tuning do not change. Everything below a
 ### Aim point
 - A ray from the camera through the cursor finds the first thing it touches, ignoring the player.
 - If that is plain floor (a surface facing up, within 45° of straight up, that is not a mob or a target), the aim point is 1.2 m above it. A ledge or box top counts as floor, so an enemy standing on a ledge is aimed at chest height.
-- If it is a mob, a target or a wall (any other surface), the aim point is the exact point the ray touched.
+- If it is a mob, a target or a wall (any other surface), the aim point is the exact point the ray touched. (As built: on mobs and targets it is 0.2 m further along the ray, inside them, because a shot from the gun's lower angle grazed past edges the camera saw.)
 - If the ray touches nothing within range, the aim point is where the ray meets the horizontal plane at the character's chest height.
 
 ### Shooting
@@ -48,7 +48,8 @@ Third-person view, its controls and its tuning do not change. Everything below a
 
 ### Sprinting
 - Hold Shift while moving to sprint in any direction (any view). Double-tap W still sprints, forward only.
-- While sprinting, the body faces the cursor if it is within 90° of the travel direction. Otherwise it faces the travel direction (to confirm, see the decisions table). The legs use the run clip for that direction: sprint clips forward, diagonally forward and sideways; the run clips backward.
+- While sprinting, the body faces the cursor while it is within 100° of the travel direction. Further round, the body faces the travel direction and uses the forward sprint clip; it turns back to the cursor once the cursor is within 80°. Otherwise the legs use the clip for their direction: sprint clips forward, diagonally forward and sideways.
+- Clicking fire while facing away from the cursor drops the sprint to a walk, the body turns toward the cursor, and the shot fires once the gun points within 45° of it (under 0.2 s at the turn speed). Holding Shift sprints again after the usual Run Block After Shot.
 - Sprinting with a two-handed gun uses the armed sprint pose from checkpoint 16.
 
 ### Camera and cursor
@@ -68,7 +69,8 @@ Each gets a tooltip with its meaning and units. Defaults are starting values to 
 | `FollowCamera` | Floor Max Slope | 45° | Steepest surface still treated as floor for the rule above |
 | `FollowCamera` | Look Ahead Fraction / Look Ahead Max / Look Ahead Smooth Time | 0.35 / 3 m / 0.2 s | How far and how softly the view shifts toward the cursor |
 | `CapsuleMovement` | Cursor Turn Speed | 720°/s | How fast the body turns toward the cursor in fixed view |
-| `CapsuleMovement` | Sprint Facing Limit | 90° | While sprinting, face the cursor only within this angle of travel |
+| `CapsuleMovement` | Sprint Facing Limit | 100° | While sprinting, face the cursor only within this angle of travel (returns 20° inside it) |
+| `WeaponCombatController` | Fire Turn Limit | 45° | A shot waits until the gun points within this angle of the cursor, after a sprint faced away |
 
 ## How it fits the architecture
 
@@ -101,7 +103,7 @@ These are listed in [the feel spec](../../FEEL_SPEC.md#fixed-view-aiming-propose
 
 ## Test station and checks (to build with the feature)
 
-- **Gun Range ring:** a new start marker (planned id GR-Ring) on the Gun Range, with 8 targets in a circle 8 m away at 45° steps. Two of them sit on 1.5 m boxes to test the aim height. They go under the existing resettable group, so F9 restores them. The page for this is [test areas](../../TEST_AREAS.md), updated when it is built.
+- **Gun Range ring:** a new start marker (planned id GR-Ring) on the Gun Range, with 8 targets in a circle 5 m away at 45° steps (built at 5 m, not the planned 8 m: at 8 m the target behind the pad is below the bottom of the fixed view's screen). Two of them sit on 1.5 m boxes to test the aim height. They go under the existing resettable group, so F9 restores them. The page for this is [test areas](../../TEST_AREAS.md), updated when it is built.
 - **Baseline harness:** each sequence step gets an optional cursor position (a world point that the harness converts to a screen position each frame). The harness then drives the cursor for sequences that run in fixed view. Planned sequences:
   - face and shoot each ring target in turn;
   - sprint in a circle (checks the sprint facing limit);
