@@ -21,6 +21,8 @@ namespace Game.Movement.Tests
         const float JumpApex = 1.6f, JumpTolerance = 0.03f;
         // FEEL_SPEC > Movement: "Walk stopping distance" 0.18 m, the same at all frame rates (±0.02).
         const float WalkStop = 0.18f, StopTolerance = 0.02f;
+        // FEEL_SPEC > Movement: walking down slopes and steps never leaves the ground (0 airborne frames).
+        const int AllowedAirborneFrames = 0;
 
         Keyboard keyboard;
         Transform player;
@@ -57,9 +59,29 @@ namespace Game.Movement.Tests
             Assert.That(distance, Is.EqualTo(WalkStop).Within(StopTolerance), $"Walk stopping distance at {fps} fps");
         }
 
+        [UnityTest]
+        public IEnumerator WalkingDownSlopesAndStepsStaysOnTheGround(
+            [Values("MC-Slope20-Top", "MC-Slope40-Top", "MC-Steps-Top")] string start, [Values(30, 60, 144)] int fps)
+        {
+            yield return StartOnLane(fps, start);
+            var movement = player.GetComponent<CapsuleMovement>();
+            float startHeight = player.position.y;
+            int airborne = 0;
+            Press(keyboard.wKey);
+            yield return null;
+            for (int i = 0; i < fps * 2.5f; i++)
+            {
+                if (!movement.IsGrounded) airborne++;
+                yield return null;
+            }
+            Release(keyboard.wKey);
+            Assert.That(startHeight - player.position.y, Is.GreaterThan(2f), $"Did not reach the bottom from {start}");
+            Assert.That(airborne, Is.LessThanOrEqualTo(AllowedAirborneFrames), $"Airborne frames walking down from {start} at {fps} fps");
+        }
+
         // Runs inside each test, after InputTestFixture.Setup has given the test its own clean input system
         // (Unity runs [UnitySetUp] before [SetUp], so loading here keeps the scene's input actions valid).
-        IEnumerator StartOnLane(int fps)
+        IEnumerator StartOnLane(int fps, string startMarker = "MC-Lane")
         {
             yield return SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
             yield return null;
@@ -70,8 +92,8 @@ namespace Game.Movement.Tests
             player = PlayerPresence.Current;
             Assert.IsNotNull(player, "The Main scene has no active player.");
             Time.captureDeltaTime = 1f / fps;
-            var marker = TestStartMarker.Find("MC-Lane");
-            Assert.IsNotNull(marker, "Start marker MC-Lane is missing from the Movement Course.");
+            var marker = TestStartMarker.Find(startMarker);
+            Assert.IsNotNull(marker, $"Start marker {startMarker} is missing from the Movement Course.");
             marker.TeleportPlayer();
             for (int i = 0; i < fps / 2; i++) yield return null;
         }

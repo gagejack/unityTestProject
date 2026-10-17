@@ -39,6 +39,8 @@ namespace Game.Movement
         [SerializeField, Min(0f)] private float brakingTime = 0.08f;
         [Tooltip("Seconds to ease into and out of an attack's slowdown.")]
         [SerializeField, Min(0.01f)] private float combatSlowdownTime = 0.05f;
+        [Tooltip("Farthest drop, in meters, the character follows while walking or running down slopes and steps instead of falling. Larger drops are real falls.")]
+        [SerializeField, Min(0f)] private float groundSnapDistance = 0.35f;
         [Header("Stamina costs")]
         [Tooltip("Stamina spent by a dash roll.")]
         [SerializeField, Min(0f)] private float dashStaminaCost = 25f;
@@ -131,6 +133,7 @@ namespace Game.Movement
         Vector3 wallJumpVelocity;
         Collider lastWallJumpCollider;
         readonly RaycastHit[] wallHits = new RaycastHit[16];
+        readonly RaycastHit[] groundHits = new RaycastHit[16];
         readonly Vector3[] wallNormals = new Vector3[8];
         bool carryingDashMomentum;
         Vector3 dashAirVelocity;
@@ -261,6 +264,7 @@ namespace Game.Movement
 
             Vector3 before = transform.position;
             CollisionFlags collisions = controller.Move(horizontalStep + verticalStep);
+            if (grounded && !controller.isGrounded) collisions |= SnapToGround();
             KeepVelocityAfterMove(transform.position - before, horizontalStep, endVelocity, dt);
             ResolveCollisions(collisions, slidingThisFrame);
             if (transform.position.y < -10f) ResetTo(spawnPosition, transform.rotation);
@@ -588,6 +592,35 @@ namespace Game.Movement
             float kept = Mathf.Clamp01(actual.magnitude / intended.magnitude);
             Vector3 heading = actual.sqrMagnitude > 0.000001f ? actual.normalized : endVelocity.normalized;
             horizontalVelocity = heading * (endVelocity.magnitude * kept);
+        }
+
+        /// <summary>
+        /// Walking or running off the top of a slope or a step would otherwise leave the ground for a few frames
+        /// (a fall, a bounce and the airborne pose). When the character was grounded at the start of the frame and
+        /// is not jumping, diving or wall jumping, it follows walkable ground up to Ground Snap Distance below.
+        /// </summary>
+        CollisionFlags SnapToGround()
+        {
+            if (verticalSpeed > 0f || IsDiving || steeringWallJump || groundSnapDistance <= 0f) return CollisionFlags.None;
+            Vector3 scale = transform.lossyScale;
+            float radius = controller.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+            float skin = controller.skinWidth;
+            Vector3 center = transform.TransformPoint(controller.center);
+            Vector3 extent = Vector3.up * Mathf.Max(0f, controller.height * Mathf.Abs(scale.y) * 0.5f - radius);
+            int count = Physics.CapsuleCastNonAlloc(center + extent, center - extent, Mathf.Max(0.01f, radius - skin), Vector3.down,
+                groundHits, groundSnapDistance + skin, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            float nearest = float.PositiveInfinity;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = groundHits[i];
+                if (hit.distance <= 0f || hit.collider.transform.IsChildOf(transform) || Physics.GetIgnoreCollision(controller, hit.collider)) continue;
+                if (Vector3.Angle(hit.normal, Vector3.up) > controller.slopeLimit) continue;
+                nearest = Mathf.Min(nearest, hit.distance);
+            }
+            if (float.IsPositiveInfinity(nearest)) return CollisionFlags.None;
+            CollisionFlags snapped = controller.Move(Vector3.down * (nearest + skin));
+            if ((snapped & CollisionFlags.Below) != 0) verticalSpeed = -2f;
+            return snapped;
         }
 
         void ResolveCollisions(CollisionFlags collisions, bool slidingThisFrame)

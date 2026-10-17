@@ -40,8 +40,8 @@ Every target shows its remaining hit points above it, and each hit shows a float
 |---|---|---|
 | Straight lane, 40 m, a line per meter, numbered every 5 m | MC-Lane | Start, stop, top speed, stopping distance |
 | Open area, 20 x 20 m outline | MC-Open | Turning, reversing, strafing |
-| Slopes of 20° and 40°, both rising 2.5 m | MC-Slope20, MC-Slope40 | Walking and running on slopes |
-| Steps, ten 0.25 m rises | MC-Steps | Step-up behaviour (the character climbs up to 0.3 m without jumping) |
+| Slopes of 20° and 40°, both rising 2.5 m | MC-Slope20, MC-Slope40 (bottom); MC-Slope20-Top, MC-Slope40-Top (top, facing down) | Walking and running up and down slopes |
+| Steps, ten 0.25 m rises | MC-Steps (bottom); MC-Steps-Top (top, facing down) | Climbing up (up to 0.3 m without jumping) and walking down without leaving the ground |
 | Ledges of 0.5, 1, 1.5, 2 and 2.5 m | MC-Ledges | Jump height and landing |
 | Gaps of 1 to 5 m between 1 m platforms | MC-Gaps | Jump distance and dashes |
 | Low tunnel, 1.5 m clear height | MC-Tunnel | Crouching (standing needs 2 m) |

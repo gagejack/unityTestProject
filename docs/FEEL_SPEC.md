@@ -14,6 +14,7 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Walk time to top speed | Seconds until speed stays within 5% of the final value | 0.10 / 0.10 / 0.10 | Keep |
 | Walk stopping distance | Meters travelled after releasing W | 0.11 / 0.14 / 0.17 → **0.18 / 0.18 / 0.18** after the movement rebuild | Same at all frame rates (±0.02); checked by `MovementFeelTests` (0.18 ±0.02) |
 | Run stopping distance | Same, from a run | 0.30 / 0.35 / 0.38 → **0.405 / 0.405 / 0.405** | Same at all frame rates (±0.02) |
+| Airborne frames going down | Frames not grounded while walking or running down from the top pads (no jump pressed). Owner-reported bounce and floating pose | Walk 20°: 0 / 0 / 0. Run 20°: 15 / 40 / n/a. Walk 40°: 16 / 36 / 90. Steps: 16 / 40 / 109 → **0 everywhere** after ground snapping | 0; checked by `MovementFeelTests` (walking) |
 | Reverse time | Seconds from S pressed (while walking) until settled backwards | 0.03 / 0.02 / 0.01 | Keep |
 | Jump apex | Highest point minus the height just before take-off (m); Jump Height is set to 1.6 | 1.46 / 1.53 / 1.57 → **1.60 / 1.60 / 1.60** | 1.6 ±0.03 at all frame rates; checked by `MovementFeelTests` |
 | Dive (jump, Caps Lock 0.2 s later) | Seconds from jump to dive start / slide duration (s) / total distance (m) | 0.30, 0.83, 12.0 / 0.30, 0.80, 12.0 / 0.30, 0.80, 12.0 → after rebuild distance 12.5 / 12.24 / 12.11 | Keep; the landing frame adds up to one frame of dive travel (known limit) |

@@ -1,14 +1,15 @@
 # Status
 
-**Checkpoint 7: F1 debug menu presentation.**
+**Checkpoint 8: walking down slopes and stairs fixed (movement).**
 
 ## Current state
-- The F1 menu now uses UI Toolkit, with the supplied UIExample-inspired cream grid panel, colorful beveled buttons and Barlow Condensed headings.
-- Weapons has search, type/creator/pack filters, a preview, Equip Weapon and Spawn Pickup. Mobs, Player, Camera, Audio and Controls retain their existing actions in the new layout.
-- Existing player-control gating, cursor capture and camera modes remain connected. The menu does not pause world simulation.
-- Validation: all 5 menu interaction tests and the 6 existing movement tests passed (the F1 check was rerun with Game view focus). Unity compiles without errors or warnings. Layout reviewed at 1280x720 and 1920x1080, plus all tabs.
-- Editor UI profiling captured 178 frames in Logs/DebugMenu/profile.json. These markers include editor rendering and are not an isolated menu/build benchmark. Screenshots and the pre-change unsaved scene backup are also in Logs/DebugMenu.
-- Layout/styles and setup instructions: [architecture](ARCHITECTURE.md#debug-menu-presentation). Playtest route: [test areas](TEST_AREAS.md#debug-menu).
+- Ground snapping in `CapsuleMovement`: when grounded and not jumping, diving or wall jumping, the character follows walkable ground up to Ground Snap Distance (0.35 m) below instead of falling. Bigger drops are still falls.
+- Before: running down the 20° slope, walking down the 40° slope and walking down the stairs spent 15-109 frames airborne (bounce plus floating pose). After: 0 airborne frames at 30/60/144 fps.
+- New start pads at the top of both slopes and the stairs (facing down), new baseline sequences M07-M10, and Play-mode checks for descending (all 20 Play-mode tests pass).
+- The F1 debug menu rebuild from the other session is committed separately (43960ec).
 
-## Next checkpoint
-Review the menu's visual style, scale and browsing in Play mode; refine from feedback. The earlier animation/pose work remains pending (plan step 6).
+## Last feedback
+"Walking down slopes/stairs does not work, the character bounces and does a floating animation." Fixed here.
+
+## Next step
+Plan step 6, first part: skeleton proportions and avatar root (walking arms, foot slide), with before/after captures.

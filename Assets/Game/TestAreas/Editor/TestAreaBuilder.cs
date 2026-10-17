@@ -205,6 +205,9 @@ namespace Game.TestAreas.Editor
             Ramp(root, "Slope 40°", 1f, 40f, 2.5f);
             Marker(root, "MC-Slope20", "Slope 20°", new Vector3(-7f, 0f, 0f), 0f);
             Marker(root, "MC-Slope40", "Slope 40°", new Vector3(1f, 0f, 0f), 0f);
+            // Top pads face downhill, for walking and running down.
+            Marker(root, "MC-Slope20-Top", "Top of slope 20°", new Vector3(-7f, 2.5f, 2f + 2.5f / Mathf.Tan(20f * Mathf.Deg2Rad) + 1.5f), 180f);
+            Marker(root, "MC-Slope40-Top", "Top of slope 40°", new Vector3(1f, 2.5f, 2f + 2.5f / Mathf.Tan(40f * Mathf.Deg2Rad) + 1.5f), 180f);
 
             // 4. Steps: ten 0.25 m rises (the character steps up to 0.3 m without jumping).
             var steps = Group(root, "Steps 0.25 m", false);
@@ -216,6 +219,7 @@ namespace Game.TestAreas.Editor
             Box(steps, "Top", new Vector3(10.5f, 1.25f, 7.5f), new Vector3(5f, 2.5f, 3f), slope);
             Label(steps, "STEPS 0.25 m", new Vector3(10.5f, 3.2f, 6f), 0.06f);
             Marker(root, "MC-Steps", "Steps", new Vector3(10.5f, 0f, 0f), 0f);
+            Marker(root, "MC-Steps-Top", "Top of steps", new Vector3(10.5f, 2.5f, 7.5f), 180f);
 
             // 5. Ledges of increasing height, each with room to land.
             var ledges = Group(root, "Ledges", false);

@@ -65,6 +65,8 @@ namespace Game.Diagnostics
                 m[label + "_speed"] = plateau.magnitude;
                 m[label + "_settle_s"] = settled * rows[frames[0]].dt;
                 m[label + "_distance_m"] = frames.Skip(1).Sum(i => Velocity(rows, i).magnitude * rows[i].dt);
+                // Frames the capsule was not grounded although no jump was pressed (slopes, steps).
+                m[label + "_airborne_frames"] = frames.Skip(1).Count(i => !rows[i].grounded);
                 bool moving = plateau.magnitude > 0.5f;
                 if (moving)
                 {

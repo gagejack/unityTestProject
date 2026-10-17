@@ -19,11 +19,12 @@ All on Player > Capsule Movement unless noted.
 - **Wall Jump** group: push-off strength, height and how much your WASD input bends it.
 - **Dash Roll / Air Dive / Dive Landing Slide** groups: speed, duration and cooldown of the roll, the dive (Caps Lock in the air; hold S to dive backward) and the slide it turns into on landing.
 - Player > Player Stamina: capacity, recovery rate and the pause before recovery.
+- **Ground Snap Distance:** how big a drop the character follows while walking or running down slopes and steps instead of falling. Too small brings back the bounce and floating pose going down stairs; too large makes walking off a ledge feel sticky.
 - Speed HUD > Speed Readout: **Smoothing** steadies the number (0 shows every frame's raw speed); **Decimals** sets precision.
 - Gun aim and fire slow movement down; those settings are on `WeaponCombatController` (see [weapons](weapons.md)). Attack slowdowns are on `MaleWalkRetarget` attack timings (see [unarmed](unarmed.md)).
 
 ## How to test
-Use the Movement Course (F6): start/stop on the meter lane, slopes, steps, ledges, gaps, the tunnel and wall jumps. Turn off Infinite Stamina in F1 > Player to test costs. Measured by the movement and jump sequences of the baseline harness ([feel spec](../FEEL_SPEC.md#movement)). Play-mode checks in `MovementFeelTests` (Window > General > Test Runner > PlayMode > Game.Movement.Tests) assert jump height and walk stopping distance at 30, 60 and 144 fps.
+Use the Movement Course (F6): start/stop on the meter lane, slopes, steps, ledges, gaps, the tunnel and wall jumps. Turn off Infinite Stamina in F1 > Player to test costs. Measured by the movement and jump sequences of the baseline harness ([feel spec](../FEEL_SPEC.md#movement)). Play-mode checks in `MovementFeelTests` (Window > General > Test Runner > PlayMode > Game.Movement.Tests) assert jump height, walk stopping distance and staying on the ground while walking down both slopes and the stairs, at 30, 60 and 144 fps.
 
 ## Known limits
 - Character facing snaps to the camera heading every frame in third person.

@@ -55,6 +55,10 @@ namespace Game.Diagnostics.Editor
             Make("M04_Strafe", "MC-Open", SequenceKind.Movement, "", false, K("right", 2f, D), K("left", 2f, A), K("stop", 1f, None));
             Make("M05_WalkArmed", "MC-Lane", SequenceKind.Movement, "AssaultRifle", false, K("walk", 3f, W), K("stop", 1.5f, None));
             Make("M06_RunArmed", "MC-Lane", SequenceKind.Movement, "AssaultRifle", true, K("run", 4f, Run), K("stop", 1.5f, None));
+            Make("M07_WalkDownSlope20", "MC-Slope20-Top", SequenceKind.Movement, "", false, K("walk down", 3f, W), K("stop", 1f, None));
+            Make("M08_RunDownSlope20", "MC-Slope20-Top", SequenceKind.Movement, "", false, K("run down", 2.5f, Run), K("stop", 1f, None));
+            Make("M09_WalkDownSlope40", "MC-Slope40-Top", SequenceKind.Movement, "", false, K("walk down", 2.5f, W), K("stop", 1f, None));
+            Make("M10_WalkDownSteps", "MC-Steps-Top", SequenceKind.Movement, "", false, K("walk down", 2.5f, W), K("stop", 1f, None));
             Make("J01_Jump", "MC-Lane", SequenceKind.Jump, "", false, K("idle", 0.3f, None), K("jump", 0.1f, HeldKeys.Space), K("air", 2f, None));
             Make("J02_JumpDive", "MC-Lane", SequenceKind.Jump, "", false, K("idle", 0.3f, None), K("jump", 0.1f, HeldKeys.Space),
                 K("rise", 0.2f, None), K("dive", 0.05f, HeldKeys.CapsLock), K("dive and slide", 2f, None));
