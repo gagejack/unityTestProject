@@ -1,4 +1,4 @@
-/* F1 debug menu. Layout: a tinted sidebar (name, tabs, RESUME at its foot) beside the content (page title, then the page).
+/* Deprecated F2 debug menu. Layout: a tinted sidebar (name, tabs, RESUME at its foot) beside the content (page title, then the page).
    Spacing steps: 10 between rows, 14 inside panels, 24-28 between groups and around the content.
    Type: Barlow Condensed for titles, buttons, values and section headings; the default font for labels and hints.
    Color: neutral by default; cyan marks what is selected, green / amber / coral mark actions. */
@@ -6,6 +6,7 @@
 .debug-shell { flex-direction: row; width: 1120px; height: 800px; max-width: 94%; max-height: 92%; overflow: hidden; border-radius: 24px; border-width: 4px; border-color: white; background-color: rgb(250, 249, 244); }
 .sidebar { flex-shrink: 0; width: 216px; padding: 26px 20px 24px; background-color: rgb(236, 241, 239); border-right-width: 2px; border-right-color: rgb(208, 221, 223); }
 .brand { flex-shrink: 0; margin: 0 0 20px 4px; padding: 0; font-size: 26px; color: rgb(23, 39, 53); -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }
+.deprecated { flex-shrink: 0; margin: -16px 0 16px 4px; padding: 0; white-space: normal; font-size: 12px; color: rgb(196, 78, 62); -unity-font-style: bold; }
 .navigation { flex-grow: 1; }
 .content { flex-grow: 1; flex-basis: 0; min-width: 0; padding: 22px 28px 20px; }
 .page-title { flex-shrink: 0; margin: 0 0 14px; padding: 0; font-size: 36px; color: rgb(23, 39, 53); -unity-font-definition: url("Fonts/BarlowCondensed-ExtraBold.ttf"); }

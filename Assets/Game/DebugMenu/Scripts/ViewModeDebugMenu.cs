@@ -16,7 +16,7 @@ namespace StarterGame
         [SerializeField, Tooltip("Player whose equipment and movement this menu controls.")] private CapsuleMovement player;
         [SerializeField, Tooltip("Camera that releases and captures the cursor when the menu opens and closes.")] private FollowCamera followCamera;
         [SerializeField, Tooltip("Camera mode selected at the start of Play mode.")] private PlayerViewMode startingMode = PlayerViewMode.ThirdPerson;
-        [SerializeField, Tooltip("Open the debug menu at the start of Play mode.")] private bool showMenu = true;
+        [SerializeField, Tooltip("Open the deprecated F2 debug menu at the start of Play mode. Off by default: Play mode starts with every menu closed.")] private bool showMenu;
         private CombatFeedback combatFeedback;
         private PlayerStamina playerStamina;
         private Game.Mobs.DebugMobSpawner mobSpawner;
@@ -82,8 +82,8 @@ namespace StarterGame
         {
             if (!Application.isFocused || Keyboard.current == null) return;
             if (!IsOpen && Keyboard.current.kKey.wasPressedThisFrame) ToggleFreeRoamControl();
-            if (Keyboard.current.f1Key.wasPressedThisFrame) SetOpen(!showMenu);
-            if (Keyboard.current.f2Key.wasPressedThisFrame && pixelRoot != null) SetPixelOpen(!pixelOpen);
+            if (Keyboard.current.f1Key.wasPressedThisFrame && pixelRoot != null) SetPixelOpen(!pixelOpen);
+            if (Keyboard.current.f2Key.wasPressedThisFrame) SetOpen(!showMenu); // Deprecated menu.
         }
 
         public bool ContainsPointer(Vector2 screenPosition)

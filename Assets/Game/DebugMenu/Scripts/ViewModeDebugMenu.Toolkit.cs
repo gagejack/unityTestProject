@@ -4,9 +4,10 @@ using UnityEngine.UIElements;
 
 namespace StarterGame
 {
+    // Deprecated: the original debug menu, now on F2. The pixel-style menu on F1 replaces it; this file will be removed.
     public sealed partial class ViewModeDebugMenu
     {
-        [SerializeField, Tooltip("UI document displaying the F1 debug menu. Its source asset is Game/UI/GameUI.uxml.")]
+        [SerializeField, Tooltip("Deprecated. UI document displaying the old F2 debug menu. Its source asset is Game/UI/GameUI.uxml.")]
         private UIDocument menuDocument;
 
         private VisualElement toolkitRoot, toolkitShell;
@@ -20,7 +21,7 @@ namespace StarterGame
                 ("Q", "Drop weapon"), ("F", "Pick up / mystery box") }),
             ("CAMERA & TEST AREAS", new[] { ("K", "Fly / park camera"), ("Free roam", "WASD + mouse, Space / Ctrl up / down, Shift boost"),
                 ("F5", "Gun range"), ("F6", "Movement course"), ("F7", "Mob test spot"), ("F8", "Aim ring"), ("F9", "Reset targets + refill ammo"),
-                ("F1", "Toggle menu"), ("Esc", "Release cursor") }),
+                ("F2", "Toggle this deprecated menu"), ("F1", "New menu"), ("Esc", "Release cursor") }),
         };
 
         private void InitializeToolkit()

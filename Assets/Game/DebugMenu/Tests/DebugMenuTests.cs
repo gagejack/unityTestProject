@@ -41,7 +41,22 @@ namespace Game.DebugMenu.Tests
         bool IsOpen => (bool)menu.GetType().GetProperty("IsOpen").GetValue(menu);
 
         [UnityTest]
-        public IEnumerator F1TogglesMenuAndPlayerControlWhileSearchHasFocus()
+        public IEnumerator PlayModeStartsWithBothMenusClosed()
+        {
+            yield return SceneManager.LoadSceneAsync("Main");
+            yield return null;
+            menu = Object.FindObjectsByType<MonoBehaviour>().Single(b => b.GetType().Name == "ViewModeDebugMenu");
+            Assert.IsFalse(IsOpen);
+            Assert.IsTrue(PlayerControl.Enabled);
+            foreach (string field in new[] { "menuDocument", "pixelMenuDocument" })
+            {
+                var document = (UIDocument)menu.GetType().GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(menu);
+                Assert.AreEqual(DisplayStyle.None, document.rootVisualElement.resolvedStyle.display, field);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator F2TogglesDeprecatedMenuAndPlayerControlWhileSearchHasFocus()
         {
             yield return LoadMenu();
 #if UNITY_EDITOR
@@ -51,14 +66,14 @@ namespace Game.DebugMenu.Tests
             Assert.IsTrue(Application.isFocused, "The keyboard shortcut test requires the Game view to have application focus.");
             Assert.IsFalse(PlayerControl.Enabled);
             root.Q<TextField>("weapon-search").Focus();
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F1));
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F2));
             yield return null;
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
             yield return null;
             Assert.IsFalse(IsOpen);
             Assert.IsTrue(PlayerControl.Enabled);
             Assert.AreEqual(DisplayStyle.None, root.resolvedStyle.display);
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F1));
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F2));
             yield return null;
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
             yield return null;
@@ -68,7 +83,7 @@ namespace Game.DebugMenu.Tests
         }
 
         [UnityTest]
-        public IEnumerator F2OpensPixelMenuInPlaceOfF1MenuAndCloseButtonCloses()
+        public IEnumerator F1OpensPixelMenuInPlaceOfDeprecatedMenuAndCloseButtonCloses()
         {
             yield return LoadMenu();
 #if UNITY_EDITOR
@@ -76,7 +91,7 @@ namespace Game.DebugMenu.Tests
             yield return null;
 #endif
             var pixelRoot = ((UIDocument)menu.GetType().GetField("pixelMenuDocument", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(menu)).rootVisualElement;
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F2));
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F1));
             yield return null;
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
             yield return null;
@@ -103,7 +118,7 @@ namespace Game.DebugMenu.Tests
         }
 
         [UnityTest]
-        public IEnumerator F2WeaponRowEquipButtonEquipsThatWeapon()
+        public IEnumerator F1WeaponRowEquipButtonEquipsThatWeapon()
         {
             yield return LoadMenu();
             TestStartMarker.Find("GR-Firing").TeleportPlayer();

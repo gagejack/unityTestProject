@@ -10,6 +10,7 @@
         <ui:VisualElement name="debug-shell" class="debug-shell">
             <ui:VisualElement class="sidebar">
                 <ui:Label text="DEBUG MENU" class="brand" />
+                <ui:Label text="DEPRECATED · F1 OPENS THE NEW MENU" class="deprecated" />
                 <ui:VisualElement name="navigation" class="navigation" />
                 <ui:Button name="resume" text="RESUME  ›" class="bevel green resume" />
             </ui:VisualElement>

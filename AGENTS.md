@@ -27,7 +27,7 @@ There is one documented update order, in [docs/ARCHITECTURE.md](docs/ARCHITECTUR
 The full baseline (**Tools > Baseline > Run All Sequences**, about 5 minutes) is not part of every checkpoint. To check a change, run only the sequences it can affect. Ask the owner before running the full baseline.
 
 ## Documentation rules
-- Layout: `README.md`, this file, `CLAUDE.md`, and in `docs/`: `STATUS.md`, `ARCHITECTURE.md`, `FEEL_SPEC.md`, `TEST_AREAS.md`, `systems/_TEMPLATE.md`, `systems/<system>.md`, `decisions/NNNN-<title>.md`, and `spec/<Feature>/` for specs agreed with the owner before building (a spec is a plan: once built, the system pages describe the result and the spec is kept as the agreed brief). Do not create other doc files without asking. (`docs/HANDOFF_PROMPT.md` is the original brief and is kept for reference.)
+- Layout: `README.md`, this file, `CLAUDE.md`, and in `docs/`: `STATUS.md`, `ARCHITECTURE.md`, `FEEL_SPEC.md`, `TEST_AREAS.md`, `systems/_TEMPLATE.md`, `systems/<system>.md`, `decisions/NNNN-<title>.md`, and `flow/` (the visual game map, `game-map.drawio`, and how to edit it), `spec/<Feature>/` for specs agreed with the owner before building (a spec is a plan: once built, the system pages describe the result and the spec is kept as the agreed brief). Do not create other doc files without asking. (`docs/HANDOFF_PROMPT.md` is the original brief and is kept for reference.)
 - Each fact has one home; other pages link to it.
 - Inspector field meanings and units go in `[Tooltip]` attributes in code. System pages describe what a setting feels like and point to the component, without repeating values.
 - Feel numbers live only in [docs/FEEL_SPEC.md](docs/FEEL_SPEC.md) and the tests that check them.

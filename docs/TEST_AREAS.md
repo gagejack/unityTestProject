@@ -2,7 +2,7 @@
 
 ## Debug menu
 
-Open Main and press Play. F1 opens/closes the menu. At the Gun Range (F5), search for M1911, select a result, click Equip Weapon, then Spawn Pickup. Close the menu and try firing/picking up. Search for nonsense and confirm both actions disable; Clear restores the list. Try By Type and By Pack, then switch to another tab and back: the search and selection should remain. Type in Search and press F1; movement and mouse look should resume only after the menu closes. Click inside the panel and outside its border to check cursor capture.
+Open Main and press Play: no menu should be open. F1 opens/closes the pixel-style menu; visit each tab and close it with CLOSE. F2 opens/closes the deprecated old menu, which has the weapon search: at the Gun Range (F5), search for M1911, select a result, click Equip Weapon, then Spawn Pickup. Close the menu and try firing/picking up. Search for nonsense and confirm both actions disable; Clear restores the list. Try By Type and By Pack, then switch to another tab and back: the search and selection should remain. Type in Search and press F2; movement and mouse look should resume only after the menu closes. Click inside the panel and outside its border to check cursor capture.
 
 Visit Mobs, Player, Camera, Audio and Controls. Check mob selection/spawn/clear at the mob test spot (F7), infinite stamina, the three camera modes, volume sliders and sound previews. Try 1280×720 and 1920×1080 Game view sizes and scroll the catalogue and longer settings pages.
 

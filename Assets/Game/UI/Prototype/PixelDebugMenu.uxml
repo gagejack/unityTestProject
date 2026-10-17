@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- F2 pixel-style debug menu (docs/spec/UI/DebugMenu/DESIGN_SPEC.md). Buttons are added by ViewModeDebugMenu.Pixel.cs. -->
+<!-- F1 pixel-style debug menu (docs/spec/UI/DebugMenu/DESIGN_SPEC.md). Buttons are added by ViewModeDebugMenu.Pixel.cs. -->
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="PixelDebugMenu.uss" />
     <ui:VisualElement name="px-overlay" class="px-overlay">

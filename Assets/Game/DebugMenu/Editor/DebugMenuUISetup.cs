@@ -61,6 +61,6 @@ public static class DebugMenuUISetup
         EditorUtility.SetDirty(pixelDocument);
         EditorSceneManager.MarkSceneDirty(menu.gameObject.scene);
         AssetDatabase.SaveAssets();
-        Debug.Log("Debug menu UI is ready. Save the scene, then press Play and F1 (or F2 for the pixel menu).");
+        Debug.Log("Debug menu UI is ready. Save the scene, then press Play and F1 (F2 opens the deprecated old menu).");
     }
 }

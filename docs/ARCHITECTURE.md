@@ -11,7 +11,7 @@
 | Weapons | `Assets/Game/Weapons/` | Equipped gun, ammo, reload, firing, weapon pose, holstering, pickups, weapon data | [weapons](systems/weapons.md) |
 | Combat | `Assets/Game/Combat/` | Hit queries, the damage receiver, shot and hit feedback, combat audio volume | [combat](systems/combat.md) |
 | Mobs | `Assets/Game/Mobs/` | The six block mobs: AI, attacks, animation playback, prefabs, test spawner. Own assembly, references Core only | [mobs](systems/mobs.md) |
-| Debug menu | `Assets/Game/DebugMenu/`, `Assets/Game/UI/` | UI Toolkit F1 menu (equip, spawn, stamina, camera, audio, controls), shared styles and the "menu is open" input gate | this page |
+| Debug menu | `Assets/Game/DebugMenu/`, `Assets/Game/UI/` | UI Toolkit F1 pixel-style menu and the deprecated F2 menu (equip, spawn, stamina, camera, audio, controls), shared styles and the "menu is open" input gate | this page |
 | World | `Assets/Game/World/` | Grid shader and level materials, NavMesh data | [test areas](TEST_AREAS.md) |
 | Test areas | `Assets/Game/TestAreas/` | Start markers, target reset, moving targets, damage numbers, shortcuts, and the area builder. Own assembly, references Core only | [test areas](TEST_AREAS.md) |
 | Diagnostics | `Assets/Game/Diagnostics/` | Baseline harness: action sequences, per-frame recorder, metrics. A measuring tool that reads the baseline components directly | [feel spec](FEEL_SPEC.md) |
@@ -20,20 +20,22 @@ Third-party files used by these systems are in `Assets/ThirdParty/`. Render pipe
 
 ## Debug menu presentation
 
-The F1 menu uses UI Toolkit. `ViewModeDebugMenu` still owns its input gate and the existing gameplay connections; its partial presentation file builds the catalogue and settings controls. This is a presentation change within the migrated baseline, not a system/assembly rebuild. Its update-order slot and the existing Core control-blocking contract are unchanged.
+Both menus use UI Toolkit. F1 opens the pixel-style menu; F2 opens the original menu, which is deprecated and will be removed (its presentation file is marked deprecated, and its sidebar says so). Play mode starts with both closed. `ViewModeDebugMenu` still owns its input gate and the existing gameplay connections; its partial presentation files build the catalogue and settings controls. This is a presentation change within the migrated baseline, not a system/assembly rebuild. Its update-order slot and the existing Core control-blocking contract are unchanged.
 
-- Layout: `Assets/Game/UI/GameUI.uxml`; shared styling: `Assets/Game/UI/DebugMenu.uss`. Open the layout in Window > UI Toolkit > UI Builder. The supplied UIExample image is the visual reference.
+- Deprecated F2 menu layout: `Assets/Game/UI/GameUI.uxml`; shared styling: `Assets/Game/UI/DebugMenu.uss`. Open the layout in Window > UI Toolkit > UI Builder. The supplied UIExample image is the visual reference.
 - The scene's UIDocument uses `Assets/Game/UI/DebugMenuPanelSettings.asset`, which scales the menu to the Game view. Tools > Project > Set Up Debug Menu UI reconnects the document and controller if needed; save the scene afterwards.
 - Page structure: a tinted sidebar (menu name, tabs, Resume at its foot) beside the page title and page. Tabs and other choices are neutral until selected, then cyan; green, amber and coral mark actions.
 - Weapons supports case-insensitive search, type/creator/pack filters, a selection preview with Equip Weapon and Spawn Pickup beside it. Other tabs keep the existing mob, stamina, camera and sound actions, laid out as setting rows with a fixed label column (◀ ▶ steppers, ON/OFF switches, volume sliders). The world's simulation keeps running while the menu blocks player control and releases the cursor.
-- F1 toggles visibility even while search has focus. Resume and clicking outside the panel close it. Escape releases the cursor. Closing the menu clears text focus; disabling the controller also hides the UI.
-- F2 opens the pixel-style menu in place of F1 (layout `Assets/Game/UI/Prototype/PixelDebugMenu.uxml`, built in the controller's pixel partial file). Its current layout, page inventory, styles and review steps are documented in [the design spec](spec/UI/DebugMenu/DESIGN_SPEC.md). It shares the F1 menu's open state, input gate and actions; only one of the two shows at a time. Values are shown as outlined boxes, on/off settings as ON/OFF buttons, and volumes as ◀ ▶ steppers in 10% steps. Each setting has its name in a fixed label column so the controls line up; the selected tab or camera mode is the only deep-blue button.
-- F2 button frames have slightly rounded corners; their highlight and bottom bands are clipped to the frame by `Assets/Game/UI/Prototype/PixelDebugMenu.uss`.
-- F2 category, selector and live-value boxes use the same blue palette as the arrow buttons beside them.
+- F2 toggles the deprecated menu even while search has focus. Resume and clicking outside the panel close it. Escape releases the cursor. Closing the menu clears text focus; disabling the controller also hides the UI.
+- F1 opens the pixel-style menu in place of the deprecated one (layout `Assets/Game/UI/Prototype/PixelDebugMenu.uxml`, built in the controller's pixel partial file). Its current layout, page inventory, styles and review steps are documented in [the design spec](spec/UI/DebugMenu/DESIGN_SPEC.md). It shares the deprecated menu's open state, input gate and actions; only one of the two shows at a time. Values are shown as outlined boxes, on/off settings as ON/OFF buttons, and volumes as ◀ ▶ steppers in 10% steps. Each setting has its name in a fixed label column so the controls line up; the selected tab or camera mode is the only deep-blue button.
+- F1 menu button frames have slightly rounded corners; their highlight and bottom bands are clipped to the frame by `Assets/Game/UI/Prototype/PixelDebugMenu.uss`.
+- F1 menu category, selector and live-value boxes use the same blue palette as the arrow buttons beside them.
 - Barlow Condensed ExtraBold is bundled with its OFL license in `Assets/Game/UI/Fonts/`. The cream grid and button highlights are native UI elements/drawing.
 - Play-mode interaction checks live in `Assets/Game/DebugMenu/Tests/`; the manual test route is in [test areas](TEST_AREAS.md#debug-menu).
 
 ## Dependencies today
+A drag-and-drop version of this map, plus the scene contents and a feature-planning template, is in [the game map](flow/README.md).
+
 Apart from Core, Movement, Mobs, Test areas and the editor tools, the gameplay code is the migrated baseline: it compiles into the default assembly and systems still call each other directly (arrows read "calls or reads"):
 
 ```mermaid

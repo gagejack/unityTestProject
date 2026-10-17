@@ -5,10 +5,10 @@ using UnityEngine.UIElements;
 
 namespace StarterGame
 {
-    // F2 pixel-style menu (docs/spec/UI/DebugMenu/DESIGN_SPEC.md). Shares the F1 menu's open state, input gate and actions.
+    // F1 pixel-style menu (docs/spec/UI/DebugMenu/DESIGN_SPEC.md). Shares the deprecated F2 menu's open state, input gate and actions.
     public sealed partial class ViewModeDebugMenu
     {
-        [SerializeField, Tooltip("UI document displaying the F2 pixel-style debug menu. Its source asset is Game/UI/Prototype/PixelDebugMenu.uxml.")]
+        [SerializeField, Tooltip("UI document displaying the F1 pixel-style debug menu. Its source asset is Game/UI/Prototype/PixelDebugMenu.uxml.")]
         private UIDocument pixelMenuDocument;
 
         private static readonly string[] Hues = { "green", "blue", "red", "orange", "gray" };
@@ -18,7 +18,7 @@ namespace StarterGame
                 ("CAPS", "ROLL / DIVE"), ("S + DIVE", "BACK DIVE") }),
             ("COMBAT", new[] { ("LMB", "FIRE"), ("RMB", "AIM"), ("R", "RELOAD"), ("Q", "DROP"), ("F", "PICK UP") }),
             ("TOOLS", new[] { ("F5", "GUN RANGE"), ("F6", "MOVEMENT"), ("F7", "MOBS"), ("F8", "AIM RING"), ("F9", "RESET"),
-                ("K", "FLY CAMERA"), ("F1 / F2", "MENU"), ("ESC", "CURSOR") }),
+                ("K", "FLY CAMERA"), ("F1", "MENU"), ("ESC", "CURSOR") }),
         };
 
         private VisualElement pixelRoot, pixelShell;
