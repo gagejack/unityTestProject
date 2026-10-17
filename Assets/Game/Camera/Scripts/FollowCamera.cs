@@ -36,6 +36,18 @@ namespace StarterGame
         [Header("Free roam")]
         [SerializeField, Min(0.1f)] private float freeRoamSpeed = 8f;
         [SerializeField, Min(1f)] private float freeRoamBoost = 3f;
+        [Header("Fixed view aiming")]
+        [Tooltip("Radius in meters around the character, measured on the ground, inside which the mouse cursor does not change the facing.")]
+        [SerializeField, Min(0f)] private float cursorDeadZone = 0.75f;
+        [Tooltip("Height in meters above plain floor that the aim point uses when the cursor is over the floor, so shots fly roughly level at chest height.")]
+        [SerializeField, Min(0f)] private float floorAimHeight = 1.2f;
+        [Tooltip("Steepest surface, in degrees from flat, still treated as floor for Floor Aim Height. Steeper surfaces, mobs and targets are aimed at exactly where the cursor touches them.")]
+        [SerializeField, Range(0f, 89f)] private float floorMaxSlope = 45f;
+        private const float CursorRayRange = 200f;
+        private readonly RaycastHit[] cursorHits = new RaycastHit[16];
+        private CharacterController body;
+        private bool hasPointer;
+        private Vector3 heldAimOffset;
         public bool IsFreeRoam { get; private set; }
         public bool IsFlying { get; private set; }
         private Vector2 recoilOffset;
@@ -54,6 +66,10 @@ namespace StarterGame
         private WeaponCombatController weapons;
         private float normalFieldOfView;
         public bool ThirdPerson { get; private set; }
+        /// <summary>The fixed overhead view (not third person or free roam), where the body faces the mouse cursor.</summary>
+        public bool FixedView => !ThirdPerson && !IsFreeRoam;
+        public bool FacesAimPoint { get; private set; }
+        public Vector3 AimPoint { get; private set; }
         public Vector3 PlanarForward => Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
         private Quaternion AimRotation => Quaternion.Euler(Mathf.Clamp(pitch - recoilOffset.y, minimumPitch, maximumPitch), yaw + recoilOffset.x, 0f);
         public Vector3 AimDirection => AimRotation * Vector3.forward;
@@ -68,6 +84,7 @@ namespace StarterGame
             normalFieldOfView = viewCamera ? viewCamera.fieldOfView : 60f;
             weapons = target ? target.GetComponent<WeaponCombatController>() : null;
             movement = target ? target.GetComponent<CapsuleMovement>() : null;
+            body = target ? target.GetComponent<CharacterController>() : null;
             Game.Core.PlayerRequests.TeleportRequested += OnTeleportRequested;
         }
 
@@ -84,19 +101,31 @@ namespace StarterGame
                 * Mathf.Rad2Deg, minimumPitch, maximumPitch);
             recoilTarget = recoilOffset = recoilVelocity = Vector2.zero;
             snapNextView = true;
+            HoldAimAlong(facing * Vector3.forward);
         }
+
+        // Keep aiming along a facing until the cursor leaves the dead zone (view switches and teleports).
+        private void HoldAimAlong(Vector3 forward)
+        {
+            heldAimOffset = Vector3.ProjectOnPlane(forward, Vector3.up).normalized * (cursorDeadZone + 1f) + Vector3.up * (floorAimHeight - FeetOffset);
+            if (target) AimPoint = target.position + heldAimOffset;
+        }
+
+        // Distance from the target's origin (the capsule centre) down to its feet.
+        private float FeetOffset => body ? (body.height * 0.5f - body.center.y) * target.lossyScale.y : 0f;
 
         public void SetThirdPerson(bool value)
         {
             IsFreeRoam = false;
             IsFlying = false;
             ThirdPerson = value;
-            SetMouseCaptured(value && Application.isFocused);
+            SetMouseCaptured(Application.isFocused);
             velocity = Vector3.zero;
             collisionDistance = 0f;
             recoilTarget = recoilOffset = recoilVelocity = Vector2.zero;
 
             if (target == null) return;
+            HoldAimAlong(target.forward);
             yaw = target.eulerAngles.y;
             Vector3 viewOffset = thirdPersonOffset - Vector3.up * lookHeight;
             pitch = Mathf.Clamp(Mathf.Atan2(viewOffset.y, new Vector2(viewOffset.x, viewOffset.z).magnitude)
@@ -152,9 +181,11 @@ namespace StarterGame
         public void SetMouseCaptured(bool captured)
         {
             var menu = GetComponent<ViewModeDebugMenu>();
-            captured = captured && (ThirdPerson || IsFlying) && isActiveAndEnabled && (!menu || !menu.IsOpen);
-            Cursor.lockState = captured ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = !captured;
+            hasPointer = captured && (ThirdPerson || IsFlying || FixedView) && isActiveAndEnabled && (!menu || !menu.IsOpen);
+            // Mouse-look locks the pointer. Fixed view hides it instead; the weapon HUD draws the crosshair at the mouse.
+            Cursor.lockState = hasPointer && !FixedView ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !hasPointer;
+            if (!hasPointer) FacesAimPoint = false;
         }
 
         public bool FacesViewHeading => ThirdPerson;
@@ -177,7 +208,7 @@ namespace StarterGame
 
         private void Update()
         {
-            if ((ThirdPerson || IsFlying) && Application.isFocused)
+            if ((ThirdPerson || IsFlying || FixedView) && Application.isFocused)
             {
                 bool release = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
                 if (release)
@@ -189,8 +220,8 @@ namespace StarterGame
                         if (IsFlying) ApplyFreeRoamLook(Mouse.current.delta.ReadValue());
                         else ApplyMouseLook(Mouse.current.delta.ReadValue());
                     }
-                    else if (Mouse.current.leftButton.wasPressedThisFrame ||
-                        (weapons && weapons.HasWeapon && Mouse.current.rightButton.wasPressedThisFrame))
+                    else if (!hasPointer && (Mouse.current.leftButton.wasPressedThisFrame ||
+                        (weapons && weapons.HasWeapon && Mouse.current.rightButton.wasPressedThisFrame)))
                     {
                         var menu = GetComponent<ViewModeDebugMenu>();
                         if (menu == null || !menu.ContainsPointer(Mouse.current.position.ReadValue()))
@@ -210,6 +241,55 @@ namespace StarterGame
                 float vertical = (keys.spaceKey.isPressed ? 1f : 0f) - (keys.leftCtrlKey.isPressed || keys.rightCtrlKey.isPressed ? 1f : 0f);
                 MoveFreeRoam(Time.deltaTime, input, vertical, keys.leftShiftKey.isPressed || keys.rightShiftKey.isPressed);
             }
+            UpdateCursorAim();
+        }
+
+        // Fixed view: find the aim point under the mouse cursor. Runs before movement and weapons read it this frame,
+        // using last frame's camera placement.
+        private void UpdateCursorAim()
+        {
+            FacesAimPoint = FixedView && hasPointer && PlayerControl.Enabled && target;
+            if (!FacesAimPoint) return;
+            AimPoint = target.position + heldAimOffset;
+            if (!viewCamera || Mouse.current == null) return;
+            Vector2 cursor = Mouse.current.position.ReadValue();
+            if (cursor.x < 0f || cursor.y < 0f || cursor.x > Screen.width || cursor.y > Screen.height) return;
+            Ray ray = viewCamera.ScreenPointToRay(cursor);
+            float feet = target.position.y - FeetOffset;
+            // The dead zone is measured where the ray meets the ground at the character's feet.
+            if (RayAtHeight(ray, feet, out Vector3 ground) &&
+                Vector3.ProjectOnPlane(ground - target.position, Vector3.up).sqrMagnitude < cursorDeadZone * cursorDeadZone) return;
+            AimPoint = CursorAimPoint(ray, feet + floorAimHeight);
+            heldAimOffset = AimPoint - target.position;
+        }
+
+        // Plain floor (gentle slope, not a mob or target) is aimed at chest height above it; anything else exactly.
+        private Vector3 CursorAimPoint(Ray ray, float chestHeight)
+        {
+            int count = Physics.RaycastNonAlloc(ray, cursorHits, CursorRayRange, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            int nearest = -1;
+            for (int i = 0; i < count; i++)
+            {
+                if (cursorHits[i].collider.transform.IsChildOf(target)) continue;
+                if (nearest < 0 || cursorHits[i].distance < cursorHits[nearest].distance) nearest = i;
+            }
+            if (nearest >= 0)
+            {
+                RaycastHit hit = cursorHits[nearest];
+                bool floor = Vector3.Angle(hit.normal, Vector3.up) <= floorMaxSlope && hit.collider.GetComponentInParent<IDamageable>() == null;
+                return floor ? hit.point + Vector3.up * floorAimHeight : hit.point;
+            }
+            return RayAtHeight(ray, chestHeight, out Vector3 level) ? level : AimPoint;
+        }
+
+        private static bool RayAtHeight(Ray ray, float height, out Vector3 point)
+        {
+            point = default;
+            if (Mathf.Abs(ray.direction.y) < 0.0001f) return false;
+            float distance = (height - ray.origin.y) / ray.direction.y;
+            if (distance <= 0f) return false;
+            point = ray.GetPoint(distance);
+            return true;
         }
 
         private void ApplyFreeRoamLook(Vector2 delta)

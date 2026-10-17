@@ -98,6 +98,7 @@ namespace StarterGame
         private RawImage gunIconImage;
         private RectTransform[] crosshairParts = new RectTransform[4];
         private Image[] crosshairImages = new Image[4];
+        private Image cursorDot;
         private float crosshairGap = 20f;
         private float bloom;
         private CapsuleMovement movement;
@@ -967,7 +968,7 @@ namespace StarterGame
         private void UpdateCrosshair()
         {
             // Runtime UI survives an Editor script reload, but cached arrays may not.
-            if (crosshairParts == null || crosshairParts.Length != 4 || !crosshairParts[0] || crosshairImages == null || crosshairImages.Length != 4)
+            if (crosshairParts == null || crosshairParts.Length != 4 || !crosshairParts[0] || crosshairImages == null || crosshairImages.Length != 4 || !cursorDot)
             {
                 if (!pointsText || !pointsText.canvas) return;
                 EnsureCrosshair(pointsText.canvas.transform);
@@ -976,13 +977,22 @@ namespace StarterGame
             float gap = Mathf.Clamp(Mathf.Tan(CurrentSpreadDegrees * Mathf.Deg2Rad) /
                 Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) * 540f, 4f, 90f);
             crosshairGap = Mathf.Lerp(crosshairGap, gap, 1f - Mathf.Exp(-Time.deltaTime / 0.05f));
+            // Fixed view draws the crosshair at the hidden mouse pointer, and only while the game has the pointer.
+            bool atCursor = cameraView && cameraView.FixedView;
+            Vector2 centre = Vector2.zero;
+            if (atCursor && Mouse.current != null)
+                RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)pointsText.canvas.transform,
+                    Mouse.current.position.ReadValue(), null, out centre);
+            bool shown = (!movement || movement.PlayerControlEnabled) && (!atCursor || cameraView.FacesAimPoint);
             for (int i = 0; i < crosshairParts.Length; i++)
             {
                 if (!crosshairParts[i] || !crosshairImages[i]) continue;
-                crosshairParts[i].anchoredPosition = (i == 0 ? Vector2.left : i == 1 ? Vector2.right : i == 2 ? Vector2.up : Vector2.down) * (crosshairGap + 4f);
-                crosshairImages[i].enabled = HasWeapon && (!movement || movement.PlayerControlEnabled);
+                crosshairParts[i].anchoredPosition = centre + (i == 0 ? Vector2.left : i == 1 ? Vector2.right : i == 2 ? Vector2.up : Vector2.down) * (crosshairGap + 4f);
+                crosshairImages[i].enabled = HasWeapon && shown;
                 crosshairImages[i].color = Color.Lerp(Color.white, new Color(0.45f, 0.95f, 1f), AimWeight);
             }
+            ((RectTransform)cursorDot.transform).anchoredPosition = centre;
+            cursorDot.enabled = !HasWeapon && shown && atCursor;
         }
 
         private void EnsureCrosshair(Transform parent)
@@ -1001,6 +1011,15 @@ namespace StarterGame
                 crosshairImages[i] = stroke.GetComponent<Image>();
                 crosshairImages[i].raycastTarget = false;
             }
+            // Unarmed in fixed view, a small dot marks the hidden mouse pointer.
+            Transform dot = parent.Find("Cursor dot");
+            var dotObject = dot ? dot.gameObject : new GameObject("Cursor dot", typeof(Image));
+            dotObject.transform.SetParent(parent, false);
+            var dotRect = dotObject.GetComponent<RectTransform>();
+            dotRect.anchorMin = dotRect.anchorMax = dotRect.pivot = Vector2.one * 0.5f;
+            dotRect.sizeDelta = new Vector2(6f, 6f);
+            cursorDot = dotObject.GetComponent<Image>();
+            cursorDot.raycastTarget = false;
         }
 
         private void RefreshHud()

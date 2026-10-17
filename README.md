@@ -11,7 +11,7 @@ A third-person movement and combat prototype with a block-built character, 46 gu
 | Action | Input |
 |---|---|
 | Move / look | WASD / mouse |
-| Run | Double-tap W and hold, or Shift + W |
+| Run | Hold Shift while moving in any direction, or double-tap W and hold |
 | Jump / wall jump | Space (wall jump: Space while touching a wall in the air) |
 | Crouch | Hold Ctrl |
 | Roll / dive | Caps Lock on the ground / Caps Lock in the air (hold S to dive backward) |
@@ -19,7 +19,7 @@ A third-person movement and combat prototype with a block-built character, 46 gu
 | Aim | Right mouse |
 | Reload / drop gun / pick up | R / Q / F |
 | Debug menu (equip guns, spawn mobs) | F1 |
-| Go to gun range / movement course / mob test spot | F5 / F6 / F7 |
+| Go to gun range / movement course / mob test spot / aim ring | F5 / F6 / F7 / F8 |
 | Reset targets and refill ammo | F9 |
 | Free camera | K |
 | Release the mouse | Escape |

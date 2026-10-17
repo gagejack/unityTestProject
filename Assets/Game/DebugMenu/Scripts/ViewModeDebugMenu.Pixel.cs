@@ -14,10 +14,10 @@ namespace StarterGame
         private static readonly string[] Hues = { "green", "blue", "red", "orange", "gray" };
         private static readonly (string section, (string key, string action)[] keys)[] PixelControls =
         {
-            ("MOVEMENT", new[] { ("WASD", "MOVE"), ("SHIFT + W", "SPRINT"), ("SPACE", "JUMP"), ("CTRL", "CROUCH"),
+            ("MOVEMENT", new[] { ("WASD", "MOVE"), ("SHIFT + WASD", "SPRINT"), ("SPACE", "JUMP"), ("CTRL", "CROUCH"),
                 ("CAPS", "ROLL / DIVE"), ("S + DIVE", "BACK DIVE") }),
             ("COMBAT", new[] { ("LMB", "FIRE"), ("RMB", "AIM"), ("R", "RELOAD"), ("Q", "DROP"), ("F", "PICK UP") }),
-            ("TOOLS", new[] { ("F5", "GUN RANGE"), ("F6", "MOVEMENT"), ("F7", "MOBS"), ("F9", "RESET"),
+            ("TOOLS", new[] { ("F5", "GUN RANGE"), ("F6", "MOVEMENT"), ("F7", "MOBS"), ("F8", "AIM RING"), ("F9", "RESET"),
                 ("K", "FLY CAMERA"), ("F1 / F2", "MENU"), ("ESC", "CURSOR") }),
         };
 

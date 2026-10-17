@@ -4,6 +4,8 @@
 
 **Request (owner):** "For the fixed view camera, the character can shoot in any direction and turns smoothly toward where the mouse is: a 360° aiming system. The user can only sprint up, up-left and up-right in fixed view."
 
+**Change (owner, 2026-10-17):** "The player should be able to use shift to sprint in any direction, not just W." Built with checkpoint 1; the sprint cone below is dropped.
+
 Third-person view, its controls and its tuning do not change. Everything below applies only while the view mode is Fixed (F1 or F2 menu > Camera).
 
 ## Decisions
@@ -14,9 +16,8 @@ Third-person view, its controls and its tuning do not change. Everything below a
 | Where do shots go? | The point in the world under the cursor. Over plain floor, 1.2 m above that floor point (chest height), so shots fly roughly level. Over a mob, target or wall, the exact point. |
 | How does the turn feel? | Fast but smooth, at a set turn speed. |
 | Firing before the turn finishes? | Allowed. The shot leaves where the gun points at that moment, not where the cursor is. |
-| Which sprint directions are allowed? | Travel within 45° either side of screen-up (decided by travel angle, not by which keys are held). |
-| Facing while sprinting | Faces the cursor while the cursor is within 90° of the sprint direction; otherwise faces the way it runs. |
-| Leaving the sprint directions | Drops to a walk; the sprint comes back by itself on returning to an allowed direction while the sprint input is still held. |
+| Which sprint directions are allowed? | Any direction with Shift, in every view (owner changed this on 2026-10-17; it replaces the earlier 45° screen-up cone). Double-tap W still sprints forward only. |
+| Facing while sprinting | Faces the cursor while the cursor is within 90° of the sprint direction; otherwise faces the way it runs. (Agreed with the cone; to confirm now that sprinting works in every direction.) |
 | Walking speed by direction | The same in every direction (no backpedal slowdown). |
 | Right mouse | Precise aim as in third person (gun raised, tighter spread, slower walk, no sprint), but no camera zoom. |
 | Cursor | The system pointer is hidden; the game's crosshair is drawn at the mouse position. |
@@ -46,10 +47,8 @@ Third-person view, its controls and its tuning do not change. Everything below a
 - The existing rules stay: firing briefly blocks the sprint (Run Block After Shot), reloading blocks the sprint, and so on.
 
 ### Sprinting
-- Sprint input is the same as now: hold Shift with movement, or double-tap W.
-- The sprint only runs while the travel direction is within 45° of screen-up. This covers W, W+A and W+D on a keyboard.
-- Outside that range the character walks. The sprint input is not cancelled: returning within range while Shift is still held, or with the double-tap W still held, sprints again on the next frame.
-- While sprinting, the body faces the cursor if it is within 90° of the travel direction. Otherwise it faces the travel direction. The legs use the sprint clips for that direction (forward or diagonal).
+- Hold Shift while moving to sprint in any direction (any view). Double-tap W still sprints, forward only.
+- While sprinting, the body faces the cursor if it is within 90° of the travel direction. Otherwise it faces the travel direction (to confirm, see the decisions table). The legs use the run clip for that direction: sprint clips forward, diagonally forward and sideways; the run clips backward.
 - Sprinting with a two-handed gun uses the armed sprint pose from checkpoint 16.
 
 ### Camera and cursor
@@ -69,13 +68,12 @@ Each gets a tooltip with its meaning and units. Defaults are starting values to 
 | `FollowCamera` | Floor Max Slope | 45° | Steepest surface still treated as floor for the rule above |
 | `FollowCamera` | Look Ahead Fraction / Look Ahead Max / Look Ahead Smooth Time | 0.35 / 3 m / 0.2 s | How far and how softly the view shifts toward the cursor |
 | `CapsuleMovement` | Cursor Turn Speed | 720°/s | How fast the body turns toward the cursor in fixed view |
-| `CapsuleMovement` | Sprint Cone | 45° | Allowed sprint directions either side of screen-up in fixed view |
 | `CapsuleMovement` | Sprint Facing Limit | 90° | While sprinting, face the cursor only within this angle of travel |
 
 ## How it fits the architecture
 
 - **Camera owns the aim point.** It already owns the view and the aim direction. In fixed view, `FollowCamera` reads the mouse position in its Update (order -100, before weapons and movement), casts the cursor ray, and applies the floor rule and the dead zone. It publishes the result through a Core contract. That contract is an addition to the view-heading interface in `Assets/Game/Core/Scripts/MovementContracts.cs`: an aim point, and whether facing should follow it. Movement and Weapons read it through Core, so they still don't reference each other.
-- **Movement** turns the body toward the aim point (Cursor Turn Speed), applies the dead zone's held facing, the sprint cone and the sprint facing limit. Screen-up is the camera's forward direction flattened onto the ground, not a fixed world axis.
+- **Movement** turns the body toward the aim point (Cursor Turn Speed), applies the dead zone's held facing and the sprint facing limit. Screen-up is the camera's forward direction flattened onto the ground, not a fixed world axis.
 - **Weapons** computes where the gun aims: along the body's facing, at the aim point's distance and height. It hands that to the existing gun-hands step (`GunHands` in `BodyPoseJob`). In fixed view the shot ray starts at the muzzle and follows the barrel; in third person it still starts at the camera. Precise aim keeps working, minus the camera zoom (the camera already zooms only in third person).
 - **HUD crosshair:** `WeaponCombatController` already builds it. In fixed view it moves to the mouse position.
 - **Unarmed:** attacks already go the way the body faces, so facing the cursor is enough.
@@ -90,14 +88,14 @@ Each gets a tooltip with its meaning and units. Defaults are starting values to 
 - **Dual handguns:** both guns aim at the same aim point, as in third person.
 - **Rockets:** they fly along the barrel like bullets, with the existing blast.
 - **Switching views mid-play:** going to fixed view keeps the current facing until the cursor moves out of the dead zone. Going back to third person restores mouse-look and recentres on the body's facing, as now.
-- **Frame rate:** turning, look-ahead smoothing and the sprint rule must give the same results at 30, 60 and 144 fps.
+- **Frame rate:** turning and look-ahead smoothing must give the same results at 30, 60 and 144 fps.
 
 ## Feel targets (proposed)
 
 These are listed in [the feel spec](../../FEEL_SPEC.md#fixed-view-aiming-proposed) and confirmed by playtest after building:
 - A 180° turn toward the cursor takes 0.25 s ±1 frame at 30, 60 and 144 fps.
 - With the facing settled, the barrel points at the aim point within 0.5°.
-- No sprint frames while travelling more than 45° from screen-up. The sprint resumes on the first frame back inside the cone.
+- Shift sprints in all eight directions.
 - The facing changes by 0° while the cursor moves inside the dead zone.
 - The camera look-ahead never exceeds 3 m.
 
@@ -106,16 +104,16 @@ These are listed in [the feel spec](../../FEEL_SPEC.md#fixed-view-aiming-propose
 - **Gun Range ring:** a new start marker (planned id GR-Ring) on the Gun Range, with 8 targets in a circle 8 m away at 45° steps. Two of them sit on 1.5 m boxes to test the aim height. They go under the existing resettable group, so F9 restores them. The page for this is [test areas](../../TEST_AREAS.md), updated when it is built.
 - **Baseline harness:** each sequence step gets an optional cursor position (a world point that the harness converts to a screen position each frame). The harness then drives the cursor for sequences that run in fixed view. Planned sequences:
   - face and shoot each ring target in turn;
-  - sprint in a circle (checks the sprint cone and resume);
+  - sprint in a circle (checks the sprint facing limit);
   - walk in all eight directions while aiming down the screen (checks facing and leg clips).
-- **Play-mode checks:** turn time per frame rate; the sprint cone and resume; the dead zone; the floor-aim rule (cursor over floor, a box top, a target); a shot at a ring target behind the player hitting after the turn.
+- **Play-mode checks:** turn time per frame rate; Shift sprint in every direction; the dead zone; the floor-aim rule (cursor over floor, a box top, a target); a shot at a ring target behind the player hitting after the turn.
 - **Profile:** the cursor ray and facing run every frame, so they are profiled when built.
 
 ## Build order (each a checkpoint with owner playtest)
 
 1. **Aim point and cursor:** the Core contract, the camera's cursor ray (floor rule, dead zone), and the crosshair at the cursor with the pointer hidden. Then facing toward the cursor (turn speed, legs strafe), armed and unarmed. Then the ring test station and the turn and dead-zone checks.
 2. **Shooting:** the gun aims along the facing; shots from the muzzle along the barrel; precise aim without zoom. Checks: aim error, shots hitting the ring targets.
-3. **Sprint rules and look-ahead:** the sprint cone, resume, and sprint facing limit; the camera look-ahead. Checks: the sprint cone and look-ahead targets.
+3. **Sprint facing and look-ahead:** the sprint facing limit; the camera look-ahead. Checks: the look-ahead target. (Shift sprint in any direction was built early, with checkpoint 1.)
 
 ## Assumptions to confirm at the first playtest
 

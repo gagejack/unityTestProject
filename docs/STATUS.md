@@ -5,34 +5,31 @@
 - Validation: all 46 saved labels are free of qualifiers; all seven menu Play-mode checks pass. The docs check still has the existing missing design-reference image.
 - Try F2 > Weapons or F1 > Weapons, equip a weapon, then drop it to check its pickup name.
 
-## F2 button corner checkpoint
-- F2 buttons now have slightly rounded corners, with their highlight and bottom bands clipped to the frame (see [debug menu presentation](ARCHITECTURE.md#debug-menu-presentation)).
-- Validation: the stylesheet imported successfully. Play-mode review is pending while another Unity test run is active; the docs check still reports the existing missing reference image.
-- Next: press F2 and check the navigation, Equip / Spawn and arrow buttons.
-
-## HUD font checkpoint
-- Main's speed, points, ammo, weapon name and pickup prompt text now use the bundled Doppio One font. Player > Weapon Combat Controller > HUD Font controls the runtime text; Speed HUD > Speed Text > Text > Font controls speed.
-- Validation: compilation succeeded; all 28 Play-mode tests passed; all five HUD text components use Doppio One in Play mode and the Console has no errors. No per-frame code changed.
-- Docs check remains blocked by the existing missing reference image `docs/spec/UI/DebugMenu/sampleUI.jpg`.
-- Next: owner checks HUD readability in Play mode at the Gun Range (F5), including ammo, points and pickup prompts.
-
-**Checkpoint 16 (plan step 6c): armed sprint. Fixed view aiming specified (not built).**
+**Checkpoint 17 (fixed view aiming, step 1 of 3): aim point, cursor and facing.**
 
 ## Current state
-- Sprinting with a two-handed gun keeps the sprint legs and torso and puts that gun family's WeaponHold pose on the arms (assault rifle, rifle, bazooka; brought over from the original project's Kevin Iglesias pack with their import settings). The support hand stays on the gun. Pistols and dual handguns keep a one-handed carry with swinging arms.
-- Each WeaponSettings asset has a new **Hold** clip in its Soldier clips; all 37 two-handed guns have one.
-- Measured (30 / 60 / 144 fps): support hand gap sprinting with an assault rifle 160 → 0 cm (rifle, shotgun and bazooka also 0); sprint lean 34.6-34.7° armed and unarmed; unarmed run arms 38.5°; foot slide, armed walk, aiming and support grip unchanged. Side view of the rifle sprint: `Logs/Baseline/armed_sprint_side/` (not committed).
-- New Play-mode check: the support hand stays within 5 cm of an assault rifle's grip while sprinting, at 30, 60 and 144 fps. All 28 Play-mode tests pass.
+- In the fixed view the body turns toward the mouse cursor at **Cursor Turn Speed** (Player > Capsule Movement, 720°/s), armed or not. WASD stays screen-relative and the legs use the existing strafe and backpedal clips. Rolls, dives and slides still face their travel direction.
+- The camera works out the aim point under the cursor (Main Camera > Follow Camera > Fixed view aiming): chest height (1.2 m) above plain floor, box tops and ledges; the exact point on mobs, targets and walls. Inside the 0.75 m dead zone, or with the cursor off the screen, the facing holds still. Movement reads it through `IViewHeading` in Core.
+- The system pointer is hidden in the fixed view; the crosshair is drawn at the mouse (a small dot when unarmed). Escape or an open menu brings the pointer back and the character stops following it; clicking the Game view takes it again.
+- New test station: the aim ring on the Gun Range (F8, pad GR-Ring), 8 targets at 8 m in 45° steps, two on 1.5 m boxes.
+- **Owner change:** Shift now sprints in any direction, in every view (the spec's 45° screen-up cone is dropped). Double-tap W still sprints forward only. Measured with the body facing up the screen: full sprint speed (6.75 m/s) in all 8 directions; upper body leans 31-35° forward running forward, 21-33° forward sideways, and 21-24° back running backward (the run clips' own posture plus the forward-run lean correction).
+- New Play-mode checks (`FixedViewAimingTests`): 180° turn time at 30, 60 and 144 fps, dead-zone stability, the floor rule (floor, box top, target) and Shift sprint in all 8 directions. All 34 Play-mode checks pass. The cursor ray costs about 1 µs a frame with no allocations.
+
+## Not yet built (next checkpoints)
+- Shots in the fixed view still follow the camera's downward view, not the aim point (checkpoint 2: shooting).
+- While sprinting the body always faces the cursor; the spec's "face the travel direction when the cursor is more than 90° away" rule is waiting for the owner to confirm it still fits now that sprint works in every direction (checkpoint 3, with the look-ahead).
 
 ## Measured, not yet decided
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor (fix deferred by the owner).
 - Foot slide is still above the ankle targets for walk, run and strafe.
 
-## Later
-- Pixel-style debug menu on F2, built from `docs/spec/UI/DebugMenu/DESIGN_SPEC.md`: all six pages work (weapon category and one row per weapon with Equip / Spawn, mobs, stamina, camera, volumes and feedback sounds, controls). Layout redesigned: tinted nav column with CLOSE at its foot, settings in a label column with aligned controls, weapon names before their buttons under a fixed category bar, grouped controls. It has no weapon search yet. The F1 menu got the same layout principles in its own style (sidebar with Resume at the foot, header and footer text removed, actions beside the weapon preview, setting rows). Next: owner playtest of both menus, then decide whether F2 replaces F1.
+## To do
+- **Debug menu:** playtest the pixel-style F2 menu and the reworked F1 menu, then decide whether F2 replaces F1. F2 has no weapon search yet. Latest F2 change: slightly rounded button corners (press F2 and check the navigation, Equip / Spawn and arrow buttons). Built from `docs/spec/UI/DebugMenu/DESIGN_SPEC.md`.
+- **HUD font:** speed, points, ammo, weapon name and pickup prompt now use Doppio One (Player > Weapon Combat Controller > HUD Font; Speed HUD > Speed Text > Text > Font). Owner to check readability at the Gun Range (F5).
+- The docs check reports the debug menu design spec's reference image (sampleUI.jpg) as missing; it was deleted with the debug menu work. Restore it from git or update the spec.
 
 ## Last feedback
-- Armed sprint: looks good (owner playtest).
+- "The player should be able to use shift to sprint in any direction, not just W" (built in this checkpoint).
 
 ## Next step
-Fixed view aiming, agreed in [the spec](spec/FixedViewAiming/SPEC.md): the body faces the mouse cursor and shoots in any direction; sprint only within 45° of screen-up. Three checkpoints: aim point and facing, shooting, sprint rules and look-ahead. Holstering follows.
+Owner playtest of fixed view facing at the aim ring (F1 > Camera > Fixed, then F8). Then checkpoint 2 of the [fixed view aiming spec](spec/FixedViewAiming/SPEC.md): the gun aims along the facing at the aim point, shots leave the muzzle along the barrel, precise aim without zoom.

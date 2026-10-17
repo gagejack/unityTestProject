@@ -13,6 +13,8 @@ namespace Game.TestAreas
         [SerializeField] private string movementCourseMarker = "MC-Lane";
         [Tooltip("Marker id for F7.")]
         [SerializeField] private string testAreaMarker = "TA-Start";
+        [Tooltip("Marker id for F8.")]
+        [SerializeField] private string aimRingMarker = "GR-Ring";
         [Tooltip("Show the shortcut hint in the bottom-left corner.")]
         [SerializeField] private bool showHint = true;
 
@@ -23,6 +25,7 @@ namespace Game.TestAreas
             if (keys.f5Key.wasPressedThisFrame) Go(gunRangeMarker);
             if (keys.f6Key.wasPressedThisFrame) Go(movementCourseMarker);
             if (keys.f7Key.wasPressedThisFrame) Go(testAreaMarker);
+            if (keys.f8Key.wasPressedThisFrame) Go(aimRingMarker);
             if (keys.f9Key.wasPressedThisFrame)
             {
                 ResettableGroup.ResetAll();
@@ -40,8 +43,8 @@ namespace Game.TestAreas
         private void OnGUI()
         {
             if (!showHint) return;
-            GUI.Label(new Rect(12, Screen.height - 26, 700, 22),
-                "F5 Gun range   F6 Movement course   F7 Mob test area   F9 Reset targets + refill ammo");
+            GUI.Label(new Rect(12, Screen.height - 26, 800, 22),
+                "F5 Gun range   F6 Movement course   F7 Mob test area   F8 Aim ring   F9 Reset targets + refill ammo");
         }
     }
 }

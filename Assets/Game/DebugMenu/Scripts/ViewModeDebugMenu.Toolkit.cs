@@ -14,12 +14,12 @@ namespace StarterGame
         private readonly System.Collections.Generic.Dictionary<int, Button> weaponRows = new();
         private static readonly (string section, (string key, string action)[] keys)[] ToolkitControls =
         {
-            ("MOVEMENT", new[] { ("WASD", "Move"), ("Shift + W", "Sprint (or double-tap W)"), ("Space", "Jump / wall jump"),
+            ("MOVEMENT", new[] { ("WASD", "Move"), ("Shift + WASD", "Sprint in any direction (or double-tap W)"), ("Space", "Jump / wall jump"),
                 ("Ctrl", "Crouch"), ("Caps Lock", "Roll on ground / dive in air"), ("Hold S", "Dive backward (in an air dive)") }),
             ("COMBAT & PICKUPS", new[] { ("Left mouse", "Fire / unarmed attack"), ("Right mouse", "Aim"), ("R", "Reload"),
                 ("Q", "Drop weapon"), ("F", "Pick up / mystery box") }),
             ("CAMERA & TEST AREAS", new[] { ("K", "Fly / park camera"), ("Free roam", "WASD + mouse, Space / Ctrl up / down, Shift boost"),
-                ("F5", "Gun range"), ("F6", "Movement course"), ("F7", "Mob test spot"), ("F9", "Reset targets + refill ammo"),
+                ("F5", "Gun range"), ("F6", "Movement course"), ("F7", "Mob test spot"), ("F8", "Aim ring"), ("F9", "Reset targets + refill ammo"),
                 ("F1", "Toggle menu"), ("Esc", "Release cursor") }),
         };
 

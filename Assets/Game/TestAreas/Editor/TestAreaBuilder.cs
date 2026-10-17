@@ -120,6 +120,25 @@ namespace Game.TestAreas.Editor
             }
             Label(root, "ROCKET BLAST AREA", new Vector3(-24f, 3.6f, 46f), 0.08f);
             Marker(root, "GR-Rocket", "Rocket firing spot", new Vector3(-24f, 0f, 22f), 0f);
+
+            // Fixed view aiming ring: 8 targets 8 m from the pad at 45° steps, broad side to the pad.
+            // Two stand on 1.5 m boxes to test the aim height over raised floor.
+            Vector3 ringCentre = new Vector3(25f, 0f, 20f);
+            var ring = Group(root, "Aim ring targets", true);
+            for (int i = 0; i < 8; i++)
+            {
+                float angle = i * 45f;
+                Vector3 spot = ringCentre + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * 8f;
+                bool raised = i == 1 || i == 6;
+                if (raised) Box(root, "Aim ring box " + angle + "°", spot + Vector3.up * 0.75f, new Vector3(1.4f, 1.5f, 1.4f), cover);
+                var target = Target(ring, "Ring target " + angle + "°", spot + Vector3.up * (raised ? 1.5f : 0f), 1000f, angle + "°");
+                target.localRotation = Quaternion.Euler(0f, angle, 0f);
+                // Labels stay readable from the fixed camera, which looks along +Z.
+                foreach (var text in target.GetComponentsInChildren<TextMesh>()) text.transform.rotation = Quaternion.identity;
+            }
+            Outline(root, ringCentre, 4f, 4f);
+            Label(root, "AIM RING (fixed view)", ringCentre + new Vector3(0f, 0.6f, -2.6f), 0.06f);
+            Marker(root, "GR-Ring", "Aim ring (fixed view)", ringCentre, 0f);
         }
 
         static Transform Target(Transform parent, string name, Vector3 local, float hitPoints, string caption)

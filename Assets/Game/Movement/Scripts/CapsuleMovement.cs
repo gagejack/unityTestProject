@@ -16,7 +16,7 @@ namespace Game.Movement
     {
         [Tooltip("Walking speed in meters per second.")]
         [SerializeField, Min(0f)] private float moveSpeed = 4.5f;
-        [Header("Running — double-tap W or hold Shift")]
+        [Header("Running — hold Shift (any direction) or double-tap W")]
         [Tooltip("Running speed as a multiple of walking speed.")]
         [SerializeField, Min(1f)] private float runSpeedMultiplier = 1.5f;
         [Tooltip("Seconds allowed between two W presses for a double-tap run.")]
@@ -26,6 +26,8 @@ namespace Game.Movement
         [SerializeField, Min(0f)] private float turnSpeed = 360f;
         [Tooltip("Degrees per second when turning toward the aim direction outside third person.")]
         [SerializeField, Min(0f)] private float aimTurnSpeed = 720f;
+        [Tooltip("Degrees per second the body turns toward the mouse cursor in fixed view, armed or not. 720 turns 180° in 0.25 s.")]
+        [SerializeField, Min(0f)] private float cursorTurnSpeed = 720f;
         [Tooltip("Height of an ordinary jump in meters, the same at every frame rate.")]
         [SerializeField, Min(0f)] private float jumpHeight = 1.6f;
         [Tooltip("Downward acceleration in meters per second squared (negative). Stronger gravity feels less floaty.")]
@@ -99,7 +101,7 @@ namespace Game.Movement
         public bool IsDivingBackward => (IsDiving || IsSliding) && Vector3.Dot(rollDirection, transform.forward) < 0f;
         public float RollProgress => IsRolling ? Mathf.Clamp01(rollElapsed / activeRollDuration) : 0f;
 
-        /// <summary>Third-person facing: the body faces the view heading. Fixed and parked views turn toward travel instead.</summary>
+        /// <summary>Third-person facing: the body faces the view heading. Fixed view faces the cursor's aim point; parked views turn toward travel.</summary>
         public bool FaceCameraDirection { get; set; } = true;
 
         /// <summary>The camera the player steers by.</summary>
@@ -210,10 +212,11 @@ namespace Game.Movement
         {
             ReadModifiers(Time.deltaTime);
             var keyboard = Keyboard.current;
+            Vector2 move = moveAction.ReadValue<Vector2>();
             UpdateRunInput(Time.unscaledTime, keyboard != null && keyboard.wKey.wasPressedThisFrame,
-                keyboard != null && keyboard.wKey.isPressed,
+                keyboard != null && keyboard.wKey.isPressed, move.sqrMagnitude > 0.01f,
                 keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed));
-            Step(Time.deltaTime, moveAction.ReadValue<Vector2>(), jumpAction.WasPressedThisFrame(), rollAction.WasPressedThisFrame());
+            Step(Time.deltaTime, move, jumpAction.WasPressedThisFrame(), rollAction.WasPressedThisFrame());
         }
 
         /// <summary>One frame of movement: decide the state, then move the capsule once.</summary>
@@ -300,12 +303,12 @@ namespace Game.Movement
             return false;
         }
 
-        void UpdateRunInput(float now, bool forwardPressed, bool forwardHeld, bool runModifierHeld)
+        void UpdateRunInput(float now, bool forwardPressed, bool forwardHeld, bool moveHeld, bool runModifierHeld)
         {
             // No focus check: the Input System already releases held keys when the window loses focus.
             bool blocked = !PlayerControlEnabled || IsCrouching || IsRolling || IsDiving || IsSliding || runningBlocked;
-            // Either Shift key can request running while W is held.
-            holdRunRequested = !blocked && forwardHeld && runModifierHeld;
+            // Either Shift key requests running in any direction; a double-tap run needs W.
+            holdRunRequested = !blocked && moveHeld && runModifierHeld;
             if (blocked)
             {
                 runRequested = false;
@@ -321,9 +324,10 @@ namespace Game.Movement
 
         void UpdateRunning(Vector2 input)
         {
-            bool canRun = PlayerControlEnabled && input.y > 0.1f && !IsCrouching && !IsRolling && !IsDiving && !IsSliding && !runningBlocked;
+            bool canRun = PlayerControlEnabled && input.sqrMagnitude > 0.01f && !IsCrouching && !IsRolling && !IsDiving && !IsSliding && !runningBlocked;
             if (!canRun) runRequested = holdRunRequested = false;
-            IsRunning = (runRequested || holdRunRequested) && canRun;
+            // Shift runs in any direction; a double-tap W run only while moving forward.
+            IsRunning = canRun && (holdRunRequested || (runRequested && input.y > 0.1f));
         }
 
         // ---------------------------------------------------------------- Heading and facing
@@ -341,7 +345,16 @@ namespace Game.Movement
         void UpdateFacing(Vector3 forward, Vector3 direction, float dt)
         {
             bool directView = FaceCameraDirection && view != null && view.FacesViewHeading;
-            if (TryGetModifierFacing(out Vector3 aimForward))
+            if (view != null && view.FacesAimPoint)
+            {
+                // Fixed view: the cursor sets the facing, including while aiming. Turning about the vertical axis
+                // keeps a 180° turn upright.
+                Vector3 toAim = Vector3.ProjectOnPlane(view.AimPoint - transform.position, Vector3.up);
+                if (toAim.sqrMagnitude > 0.0001f)
+                    transform.rotation = Quaternion.Euler(0f, Mathf.MoveTowardsAngle(transform.eulerAngles.y,
+                        Quaternion.LookRotation(toAim).eulerAngles.y, cursorTurnSpeed * dt), 0f);
+            }
+            else if (TryGetModifierFacing(out Vector3 aimForward))
             {
                 var aim = Quaternion.LookRotation(aimForward.sqrMagnitude > 0.001f ? aimForward : forward);
                 // Mouse-facing movement keeps the same direct response when aiming starts.

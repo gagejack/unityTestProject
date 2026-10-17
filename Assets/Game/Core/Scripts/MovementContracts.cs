@@ -42,6 +42,15 @@ namespace Game.Core
 
         /// <summary>The view's horizontal forward direction.</summary>
         Vector3 PlanarForward { get; }
+
+        /// <summary>True when the character should turn toward AimPoint (fixed view while the game has the pointer).</summary>
+        bool FacesAimPoint { get; }
+
+        /// <summary>
+        /// The world point the player aims at in fixed view, from the mouse cursor. While the cursor is inside the
+        /// dead zone or off the screen it keeps its last direction from the character, so the facing holds still.
+        /// </summary>
+        Vector3 AimPoint { get; }
     }
 
     /// <summary>Something that can take control away from the player, such as an open menu or a flying camera.</summary>
