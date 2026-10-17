@@ -35,9 +35,21 @@ namespace StarterGame
     }
 
     /// <summary>
+    /// Where the hands reach during a draw or holster (filled by <c>WeaponHolster.PrepareReach</c>): the hand is pulled
+    /// toward its point by its weight (0 = the animated hand, 1 = exactly on the point). World space.
+    /// </summary>
+    public struct HandReach
+    {
+        public float right, left;
+        public Vector3 rightPoint, leftPoint;
+        public bool Active => right > 0f || left > 0f;
+    }
+
+    /// <summary>
     /// The pose adjustments made inside the animation graph, after the clips are mixed and before the bones are
     /// written. First the gun hands are placed with Humanoid IK (right hand aims, left hand holds the support grip or
-    /// aims a second handgun); then the running lean, running-arm tuck and chest aim pitch rotate the bones. The
+    /// aims a second handgun, and both reach for the holster while drawing or holstering); then the running lean,
+    /// running-arm tuck and chest aim pitch rotate the bones. The
     /// hand goals are given in the pose before those rotations, so the hands end up on target after them.
     /// Values are set by <see cref="MaleWalkRetarget"/> each frame before the graph is evaluated.
     /// </summary>
@@ -51,6 +63,7 @@ namespace StarterGame
         public float armDownAngle;
         public float aimPitch;
         public GunHands gun;
+        public HandReach reach;
 
         public void ProcessRootMotion(AnimationStream stream) { }
 
@@ -60,7 +73,7 @@ namespace StarterGame
             // Lean: spine and chest take half each, for a gentle curve. Aim pitch turns the chest on top.
             Quaternion lean = Quaternion.AngleAxis(-0.5f * leanDegrees, right);
             Quaternion pitch = Quaternion.AngleAxis(aimPitch, right);
-            if (gun.active && stream.isHumanStream) PlaceGunHands(stream, lean, pitch * lean);
+            if ((gun.active || reach.Active) && stream.isHumanStream) PlaceGunHands(stream, lean, pitch * lean);
             if (leanDegrees > 0f)
             {
                 spine.SetRotation(stream, lean * spine.GetRotation(stream));
@@ -140,6 +153,17 @@ namespace StarterGame
                 // The support grip is on the gun, which the right hand carries.
                 leftPosition = Vector3.Lerp(leftPosition, rightPosition + rightRotation * gun.supportPoint, gun.support);
                 leftRotation = Quaternion.Slerp(leftRotation, rightRotation * gun.supportRotation, gun.support);
+                leftGoal = true;
+            }
+            // Drawing or holstering: the hands reach for the holster, keeping the animated hand rotation.
+            if (reach.right > 0f)
+            {
+                rightPosition = Vector3.Lerp(rightPosition, reach.rightPoint, reach.right);
+                rightGoal = true;
+            }
+            if (reach.left > 0f)
+            {
+                leftPosition = Vector3.Lerp(leftPosition, reach.leftPoint, reach.left);
                 leftGoal = true;
             }
             if (!rightGoal && !leftGoal) return;

@@ -96,6 +96,10 @@ namespace StarterGame
         private AnimationMixerPlayable sprintHoldMixer;
         private readonly bool[] familyHasHold = new bool[SoldierFamilies];
         private AvatarMask sprintHoldMask;
+        // Drawing from and holstering to the back: the holster's sheathe clips on the upper body.
+        private WeaponHolster holster;
+        private AnimationMixerPlayable holsterClipMixer;
+        private AnimationClipPlayable holsterDrawPlayable, holsterStowPlayable;
         // How much of the sprint hold pose is on the arms now (0-1); the support hand stays on the gun by this much.
         public float SprintHoldWeight { get; private set; }
         private AnimationClipPlayable[] soldierPlayables;
@@ -171,6 +175,7 @@ namespace StarterGame
             controller = GetComponent<CharacterController>();
             movement = GetComponent<CapsuleMovement>();
             weapons = GetComponent<WeaponCombatController>();
+            holster = GetComponent<WeaponHolster>();
             blockRig = GetComponent<BlockHumanoidRig>();
             punchContact = GetComponent<StraightPunchContact>();
             viewMenu = FindAnyObjectByType<ViewModeDebugMenu>();
@@ -272,8 +277,8 @@ namespace StarterGame
 
         private void Update()
         {
-            // Left click belongs to the equipped gun; empty hands use unarmed attacks.
-            if ((movement && !movement.PlayerControlEnabled) || (weapons && weapons.HasWeapon)) return;
+            // Left click belongs to the equipped gun; empty hands use unarmed attacks (not while drawing or holstering).
+            if ((movement && !movement.PlayerControlEnabled) || (weapons && (weapons.HasWeapon || weapons.IsSwitchingWeapon))) return;
             var mouse = Mouse.current;
             // No focus check, as in movement: the Input System already releases held buttons when the window loses focus.
             if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
@@ -287,7 +292,7 @@ namespace StarterGame
         public bool PlayNextFightingMotion()
         {
             if (!isActiveAndEnabled || !graph.IsValid() || fightingWeights.Length == 0 ||
-                SpecialMoveActive || (movement && !movement.PlayerControlEnabled) || (weapons && weapons.HasWeapon)) return false;
+                SpecialMoveActive || (movement && !movement.PlayerControlEnabled) || (weapons && (weapons.HasWeapon || weapons.IsSwitchingWeapon))) return false;
             if (IsAttacking)
             {
                 // Buffer only one follow-up, so extra clicks cannot create a long unwanted combo.
@@ -508,7 +513,7 @@ namespace StarterGame
             }
             // At rest use the Soldier's whole stance; during movement retain the run
             // footwork shared with the Soldier pack and layer the weapon over the torso.
-            weaponLayers = AnimationLayerMixerPlayable.Create(graph, 4);
+            weaponLayers = AnimationLayerMixerPlayable.Create(graph, 5);
             graph.Connect(mixer, 0, weaponLayers, 0);
             graph.Connect(soldierFullBodyMixer, 0, weaponLayers, 1);
             graph.Connect(soldierMixer, 0, weaponLayers, 2);
@@ -540,7 +545,37 @@ namespace StarterGame
                 AvatarMaskBodyPart.LeftFingers, AvatarMaskBodyPart.RightFingers })
                 sprintHoldMask.SetHumanoidBodyPartActive(part, true);
             weaponLayers.SetLayerMaskFromAvatarMask(3, sprintHoldMask);
+            // Upper body only, so the legs keep walking while the arms draw or holster.
+            holsterClipMixer = AnimationMixerPlayable.Create(graph, 2);
+            if (holster && holster.DrawFromBackClip && holster.HolsterToBackClip)
+            {
+                holsterDrawPlayable = AnimationClipPlayable.Create(graph, holster.DrawFromBackClip);
+                holsterStowPlayable = AnimationClipPlayable.Create(graph, holster.HolsterToBackClip);
+                foreach (var clip in new[] { holsterDrawPlayable, holsterStowPlayable })
+                {
+                    clip.SetApplyFootIK(false);
+                    clip.SetSpeed(0d);
+                }
+                graph.Connect(holsterDrawPlayable, 0, holsterClipMixer, 0);
+                graph.Connect(holsterStowPlayable, 0, holsterClipMixer, 1);
+            }
+            graph.Connect(holsterClipMixer, 0, weaponLayers, 4);
+            weaponLayers.SetLayerMaskFromAvatarMask(4, soldierUpperBodyMask);
             return true;
+        }
+
+        // The holster's draw or holster clip, at the time and weight the holster says (none for hip guns or special moves).
+        private void UpdateHolsterLayer(bool special)
+        {
+            if (!holsterDrawPlayable.IsValid()) return;
+            AnimationClip clip = holster ? holster.ActiveClip : null;
+            bool drawing = clip && clip == holster.DrawFromBackClip;
+            float weight = clip && !special ? holster.ActiveClipWeight : 0f;
+            var active = drawing ? holsterDrawPlayable : holsterStowPlayable;
+            if (clip) active.SetTime(Mathf.Min(holster.ActiveClipTime, clip.length - 0.001f));
+            holsterClipMixer.SetInputWeight(0, drawing ? 1f : 0f);
+            holsterClipMixer.SetInputWeight(1, drawing ? 0f : 1f);
+            weaponLayers.SetInputWeight(4, weight);
         }
 
         private void UpdateSoldierLayers(float dt)
@@ -578,6 +613,7 @@ namespace StarterGame
             for (int f = 0; f < SoldierFamilies; f++) sprintHoldMixer.SetInputWeight(f, hold && f == family ? 1f : 0f);
             SprintHoldWeight = hold ? soldierWeight * runBlend : 0f;
             weaponLayers.SetInputWeight(3, SprintHoldWeight);
+            UpdateHolsterLayer(SpecialMoveActive);
             CurrentSoldierAnimation = armed ? soldierPlayables[selected].GetAnimationClip().name : "";
         }
 
@@ -622,6 +658,7 @@ namespace StarterGame
             // Grounding moves the body after the graph; last frame's shift is the expected one.
             Vector3 groundShift = blockRig && blockRig.UsingDownloadedAnimation ? Vector3.up * blockRig.GroundHeight : Vector3.zero;
             job.gun = weapons ? weapons.PrepareGunHands(dt, !special, groundShift) : default;
+            job.reach = holster && !special ? holster.PrepareReach(groundShift) : default;
             bodyPose.SetJobData(job);
         }
 

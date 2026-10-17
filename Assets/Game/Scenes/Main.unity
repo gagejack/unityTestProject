@@ -5988,7 +5988,7 @@ MonoBehaviour:
   player: {fileID: 1072327769}
   followCamera: {fileID: 330585548}
   startingMode: 1
-  showMenu: 1
+  showMenu: 0
 --- !u!114 &330585550
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35832,10 +35832,19 @@ MonoBehaviour:
     bone: 0
     position: {x: 0.3, y: 0.03, z: 0}
     euler: {x: 90, y: 0, z: 0}
+    handHold: 0
+    contact: 0.45
   back:
     bone: 8
     position: {x: -0.1, y: -0.3, z: -0.17}
     euler: {x: -60, y: 90, z: 0}
+    handHold: 0.45
+    contact: 0.5
+  drawTime: 0.5
+  holsterTime: 0.5
+  settleTime: 0.15
+  drawFromBack: {fileID: 3094330708855449807, guid: 641db7746f3badc4c9f809ada5c96cd2, type: 3}
+  holsterToBack: {fileID: 3094330708855449807, guid: 1b168cbc35148494bb365bb574f21877, type: 3}
 --- !u!1 &2047023556
 GameObject:
   m_ObjectHideFlags: 0

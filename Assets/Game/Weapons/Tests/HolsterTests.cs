@@ -37,7 +37,7 @@ namespace Game.Weapons.Tests
             foreach (var settings in offers.Where(o => o))
             {
                 yield return Equip(settings.name);
-                yield return Tap(Key.H);
+                yield return Swap();
                 string category = Field(settings, "category").ToString();
                 bool hip = (category == "Pistols" || category == "SMGs") && !(bool)Field(settings, "holsterOnBack");
                 Transform bone = rig.GetBoneTransform(hip ? HumanBodyBones.Hips : HumanBodyBones.Chest);
@@ -53,7 +53,7 @@ namespace Game.Weapons.Tests
                     Assert.AreEqual(bone, left.transform.parent, $"{settings.name}: the second gun should ride on the hip too");
                     Assert.That(left.transform.localPosition.x, Is.LessThan(0f), $"{settings.name}: the second gun belongs on the left hip");
                 }
-                yield return Tap(Key.H); // draw it again, so the next equip replaces it instead of keeping two guns
+                yield return Swap(); // draw it again, so the next equip replaces it instead of keeping two guns
             }
         }
 
@@ -65,20 +65,20 @@ namespace Game.Weapons.Tests
             yield return Equip("AssaultRifle");
             var rifle = Offers().Single(o => o && o.name == "AssaultRifle");
             int rifleAmmo = Get<int>(weapons, "MagazineAmmo");
-            yield return Tap(Key.H);
+            yield return Swap();
             yield return Equip("Sidearm");
             var pistol = Offers().Single(o => o && o.name == "Sidearm");
             int pistolAmmo = Get<int>(weapons, "MagazineAmmo");
             Assert.AreEqual(rifle, Get<Object>(weapons, "HolsteredWeapon"), "Equipping into empty hands should keep the holstered rifle");
 
-            yield return Tap(Key.H);
+            yield return Swap();
             Assert.AreEqual(rifle, Get<Object>(weapons, "CurrentWeapon"), "H should draw the rifle");
             Assert.AreEqual(pistol, Get<Object>(weapons, "HolsteredWeapon"), "H should holster the pistol");
             Assert.AreEqual(rifleAmmo, Get<int>(weapons, "MagazineAmmo"), "The rifle keeps its own magazine");
             Assert.AreEqual(rig.GetBoneTransform(HumanBodyBones.Hips), Model("HolsteredModel").transform.parent, "The holstered pistol rides on the hip");
             Assert.AreEqual(rig.GetBoneTransform(HumanBodyBones.RightHand), Model("HeldModel").transform.parent, "The rifle is in the right hand");
 
-            yield return Tap(Key.H);
+            yield return Swap();
             Assert.AreEqual(pistol, Get<Object>(weapons, "CurrentWeapon"), "H again swaps back to the pistol");
             Assert.AreEqual(pistolAmmo, Get<int>(weapons, "MagazineAmmo"), "The pistol keeps its own magazine");
 
@@ -94,7 +94,7 @@ namespace Game.Weapons.Tests
             yield return StartAtGunRange();
             yield return Equip("AssaultRifle");
             int ammo = Get<int>(weapons, "MagazineAmmo");
-            yield return Tap(Key.H);
+            yield return Swap();
             Assert.IsTrue(Get<Object>(weapons, "HolsteredWeapon") && !Get<bool>(weapons, "HasWeapon"), "H should holster the gun");
 
             // Left click while holstered is an unarmed attack.
@@ -109,11 +109,65 @@ namespace Game.Weapons.Tests
 
             // Right mouse draws straight into aim.
             SetMouse(MouseButton.Right, true);
-            for (int i = 0; i < 20; i++) yield return null;
+            // The draw takes Draw Time (0.5 s = 30 frames); aiming starts once it ends.
+            for (int i = 0; i < 50; i++) yield return null;
             Assert.IsTrue(Get<bool>(weapons, "HasWeapon"), "Right mouse should draw the holstered gun");
             Assert.IsTrue(Get<bool>(weapons, "IsAiming"), "Holding right mouse should aim once drawn");
             SetMouse(MouseButton.Right, false);
             Assert.AreEqual(ammo, Get<int>(weapons, "MagazineAmmo"), "Holstering should keep the magazine");
+        }
+
+        // FEEL_SPEC > Holstering: draw and holster each take 0.5 s (±1 frame) at all frame rates; the hand is within
+        // 5 cm of where it takes hold of the gun when it changes hands; the gun never jumps: at 144 fps no single frame
+        // moves it more than 15 cm relative to the body (a teleport onto the body would be a step of about half a meter).
+        const float MotionTime = 0.5f, HoldDistance = 0.05f, MaxStepAt144 = 0.15f;
+
+        [UnityTest]
+        public IEnumerator DrawAndHolsterReachTheGunAndTakeTheirTime([Values("AssaultRifle", "Sidearm")] string gun, [Values(30, 60, 144)] int fps)
+        {
+            yield return StartAtGunRange(fps);
+            yield return Equip(gun);
+            Transform hand = rig.GetBoneTransform(HumanBodyBones.RightHand);
+            var gunSettings = Offers().Single(o => o && o.name == gun);
+            foreach (bool holstering in new[] { true, false })
+            {
+                var model = Model("HeldModel") ?? Model("HolsteredModel");
+                Vector3 last = player.InverseTransformPoint(model.transform.position);
+                float fastest = 0f, handGap = -1f, time = 0f;
+                bool wasHeld = Get<bool>(weapons, "HasWeapon");
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.H));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                for (int i = 0; i < fps * 2 && Get<bool>(weapons, "IsSwitchingWeapon"); i++)
+                {
+                    time += 1f / fps;
+                    yield return null;
+                    Vector3 now = player.InverseTransformPoint(model.transform.position);
+                    fastest = Mathf.Max(fastest, Vector3.Distance(now, last) * fps);
+                    last = now;
+                    bool held = Get<bool>(weapons, "HasWeapon");
+                    // The gun changes hands on this frame: measure the hand against where it takes hold of the gun.
+                    if (held != wasHeld && handGap < 0f) handGap = Vector3.Distance(hand.position, HoldPoint(gunSettings));
+                    wasHeld = held;
+                }
+                string what = $"{gun} {(holstering ? "holster" : "draw")} at {fps} fps";
+                Assert.That(time, Is.EqualTo(MotionTime).Within(1f / fps + 0.0001f), $"{what}: time (s)");
+                Assert.That(handGap, Is.InRange(0f, HoldDistance), $"{what}: hand distance from the gun's hold point when it changes hands (m)");
+                if (fps == 144) Assert.That(fastest / fps, Is.LessThan(MaxStepAt144), $"{what}: largest one-frame gun step relative to the body (m)");
+                Assert.AreEqual(!holstering, Get<bool>(weapons, "HasWeapon"), $"{what}: should end with the gun {(holstering ? "holstered" : "in hand")}");
+                for (int i = 0; i < fps / 4; i++) yield return null;
+            }
+        }
+
+        // Where the hand takes hold of the gun on its holster spot (on the back, partway along it; on the hip, the grip).
+        Vector3 HoldPoint(Object settings) => (Vector3)holster.GetType().GetMethod("HandHoldPoint").Invoke(holster, new object[] { settings });
+
+        // H, then wait for the draw, holster or swap to finish.
+        IEnumerator Swap()
+        {
+            yield return Tap(Key.H);
+            for (int i = 0; i < 240 && Get<bool>(weapons, "IsSwitchingWeapon"); i++) yield return null;
+            yield return null;
         }
 
         // Events are only queued: the frame's own input update delivers them, so "pressed this frame" holds during that frame.
@@ -156,7 +210,7 @@ namespace Game.Weapons.Tests
         static T Get<T>(Object target, string property) => (T)target.GetType().GetProperty(property).GetValue(target);
 
         // Runs inside each test, after InputTestFixture.Setup has given the test its own clean input system.
-        IEnumerator StartAtGunRange()
+        IEnumerator StartAtGunRange(int fps = 60)
         {
             yield return SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
             yield return null;
@@ -171,9 +225,9 @@ namespace Game.Weapons.Tests
             weapons = player.GetComponents<MonoBehaviour>().Single(b => b.GetType().Name == "WeaponCombatController");
             holster = player.GetComponents<MonoBehaviour>().SingleOrDefault(b => b.GetType().Name == "WeaponHolster");
             Assert.IsNotNull(holster, "The Player has no WeaponHolster.");
-            Time.captureDeltaTime = 1f / 60f;
+            Time.captureDeltaTime = 1f / fps;
             TestStartMarker.Find("GR-Firing").TeleportPlayer();
-            for (int i = 0; i < 30; i++) yield return null;
+            for (int i = 0; i < fps / 2; i++) yield return null;
         }
     }
 }

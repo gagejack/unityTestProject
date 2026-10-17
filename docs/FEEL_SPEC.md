@@ -82,6 +82,16 @@ From the [fixed view aiming spec](spec/FixedViewAiming/SPEC.md); checkpoints 1 (
 | Dead-zone stability | Facing change while the cursor moves inside the dead zone (degrees) | 0 at 60 (Play-mode check) | 0 |
 | Look-ahead | Largest camera shift toward the cursor (m) | Not built | ≤ 3 |
 
+## Holstering
+From the [holstering spec](spec/Holstering/SPEC.md). Start pad: GR-Firing (F5). Checked by `HolsterTests` with the assault rifle (back) and the pistol Sidearm (hip).
+
+| Metric | Definition | Measured 30 / 60 / 144 | Target |
+|---|---|---|---|
+| Draw / holster time | Seconds from pressing H to the motion ending (draw: gun ready to fire; holster: hands free) | 0.500 at all three, rifle and pistol | 0.5 ±1 frame |
+| Hand at the holster | Distance from the right hand to where it takes hold of the gun, on the frame the gun changes hands (cm) | Rifle 1.0-2.0, pistol 1.0-2.5 | ≤ 5 |
+| No teleport | Largest one-frame step of the gun relative to the body at 144 fps (cm) | Rifle 12.4 (holster), 9.9 (draw); pistol 2.5 | ≤ 15 |
+| Gun speed | Fastest gun movement relative to the body (m/s), the same at all frame rates | Rifle holster 15-18, draw 11-14; pistol 3-3.5 | (no target; the back clip's arm swing over the shoulder) |
+
 ## Notes on the measures
 - Hand jitter (in the raw logs) is a frame-to-frame second difference and shrinks with frame rate; compare it only at the same frame rate.
 - Ankle foot slide: a foot counts as planted while its ankle is within 3 cm of that ankle's lowest point in the window, so very short contacts at 30 fps are partly missed. Mob foot slide uses this measure.

@@ -145,7 +145,15 @@ namespace StarterGame
         }
 
         /// <summary>A gun in the hands. With empty hands the player is unarmed, even with a gun holstered.</summary>
-        public bool HasWeapon => isActiveAndEnabled && heldWeapon != null;
+        public bool HasWeapon => isActiveAndEnabled && heldWeapon != null && handReady;
+        /// <summary>True while drawing, holstering or swapping: no firing, aiming, reloading, running or unarmed attacks.</summary>
+        public bool IsSwitchingWeapon => holster && holster.IsSwitching;
+        // False while the hand slot's gun is still on its way from the holster (it is the hand's gun, not yet in the hand).
+        private bool handReady = true;
+        // After a draw the gun settles from where the hand took it to its grip (0 = as taken, 1 = in the grip).
+        private float gripSettle = 1f;
+        private Vector3 settleFromPosition, settleFromPositionLeft;
+        private Quaternion settleFromRotation = Quaternion.identity, settleFromRotationLeft = Quaternion.identity;
         /// <summary>The gun in the holster (the second slot, on the body), or null.</summary>
         public WeaponSettings HolsteredWeapon => holsteredModel && holsteredOffer >= 0 && holsteredOffer < offers.Length ? offers[holsteredOffer] : null;
         public int HolsteredMagazineAmmo => holsteredMagazine;
@@ -250,12 +258,12 @@ namespace StarterGame
             bool overMenu = Cursor.lockState != CursorLockMode.Locked && viewMenu && Mouse.current != null && viewMenu.ContainsPointer(Mouse.current.position.ReadValue());
             bool controlsEnabled = (!movement || movement.PlayerControlEnabled) && (!viewMenu || !viewMenu.IsOpen);
             // No focus check, as in movement: the Input System already releases held buttons when the window loses focus.
-            SetAiming(controlsEnabled && !overMenu && Mouse.current != null && Mouse.current.rightButton.isPressed);
+            SetAiming(controlsEnabled && !overMenu && !IsSwitchingWeapon && Mouse.current != null && Mouse.current.rightButton.isPressed);
             AimWeight = Mathf.MoveTowards(AimWeight, IsAiming ? 1f : 0f, Time.deltaTime / Mathf.Max(0.01f, aimBlendTime));
             bloom = Mathf.MoveTowards(bloom, 0f, bloomRecoveryPerSecond * Time.deltaTime);
             UpdateShootingSlowdown(Time.deltaTime);
             ScanPickups();
-            bool gameplayInput = controlsEnabled && !overMenu;
+            bool gameplayInput = controlsEnabled && !overMenu && !IsSwitchingWeapon;
             if (gameplayInput && Keyboard.current != null)
             {
                 if (Keyboard.current.fKey.wasPressedThisFrame)
@@ -295,7 +303,7 @@ namespace StarterGame
         float IMovementModifier.SpeedMultiplier => EquippedMovementMultiplier * AimingMovementMultiplier * ShootingMovementMultiplier;
         bool IMovementModifier.EaseSpeedChange => false;
         bool IMovementModifier.BlocksRunning => IsAiming || IsReloading || (HasWeapon && Time.time - LastShotTime < runBlockAfterShot)
-            || Time.time < turnShotUntil;
+            || Time.time < turnShotUntil || IsSwitchingWeapon;
         bool IMovementModifier.BlocksCommittedMoves => false;
         bool IMovementModifier.LimitsMomentum => false;
         bool IMovementModifier.TryGetFacing(out Vector3 planarForward)
@@ -332,7 +340,7 @@ namespace StarterGame
         private void TryFire()
         {
             if (movement && !movement.PlayerControlEnabled) return;
-            if (reloading || !HasWeapon || pendingShot || Time.time < nextShotTime) return;
+            if (reloading || !HasWeapon || IsSwitchingWeapon || pendingShot || Time.time < nextShotTime) return;
             if (movement && (movement.IsRolling || movement.IsDiving || movement.IsSliding)) return;
             if (UnityEngine.EventSystems.EventSystem.current != null &&
                 UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
@@ -485,7 +493,7 @@ namespace StarterGame
 
         private void BeginReload()
         {
-            if (!HasWeapon || reloading || ammoInMagazine >= CurrentMagazineSize || reserveAmmo <= 0) return;
+            if (!HasWeapon || IsSwitchingWeapon || reloading || ammoInMagazine >= CurrentMagazineSize || reserveAmmo <= 0) return;
             reloading = true;
             if (feedback) feedback.StopFiringSound();
             pendingShot = false;
@@ -817,6 +825,10 @@ namespace StarterGame
         private void AttachWeapon()
         {
             if (feedback) feedback.StopFiringSound();
+            // A new gun in the hands ends any draw or holster in progress.
+            if (holster) holster.CancelMotion();
+            handReady = true;
+            gripSettle = 1f;
             if (heldWeapon) Destroy(heldWeapon);
             if (heldWeaponLeft) Destroy(heldWeaponLeft);
             heldWeaponLeft = null;
@@ -879,10 +891,11 @@ namespace StarterGame
         }
 
         /// <summary>
-        /// H: swaps the gun in the hands with the holstered one. With an empty holster this holsters the gun in hand;
-        /// with empty hands it draws. Each gun keeps its own ammo.
+        /// Exchanges the hand slot and the holster slot (guns, models and ammo), at the moment the hand reaches the
+        /// holster. The models are moved by <see cref="WeaponHolster"/>; a gun arriving in the hand slot counts as held
+        /// only once the holster calls <see cref="SetHandReady"/>. Each gun keeps its own ammo.
         /// </summary>
-        public void SwapWithHolster()
+        internal void SwapSlots()
         {
             if (!isActiveAndEnabled || (!heldWeapon && !holsteredModel)) return;
             if (feedback) feedback.StopFiringSound();
@@ -898,21 +911,18 @@ namespace StarterGame
             (int offer, int magazine, int reserve, GameObject model, GameObject left) drawing =
                 (holsteredOffer, holsteredMagazine, holsteredReserve, holsteredModel, holsteredModelLeft);
             if (stowing)
-            {
                 (holsteredOffer, holsteredMagazine, holsteredReserve, holsteredModel, holsteredModelLeft) =
                     (equippedOffer, ammoInMagazine, reserveAmmo, heldWeapon, heldWeaponLeft);
-                if (holster) holster.PlaceOnBody(heldWeapon, heldWeaponLeft, stowing);
-            }
             else (holsteredOffer, holsteredModel, holsteredModelLeft) = (-1, null, null);
             heldWeapon = drawing.model;
             heldWeaponLeft = drawing.left;
+            handReady = false;
             if (heldWeapon)
             {
                 equippedOffer = drawing.offer;
                 ApplySettings(offers[equippedOffer]);
                 ammoInMagazine = drawing.magazine;
                 reserveAmmo = drawing.reserve;
-                if (holster) holster.PlaceInHands(heldWeapon, heldWeaponLeft);
             }
             reloading = false;
             IsAiming = false;
@@ -924,11 +934,33 @@ namespace StarterGame
             recoil = recoilTarget = recoilVelocity = gripWeight = pointWeight = 0f;
             leftRecoil = leftRecoilTarget = leftRecoilVelocity = 0f;
             nextShotLeft = pendingShotLeft = LastShotUsedLeftHand = false;
-            var sounded = heldWeapon ? CurrentWeapon : stowing;
-            if (feedback && sounded) feedback.Handling(sounded.equipSounds, transform.position + Vector3.up, sounded.shotPitch);
-            if (heldWeapon && characterAnimations) characterAnimations.CancelFightingMotion();
+            if (feedback && stowing) feedback.Handling(stowing.equipSounds, transform.position + Vector3.up, stowing.shotPitch);
             RefreshHud();
         }
+
+        /// <summary>
+        /// The hand has taken the hand slot's gun from the holster (its models are already parented to the hands, where
+        /// the hand took them): it now counts as held and settles into its grip over settleTime seconds.
+        /// </summary>
+        internal void SetHandReady(float settleTime)
+        {
+            if (!heldWeapon) return;
+            handReady = true;
+            settleFromPosition = heldWeapon.transform.localPosition;
+            settleFromRotation = heldWeapon.transform.localRotation;
+            if (heldWeaponLeft)
+            {
+                settleFromPositionLeft = heldWeaponLeft.transform.localPosition;
+                settleFromRotationLeft = heldWeaponLeft.transform.localRotation;
+            }
+            gripSettle = settleTime > 0f ? 0f : 1f;
+            gripSettleRate = 1f / Mathf.Max(0.01f, settleTime);
+            if (feedback) feedback.Handling(CurrentWeapon.equipSounds, MuzzlePosition, CurrentWeapon.shotPitch);
+            if (characterAnimations) characterAnimations.CancelFightingMotion();
+            RefreshHud();
+        }
+
+        private float gripSettleRate = 1f;
 
         // Updates recoil and the support grip, places the gun in the hand, and says where the pose step inside the
         // animation graph (BodyPoseJob) should put the hands this frame. groundShift is how far grounding is expected
@@ -950,9 +982,12 @@ namespace StarterGame
             Quaternion grip = Quaternion.Slerp(Quaternion.Euler(CurrentWeapon.gripEuler), Quaternion.Euler(CurrentWeapon.aimedGripEuler), aim);
             hands.active = true;
             hands.aim = aim;
-            // Fixed view: between aimed shots the wrist still turns the barrel onto the aim line (not while running or reloading).
-            pointWeight = Mathf.MoveTowards(pointWeight, CursorAiming && allowSupportHand && !IsReloading ? 1f : 0f, dt / 0.1f);
-            hands.point = pointWeight * (1f - running);
+            gripSettle = Mathf.MoveTowards(gripSettle, 1f, dt * gripSettleRate);
+            float settled = Mathf.SmoothStep(0f, 1f, gripSettle);
+            // Fixed view: between aimed shots the wrist still turns the barrel onto the aim line (not while running,
+            // reloading or switching guns).
+            pointWeight = Mathf.MoveTowards(pointWeight, CursorAiming && allowSupportHand && !IsReloading && !IsSwitchingWeapon ? 1f : 0f, dt / 0.1f);
+            hands.point = pointWeight * (1f - running) * settled;
             hands.aimPoint = (aim > 0f || hands.point > 0f ? AimTargetPoint() : Vector3.zero) - groundShift;
             hands.aimHandOffset = transform.TransformDirection(CurrentWeapon.aimHandOffset) * aim;
             hands.aimedGrip = Quaternion.Euler(CurrentWeapon.aimedGripEuler);
@@ -963,15 +998,21 @@ namespace StarterGame
             hands.muzzle = toHand * (MuzzlePosition - rightHand.position);
             hands.barrel = toHand * heldWeapon.transform.forward;
             heldWeapon.transform.localRotation = grip * Quaternion.Euler(-recoil * CurrentWeapon.weaponKickAngle * weaponRecoilScale, 0f, 0f);
+            if (settled < 1f)
+            {
+                // Just drawn: the gun swings from where the hand took it into the grip.
+                heldWeapon.transform.localRotation = Quaternion.Slerp(settleFromRotation, heldWeapon.transform.localRotation, settled);
+                heldWeapon.transform.localPosition = Vector3.Lerp(settleFromPosition, heldWeapon.transform.localPosition, settled);
+            }
             if (IsDualWielding)
             {
-                PrepareOffhand(ref hands, aim);
+                PrepareOffhand(ref hands, aim, settled);
                 return hands;
             }
             float support = CurrentWeapon.supportHand ? 1f : aim;
-            // Running lets go of the gun unless a sprint hold pose keeps both hands on it.
+            // Running lets go of the gun unless a sprint hold pose keeps both hands on it; holstering lets go too.
             float sprintHold = characterAnimations ? characterAnimations.SprintHoldWeight : 0f;
-            gripWeight = Mathf.MoveTowards(gripWeight, allowSupportHand && !IsReloading
+            gripWeight = Mathf.MoveTowards(gripWeight, allowSupportHand && !IsReloading && !IsSwitchingWeapon
                 ? supportHandWeight * support * Mathf.Clamp01(1f - running + sprintHold) : 0f, dt / 0.1f);
             if (gripWeight <= 0f || !allowSupportHand || !leftHand) return hands;
             Vector3 supportPoint = heldWeapon.transform.TransformPoint(CurrentWeapon.supportHandLocalPosition);
@@ -986,7 +1027,7 @@ namespace StarterGame
             return hands;
         }
 
-        private void PrepareOffhand(ref GunHands hands, float aim)
+        private void PrepareOffhand(ref GunHands hands, float aim, float settled)
         {
             if (!heldWeaponLeft || !leftHand) return;
             Quaternion grip = Quaternion.Slerp(Quaternion.Euler(CurrentWeapon.leftGripEuler), Quaternion.Euler(CurrentWeapon.leftAimedGripEuler), aim);
@@ -999,6 +1040,11 @@ namespace StarterGame
             hands.leftMuzzle = toHand * (OffhandMuzzlePosition - leftHand.position);
             hands.leftBarrel = toHand * heldWeaponLeft.transform.forward;
             heldWeaponLeft.transform.localRotation = grip * Quaternion.Euler(-leftRecoil * CurrentWeapon.weaponKickAngle * weaponRecoilScale, 0f, 0f);
+            if (settled < 1f)
+            {
+                heldWeaponLeft.transform.localRotation = Quaternion.Slerp(settleFromRotationLeft, heldWeaponLeft.transform.localRotation, settled);
+                heldWeaponLeft.transform.localPosition = Vector3.Lerp(settleFromPositionLeft, heldWeaponLeft.transform.localPosition, settled);
+            }
         }
 
         private Vector3 AimTargetPoint()
