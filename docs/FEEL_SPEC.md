@@ -25,9 +25,10 @@ How to read the columns: values are listed as 30 / 60 / 144 fps.
 | Walk foot slide (ankle) | While a foot is planted, its ankle's travel as % of body travel (0 = foot stays put); the original measure | 24 / 27 / 28 % → **15 / 16 / 17 %** with the jog and sprint clips | ≤ 10 % |
 | Run foot slide (ankle) | Same, running | 51 / 59 / 60 % → **21 / 23 / 25 %** | ≤ 15 % |
 | Strafe foot slide (ankle) | Same, strafing right | 27 / 30 / 29 % → **15 / 17 / 18 %** | ≤ 10 % |
-| Walk / run / strafe foot slide (visible) | Same, measured at the lowest corner of each lower-leg block (what touches the floor on screen) | Walk 14 / 17 / 19 %, run 19 / 27 / 31 %, strafe right 52 / 51 / 50 % (first recorded with the jog and sprint clips) | Proposed to replace the ankle targets; to agree with the owner |
+| Walk / run / strafe foot slide (visible) | Same, measured at the lowest corner of each lower-leg block (what touches the floor on screen) | Walk 14 / 17 / 19 %, run 19 / 27 / 31 %, strafe right 52 / 51 / 50 % (first recorded with the jog and sprint clips) | Diagnostic only; the owner kept the ankle targets |
 | Walk arm angle (unarmed) | Upper arm angle out from the body, front view (degrees) | 16 / 16 / 16 → 7.2 after the avatar rebuild → **0 / 2 / 1** with the jog clip | 5-9 (arms clear the chest block; proposed, confirm by playtest) |
-| Run torso lean | Side-view angle of the line from hips to neck, forward from vertical (degrees); standing reads about 6 | Jog 22 / 22 / 22, sprint clip 45 → **38 / 38 / 38** with Running Lean Correction 15 | Set by playtest |
+| Run torso lean | Side-view angle of the line from hips to neck, forward from vertical (degrees); standing reads about 6 | Jog 22 / 22 / 22, sprint clip 45 → 38 / 38 / 38 with Running Lean Correction 15 → **35 / 35 / 35** with 23.3 | 35 (Running Lean Correction 23.3, set by the owner's playtest) |
+| Run arm angle (unarmed) | Same measure as the walk arm angle, while sprinting | **38.5 / 38.5 / 38.5** with Running Arm Down Angle 51.5 | 38.5 (set by the owner's playtest) |
 | Input to walk pose | Frames from key down to the walk blend starting | 0 / 0 / 0 | Keep 0 |
 
 ## Weapons (start pad GR-Firing, GR-Strafe, GR-Rocket)

@@ -44,9 +44,9 @@ namespace StarterGame
         private float locomotionPhase;
         [Header("Running arms")]
         [Tooltip("Upper-arm angle down from horizontal when viewed from the front. 90 puts the arms straight beside the torso. Forward/backward swing follows the run clip.")]
-        [SerializeField, Range(0f, 90f)] private float runningArmDownAngle = 70f;
+        [SerializeField, Range(0f, 90f)] private float runningArmDownAngle = 51.5f;
         [Tooltip("Degrees to tilt the upper body back toward upright while running, on top of the run clip's own forward lean. 0 keeps the clip's posture. Fades in with the run; the legs are not changed.")]
-        [SerializeField, Range(0f, 30f)] private float runningLeanCorrection = 15f;
+        [SerializeField, Range(0f, 30f)] private float runningLeanCorrection = 23.3f;
         [Header("Unarmed attacks — Fighting Motions Vol1")]
         [Tooltip("Left-click plays the next clip, or queues one follow-up during an attack.")]
         [SerializeField] private AnimationClip[] fightingClips = new AnimationClip[0];

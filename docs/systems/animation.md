@@ -26,6 +26,6 @@ Walk, run and strafe on the Movement Course (F6) lane and open area; crouch in t
 - Feet still slide somewhat, most visibly when strafing ([feel spec](../FEEL_SPEC.md#animation)).
 - Running Lean Correction is applied by code after the animation, on the spine and chest, so it adds to the bones that several pieces of code already adjust.
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor and the other 3-4.5 cm: the one fixed height offset is set so the lowest point of a walking or running stride touches the floor, and the idle clip holds its feet higher than that (measured).
-- Running arms are still pulled straight down by code after the animation (Running Arm Down Angle).
+- Running arms are still pulled down toward the body by code after the animation (Running Arm Down Angle).
 - While running with a gun, the gun pose and support-hand grip are switched off, so the arms swing freely around the gun (support hand measured over a meter from its grip).
 - Several pieces of code rotate the same arm bones in one frame (graph, run tuck, special poses, punch contact, weapon pose).
