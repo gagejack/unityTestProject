@@ -24,6 +24,8 @@ There is one documented update order, in [docs/ARCHITECTURE.md](docs/ARCHITECTUR
 4. Anything that runs every frame is profiled when it changes.
 5. **Tools > Project > Check Docs** reports no problems.
 
+The full baseline (**Tools > Baseline > Run All Sequences**, about 5 minutes) is not part of every checkpoint. To check a change, run only the sequences it can affect. Ask the owner before running the full baseline.
+
 ## Documentation rules
 - Layout: `README.md`, this file, `CLAUDE.md`, and in `docs/`: `STATUS.md`, `ARCHITECTURE.md`, `FEEL_SPEC.md`, `TEST_AREAS.md`, `systems/_TEMPLATE.md`, `systems/<system>.md`, `decisions/NNNN-<title>.md`. Do not create other doc files without asking. (`docs/HANDOFF_PROMPT.md` is the original brief and is kept for reference.)
 - Each fact has one home; other pages link to it.
