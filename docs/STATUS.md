@@ -1,6 +1,6 @@
 # Status
 
-**Checkpoint 16 (plan step 6c): armed sprint.**
+**Checkpoint 16 (plan step 6c): armed sprint. Fixed view aiming specified (not built).**
 
 ## Current state
 - Sprinting with a two-handed gun keeps the sprint legs and torso and puts that gun family's WeaponHold pose on the arms (assault rifle, rifle, bazooka; brought over from the original project's Kevin Iglesias pack with their import settings). The support hand stays on the gun. Pistols and dual handguns keep a one-handed carry with swinging arms.
@@ -12,5 +12,8 @@
 - Standing idle, the lower foot hovers 1.5-2.5 cm above the floor (fix deferred by the owner).
 - Foot slide is still above the ankle targets for walk, run and strafe.
 
+## Last feedback
+- Armed sprint: looks good (owner playtest).
+
 ## Next step
-Owner playtest: equip an assault rifle, a rifle or shotgun, a bazooka and a pistol from F1 and sprint (Shift + W) on the Movement Course (F6). Then the next plan step: holstering (H toggles; guns stowed on the hip or back by category, with draw and holster moves).
+Fixed view aiming, agreed in [the spec](spec/FixedViewAiming/SPEC.md): the body faces the mouse cursor and shoots in any direction; sprint only within 45° of screen-up. Three checkpoints: aim point and facing, shooting, sprint rules and look-ahead. Holstering follows.

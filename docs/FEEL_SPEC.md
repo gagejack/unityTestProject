@@ -71,6 +71,18 @@ Re-measured after the mob AI moved to `MobBrain`: every value above is identical
 
 Target for mobs: foot slide ≤ 20 %. Over 100 % means the planted foot moves faster than the body: the clip's stride does not match the chase speed.
 
+## Fixed view aiming (proposed)
+Not built yet; from the [fixed view aiming spec](spec/FixedViewAiming/SPEC.md). Targets are proposed and confirmed by playtest after building. Start pad: the planned Gun Range ring.
+
+| Metric | Definition | Baseline 30 / 60 / 144 | Target |
+|---|---|---|---|
+| Turn to cursor | Seconds for the body to turn 180° toward the cursor | Not built | 0.25 ±1 frame at all frame rates |
+| Fixed-view aim error | Angle between the barrel and the line from muzzle to the aim point, facing settled (degrees) | Not built (shots currently follow the camera's downward view) | ≤ 0.5 |
+| Sprint outside the cone | Frames sprinting while travel is more than 45° from screen-up | Not built | 0 |
+| Sprint resume | Frames from re-entering the cone (sprint input held) to sprinting | Not built | ≤ 1 |
+| Dead-zone stability | Facing change while the cursor moves inside the dead zone (degrees) | Not built | 0 |
+| Look-ahead | Largest camera shift toward the cursor (m) | Not built | ≤ 3 |
+
 ## Notes on the measures
 - Hand jitter (in the raw logs) is a frame-to-frame second difference and shrinks with frame rate; compare it only at the same frame rate.
 - Ankle foot slide: a foot counts as planted while its ankle is within 3 cm of that ankle's lowest point in the window, so very short contacts at 30 fps are partly missed. Mob foot slide uses this measure.
